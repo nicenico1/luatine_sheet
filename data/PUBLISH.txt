@@ -1,0 +1,13 @@
+Comment sauvegarder pour tout le monde (y compris navigation privée)
+================================================================
+
+1. Sur le site, mode éditeur (mot de passe) → bouton « Exporter JSON ».
+2. Enregistrer le fichier téléchargé sous le nom exact : fiche-export.json
+3. Le placer dans ce dossier : data/fiche-export.json
+4. Dans le terminal, depuis le projet :
+   git add data/fiche-export.json
+   git commit -m "Mise à jour fiche RP"
+   git push
+
+Sans fiche-export.json dans le dépôt, seul le navigateur où tu édites garde une copie (localStorage).
+Les visiteurs et la fenêtre privée chargent le HTML par défaut + ce fichier s'il existe.

@@ -99,23 +99,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const persistDebounced = debounce(persistToLocalStorage, 600);
 
+    /** D’abord le JSON du dépôt (visible par tout le monde), puis le localStorage (ta session navigateur). */
     async function loadSavedData() {
-        let data = null;
+        try {
+            const r = await fetch('data/fiche-export.json', { cache: 'no-store' });
+            if (r.ok) {
+                const fromFetch = await r.json();
+                if (fromFetch && fromFetch.version === 2) applySaveSnapshot(fromFetch);
+            }
+        } catch (_) {
+            /* pas de fichier ou file:// */
+        }
         try {
             const raw = localStorage.getItem(STORAGE_SAVE_V2);
-            if (raw) data = JSON.parse(raw);
+            if (raw) {
+                const fromLocal = JSON.parse(raw);
+                if (fromLocal && fromLocal.version === 2) applySaveSnapshot(fromLocal);
+            }
         } catch (_) {
             /* ignore */
         }
-        if (!data || data.version !== 2) {
-            try {
-                const r = await fetch('data/fiche-export.json', { cache: 'no-store' });
-                if (r.ok) data = await r.json();
-            } catch (_) {
-                /* fichier absent ou file:// sans serveur */
-            }
-        }
-        if (data && data.version === 2) applySaveSnapshot(data);
     }
 
     await loadSavedData();
@@ -216,7 +219,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             a.click();
             URL.revokeObjectURL(a.href);
             window.alert(
-                'Fichier téléchargé. Placez-le dans le dossier data/ du dépôt sous le nom fiche-export.json, puis poussez sur GitHub pour que les visiteurs voient votre contenu.'
+                'Fichier téléchargé.\n\n' +
+                    '1) Renomme-le exactement : fiche-export.json\n' +
+                    '2) Mets-le dans le dossier data/ de ton projet (à côté de index.html)\n' +
+                    '3) git add data/fiche-export.json && git commit -m "Données fiche" && git push\n\n' +
+                    'Sans cette étape, seul ton navigateur mémorise les changements — pas le site pour les autres ni la navigation privée.'
             );
         });
     }
