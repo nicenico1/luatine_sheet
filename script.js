@@ -23,6 +23,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.applyLanguage(window.getLang());
     }
 
+    /** Langue : branché tout de suite (avant fetch sauvegarde) pour que les clics répondent toujours. */
+    function wireLangSwitcher() {
+        const root = document.getElementById('lang-switcher');
+        if (!root) return;
+        root.addEventListener('click', (e) => {
+            const t = e.target.closest('[data-lang]');
+            if (!t) return;
+            const lang = t.getAttribute('data-lang');
+            if (!lang || (typeof window.getLang === 'function' && lang === window.getLang())) return;
+            if (typeof window.setLang === 'function') window.setLang(lang);
+            try {
+                persistToLocalStorage();
+            } catch (_) {
+                /* ignore */
+            }
+            location.reload();
+        });
+    }
+
     const splashScreen = document.getElementById('splash-screen');
     const charSelectScreen = document.getElementById('char-select-screen');
     const charBioScreen = document.getElementById('char-bio-screen');
@@ -103,6 +122,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const persistDebounced = debounce(persistToLocalStorage, 600);
 
+    wireLangSwitcher();
+
     /** D’abord le JSON du dépôt (visible par tout le monde), puis le localStorage (ta session navigateur). */
     async function loadSavedData() {
         try {
@@ -126,16 +147,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     await loadSavedData();
-
-    document.getElementById('lang-switcher')?.addEventListener('click', (e) => {
-        const b = e.target.closest('button[data-lang]');
-        if (!b) return;
-        const lang = b.getAttribute('data-lang');
-        if (!lang || (typeof window.getLang === 'function' && lang === window.getLang())) return;
-        if (typeof window.setLang === 'function') window.setLang(lang);
-        persistToLocalStorage();
-        location.reload();
-    });
 
     /** Réinitialise l'opacité inline (sinon l'écran reste invisible après une transition). */
     function clearScreenOpacity(el) {

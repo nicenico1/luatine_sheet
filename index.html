@@ -9,10 +9,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="is-read-only">
-    <div id="lang-switcher" class="lang-switcher" role="navigation" data-i18n-aria="lang_switcher_aria">
-        <button type="button" class="lang-btn lang-btn--active" data-lang="fr" title="Français">🇫🇷</button>
-        <button type="button" class="lang-btn" data-lang="en" title="English">🇬🇧</button>
-    </div>
     <!-- Background -->
     <div class="background-image"></div>
     <div class="background-overlay"></div>
@@ -551,6 +547,12 @@
             <strong>Publication :</strong> la navigation privée et les autres lecteurs ne voient que ce qui est sur GitHub.
             Après tes modifs, clique <strong>Exporter JSON</strong>, enregistre le fichier sous <code>data/fiche-export.json</code>, puis <code>git add</code> / <code>commit</code> / <code>push</code>.
         </p>
+    </div>
+
+    <!-- Langue : en fin de body pour rester au-dessus des écrans plein écran (clics fiables) -->
+    <div id="lang-switcher" class="lang-switcher" role="navigation" data-i18n-aria="lang_switcher_aria">
+        <button type="button" class="lang-btn lang-btn--active" data-lang="fr" title="Français">🇫🇷</button>
+        <button type="button" class="lang-btn" data-lang="en" title="English">🇬🇧</button>
     </div>
 
     <script src="i18n.js"></script>
