@@ -9,6 +9,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="is-read-only">
+    <div id="lang-switcher" class="lang-switcher" role="navigation" data-i18n-aria="lang_switcher_aria">
+        <button type="button" class="lang-btn lang-btn--active" data-lang="fr" title="Français">🇫🇷</button>
+        <button type="button" class="lang-btn" data-lang="en" title="English">🇬🇧</button>
+    </div>
     <!-- Background -->
     <div class="background-image"></div>
     <div class="background-overlay"></div>
@@ -16,19 +20,19 @@
     <!-- Écran 1 : Splash Screen -->
     <div id="splash-screen" class="screen active">
         <div class="splash-content">
-            <p class="splash-text">"There it is, the story of how I died... - Lua Tyler"</p>
+            <p class="splash-text" data-i18n="splash_text" data-i18n-mode="html">"There it is, the story of how I died... - Lua Tyler"</p>
         </div>
     </div>
 
     <!-- Écran 2 : Sélection de Personnage -->
     <div id="char-select-screen" class="screen hidden">
-        <h1 class="page-title">PERSONNAGES</h1>
+        <h1 class="page-title" data-i18n="chars_title">PERSONNAGES</h1>
         
         <div class="char-cards-container">
             <div class="char-card" id="select-lua">
                 <div class="char-card-image">
                     <!-- Cliquez pour modifier l'image via JS -->
-                    <img src="https://via.placeholder.com/300x500/1a1c23/ffffff?text=Cliquez+pour+changer+l'image" alt="Lua Tyler" class="editable-image">
+                    <img src="https://via.placeholder.com/300x500/1a1c23/ffffff?text=Cliquez+pour+changer+l'image" alt="Lua Tyler" class="editable-image" data-i18n-placeholder="img_placeholder_card" data-ph-w="300" data-ph-h="500" data-ph-bg="1a1c23" data-ph-fg="ffffff">
                 </div>
                 <div class="char-card-info">
                     <h2 contenteditable="true">LUA TYLER</h2>
@@ -52,23 +56,23 @@
             
             <!-- Colonne de gauche : Modèle 3D / Image -->
             <div class="bio-left">
-                <img src="https://via.placeholder.com/400x800/1a1c23/ffffff?text=Cliquez+pour+changer+le+modèle" alt="Modèle Personnage" class="editable-image model-image">
+                <img src="https://via.placeholder.com/400x800/1a1c23/ffffff?text=Cliquez+pour+changer+le+modèle" alt="Modèle Personnage" class="editable-image model-image" data-i18n-placeholder="img_placeholder_model" data-ph-w="400" data-ph-h="800" data-ph-bg="1a1c23" data-ph-fg="ffffff" data-i18n-alt="alt_model">
             </div>
 
             <!-- Colonne centrale : Menu -->
             <div class="bio-menu">
-                <h2 class="menu-title" contenteditable="true">DOSSIER<br>CITOYEN</h2>
+                <h2 class="menu-title" contenteditable="true" data-i18n="menu_dossier" data-i18n-mode="html">DOSSIER<br>CITOYEN</h2>
                 
                 <nav class="vertical-nav">
-                    <a href="#" class="nav-btn active" data-target="tab-personnage"><i class="fas fa-id-card"></i> PERSONNAGE</a>
-                    <a href="#" class="nav-btn" data-target="tab-famille"><i class="fas fa-users"></i> FAMILLE</a>
-                    <a href="#" class="nav-btn" data-target="tab-apparences"><i class="fas fa-wand-magic-sparkles"></i> APPARENCES</a>
-                    <a href="#" class="nav-btn" data-target="tab-cheveux"><i class="fas fa-cut"></i> CHEVEUX</a>
-                    <a href="#" class="nav-btn" data-target="tab-vetements"><i class="fas fa-shirt"></i> VÊTEMENTS</a>
-                    <a href="#" class="nav-btn" data-target="tab-traits"><i class="fas fa-dice"></i> TRAITS</a>
-                    <a href="#" class="nav-btn" data-target="tab-attributs"><i class="fas fa-scale-balanced"></i> ATTRIBUTS</a>
-                    <a href="#" class="nav-btn" data-target="tab-competences"><i class="fas fa-screwdriver-wrench"></i> COMPÉTENCES</a>
-                    <a href="#" class="nav-btn" data-target="tab-parcours"><i class="fas fa-person-walking"></i> PARCOURS</a>
+                    <a href="#" class="nav-btn active" data-target="tab-personnage" data-i18n-nav="nav_personnage"><i class="fas fa-id-card"></i> PERSONNAGE</a>
+                    <a href="#" class="nav-btn" data-target="tab-famille" data-i18n-nav="nav_famille"><i class="fas fa-users"></i> FAMILLE</a>
+                    <a href="#" class="nav-btn" data-target="tab-apparences" data-i18n-nav="nav_apparences"><i class="fas fa-wand-magic-sparkles"></i> APPARENCES</a>
+                    <a href="#" class="nav-btn" data-target="tab-cheveux" data-i18n-nav="nav_cheveux"><i class="fas fa-cut"></i> CHEVEUX</a>
+                    <a href="#" class="nav-btn" data-target="tab-vetements" data-i18n-nav="nav_vetements"><i class="fas fa-shirt"></i> VÊTEMENTS</a>
+                    <a href="#" class="nav-btn" data-target="tab-traits" data-i18n-nav="nav_traits"><i class="fas fa-dice"></i> TRAITS</a>
+                    <a href="#" class="nav-btn" data-target="tab-attributs" data-i18n-nav="nav_attributs"><i class="fas fa-scale-balanced"></i> ATTRIBUTS</a>
+                    <a href="#" class="nav-btn" data-target="tab-competences" data-i18n-nav="nav_competences"><i class="fas fa-screwdriver-wrench"></i> COMPÉTENCES</a>
+                    <a href="#" class="nav-btn" data-target="tab-parcours" data-i18n-nav="nav_parcours"><i class="fas fa-person-walking"></i> PARCOURS</a>
                 </nav>
             </div>
 
@@ -78,141 +82,141 @@
                 <!-- Onglet Personnage -->
                 <div id="tab-personnage" class="tab-content active">
                     <div class="form-group">
-                        <label>NOM/GENRE</label>
+                        <label data-i18n="lab_nom_genre">NOM/GENRE</label>
                         <div class="input-box flex-between">
                             <span contenteditable="true" class="editable-text">Lua Tyler</span>
                             <span class="gender-icons" contenteditable="true">♂ ♀</span>
                         </div>
-                        <p class="warning-text"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true">Votre nom doit contenir au minimum 4 caractères (9 / 32)</span></p>
+                        <p class="warning-text"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true" data-i18n="warn_nom" data-i18n-mode="html">Votre nom doit contenir au minimum 4 caractères (9 / 32)</span></p>
                     </div>
 
                     <div class="form-group">
-                        <label>DESCRIPTION GÉNÉTIQUE</label>
+                        <label data-i18n="lab_genetique">DESCRIPTION GÉNÉTIQUE</label>
                         <div class="grid-2">
-                            <div class="dropdown-mock" contenteditable="true">ÂGE <i class="fas fa-chevron-down"></i></div>
-                            <div class="dropdown-mock" contenteditable="true">COULEUR DES YEUX <i class="fas fa-chevron-down"></i></div>
+                            <div class="dropdown-mock" contenteditable="true" data-i18n-key="dd_age">ÂGE <i class="fas fa-chevron-down"></i></div>
+                            <div class="dropdown-mock" contenteditable="true" data-i18n-key="dd_yeux">COULEUR DES YEUX <i class="fas fa-chevron-down"></i></div>
                         </div>
                         <div class="progress-bar-container">
                             <div class="progress-bar" style="width: 40%;"></div>
                             <span class="progress-text" contenteditable="true">1m72</span>
                         </div>
-                        <p class="warning-text"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true">Les valeurs de description génétique sont permanentes.</span></p>
+                        <p class="warning-text"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true" data-i18n="warn_genetique" data-i18n-mode="html">Les valeurs de description génétique sont permanentes.</span></p>
                     </div>
 
                     <div class="form-group">
-                        <label>SECONDE LANGUE</label>
-                        <div class="dropdown-mock w-50" contenteditable="true">LANGUAGE <i class="fas fa-chevron-down"></i></div>
+                        <label data-i18n="lab_langue">SECONDE LANGUE</label>
+                        <div class="dropdown-mock w-50" contenteditable="true" data-i18n-key="dd_langue">LANGUAGE <i class="fas fa-chevron-down"></i></div>
                     </div>
 
                     <div class="form-group">
-                        <label>DESCRIPTION PHYSIQUE</label>
-                        <div class="textarea-mock" contenteditable="true">
+                        <label data-i18n="lab_physique">DESCRIPTION PHYSIQUE</label>
+                        <div class="textarea-mock" contenteditable="true" data-i18n="phys_combined" data-i18n-mode="html">
                             Décrivez l'apparence physique de votre personnage ici...
                             <br><br>
                             Lua est une citoyenne d'apparence fatiguée, portant des lunettes à monture noire. Ses vêtements standards de l'U.N.I.S.C.A. sont légèrement usés par le temps.
                         </div>
-                        <p class="warning-text"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true">Votre description doit contenir au minimum 32 caractères (150 / 512)</span></p>
+                        <p class="warning-text"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true" data-i18n="warn_physique" data-i18n-mode="html">Votre description doit contenir au minimum 32 caractères (150 / 512)</span></p>
                     </div>
                 </div>
 
                 <!-- FAMILLE -->
                 <div id="tab-famille" class="tab-content">
-                    <h3 class="section-heading">INFORMATIONS FAMILIALES</h3>
-                    <p class="warning-text block-warning"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true">Aucun membre de la famille n'est dans votre district. Cette partie est facultative. (Ces informations pourraient être connues en RP.)</span></p>
+                    <h3 class="section-heading" data-i18n="famille_heading">INFORMATIONS FAMILIALES</h3>
+                    <p class="warning-text block-warning"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true" data-i18n="famille_warn" data-i18n-mode="html">Aucun membre de la famille n'est dans votre district. Cette partie est facultative. (Ces informations pourraient être connues en RP.)</span></p>
                     <div class="member-block">
-                        <label>MEMBRE DE LA FAMILLE 1</label>
+                        <label data-i18n="membre1">MEMBRE DE LA FAMILLE 1</label>
                         <div class="grid-2">
-                            <div class="dropdown-mock" contenteditable="true">TYPE <i class="fas fa-chevron-down"></i></div>
-                            <div class="input-box" contenteditable="true">Nom du membre...</div>
+                            <div class="dropdown-mock" contenteditable="true" data-i18n-key="dd_type">TYPE <i class="fas fa-chevron-down"></i></div>
+                            <div class="input-box" contenteditable="true" data-i18n="nom_membre_ph">Nom du membre...</div>
                         </div>
-                        <div class="textarea-mock" contenteditable="true" style="min-height: 100px;">Informations sur cette personne...</div>
+                        <div class="textarea-mock" contenteditable="true" style="min-height: 100px;" data-i18n="info_membre_ph">Informations sur cette personne...</div>
                     </div>
                     <div class="member-block">
-                        <label>MEMBRE DE LA FAMILLE 2</label>
+                        <label data-i18n="membre2">MEMBRE DE LA FAMILLE 2</label>
                         <div class="grid-2">
-                            <div class="dropdown-mock" contenteditable="true">TYPE <i class="fas fa-chevron-down"></i></div>
-                            <div class="input-box" contenteditable="true">Nom du membre...</div>
+                            <div class="dropdown-mock" contenteditable="true" data-i18n-key="dd_type">TYPE <i class="fas fa-chevron-down"></i></div>
+                            <div class="input-box" contenteditable="true" data-i18n="nom_membre_ph">Nom du membre...</div>
                         </div>
-                        <div class="textarea-mock" contenteditable="true" style="min-height: 100px;">Informations sur cette personne...</div>
+                        <div class="textarea-mock" contenteditable="true" style="min-height: 100px;" data-i18n="info_membre_ph">Informations sur cette personne...</div>
                     </div>
                     <div class="member-block">
-                        <label>MEMBRE DE LA FAMILLE 3</label>
+                        <label data-i18n="membre3">MEMBRE DE LA FAMILLE 3</label>
                         <div class="grid-2">
-                            <div class="dropdown-mock" contenteditable="true">TYPE <i class="fas fa-chevron-down"></i></div>
-                            <div class="input-box" contenteditable="true">Nom du membre...</div>
+                            <div class="dropdown-mock" contenteditable="true" data-i18n-key="dd_type">TYPE <i class="fas fa-chevron-down"></i></div>
+                            <div class="input-box" contenteditable="true" data-i18n="nom_membre_ph">Nom du membre...</div>
                         </div>
-                        <div class="textarea-mock" contenteditable="true" style="min-height: 100px;">Informations sur cette personne...</div>
+                        <div class="textarea-mock" contenteditable="true" style="min-height: 100px;" data-i18n="info_membre_ph">Informations sur cette personne...</div>
                     </div>
                 </div>
 
                 <!-- APPARENCES -->
                 <div id="tab-apparences" class="tab-content">
-                    <h3 class="section-heading">APPARENCES GÉNÉRALES</h3>
-                    <p class="warning-text block-warning"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true">Décrivez ce qui est visible au premier regard (visage, corpulence, démarche, etc.).</span></p>
+                    <h3 class="section-heading" data-i18n="app_heading">APPARENCES GÉNÉRALES</h3>
+                    <p class="warning-text block-warning"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true" data-i18n="app_warn" data-i18n-mode="html">Décrivez ce qui est visible au premier regard (visage, corpulence, démarche, etc.).</span></p>
                     <div class="form-group">
-                        <label>VISAGE &amp; SILHOUETTE</label>
-                        <div class="textarea-mock" contenteditable="true" style="min-height: 140px;">Traits du visage, teint, cicatrices visibles, corpulence, posture...</div>
+                        <label data-i18n="lab_visage">VISAGE &amp; SILHOUETTE</label>
+                        <div class="textarea-mock" contenteditable="true" style="min-height: 140px;" data-i18n="visage_ph">Traits du visage, teint, cicatrices visibles, corpulence, posture...</div>
                     </div>
                     <div class="form-group">
-                        <label>PRÉSENCE</label>
-                        <div class="textarea-mock" contenteditable="true" style="min-height: 100px;">Impression générale : discret, nerveux, assuré...</div>
+                        <label data-i18n="lab_presence">PRÉSENCE</label>
+                        <div class="textarea-mock" contenteditable="true" style="min-height: 100px;" data-i18n="presence_ph">Impression générale : discret, nerveux, assuré...</div>
                     </div>
                 </div>
 
                 <!-- CHEVEUX -->
                 <div id="tab-cheveux" class="tab-content">
-                    <h3 class="section-heading">CHEVEUX</h3>
+                    <h3 class="section-heading" data-i18n="cheveux_heading">CHEVEUX</h3>
                     <div class="grid-2">
                         <div class="form-group">
-                            <label>COUPE / STYLE</label>
-                            <div class="dropdown-mock" contenteditable="true">STYLE <i class="fas fa-chevron-down"></i></div>
+                            <label data-i18n="lab_coupe">COUPE / STYLE</label>
+                            <div class="dropdown-mock" contenteditable="true" data-i18n-key="dd_style">STYLE <i class="fas fa-chevron-down"></i></div>
                         </div>
                         <div class="form-group">
-                            <label>COULEUR</label>
-                            <div class="dropdown-mock" contenteditable="true">COULEUR <i class="fas fa-chevron-down"></i></div>
+                            <label data-i18n="lab_couleur">COULEUR</label>
+                            <div class="dropdown-mock" contenteditable="true" data-i18n-key="dd_couleur">COULEUR <i class="fas fa-chevron-down"></i></div>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>LONGUEUR</label>
-                        <div class="dropdown-mock w-50" contenteditable="true">LONGUEUR <i class="fas fa-chevron-down"></i></div>
+                        <label data-i18n="lab_longueur">LONGUEUR</label>
+                        <div class="dropdown-mock w-50" contenteditable="true" data-i18n-key="dd_longueur">LONGUEUR <i class="fas fa-chevron-down"></i></div>
                     </div>
                     <div class="form-group">
-                        <label>DÉTAILS (RP)</label>
-                        <div class="textarea-mock" contenteditable="true" style="min-height: 160px;">Châtain, tirés en arrière, mèches rebelles, etc.</div>
+                        <label data-i18n="lab_details_rp">DÉTAILS (RP)</label>
+                        <div class="textarea-mock" contenteditable="true" style="min-height: 160px;" data-i18n="cheveux_ph">Châtain, tirés en arrière, mèches rebelles, etc.</div>
                     </div>
                 </div>
 
                 <!-- VÊTEMENTS -->
                 <div id="tab-vetements" class="tab-content">
-                    <h3 class="section-heading">VÊTEMENTS &amp; TENUE</h3>
-                    <p class="warning-text block-warning"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true">Tenue habituelle et accessoires portés en permanence.</span></p>
+                    <h3 class="section-heading" data-i18n="vet_heading">VÊTEMENTS &amp; TENUE</h3>
+                    <p class="warning-text block-warning"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true" data-i18n="vet_warn" data-i18n-mode="html">Tenue habituelle et accessoires portés en permanence.</span></p>
                     <div class="form-group">
-                        <label>TENUE HABITUELLE</label>
-                        <div class="textarea-mock" contenteditable="true" style="min-height: 140px;">Veste U.N.I.S.C.A., pantalon sombre, chaussures usées...</div>
+                        <label data-i18n="lab_tenue">TENUE HABITUELLE</label>
+                        <div class="textarea-mock" contenteditable="true" style="min-height: 140px;" data-i18n="tenue_ph">Veste U.N.I.S.C.A., pantalon sombre, chaussures usées...</div>
                     </div>
                     <div class="form-group">
-                        <label>ACCESSOIRES</label>
-                        <div class="textarea-mock" contenteditable="true" style="min-height: 100px;">Lunettes, badge, sac, montre...</div>
+                        <label data-i18n="lab_accessoires">ACCESSOIRES</label>
+                        <div class="textarea-mock" contenteditable="true" style="min-height: 100px;" data-i18n="acc_ph">Lunettes, badge, sac, montre...</div>
                     </div>
                 </div>
 
                 <!-- TRAITS -->
                 <div id="tab-traits" class="tab-content">
                     <div class="tab-head-row">
-                        <h3 class="section-heading">SÉLECTION DES TRAITS</h3>
+                        <h3 class="section-heading" data-i18n="traits_heading">SÉLECTION DES TRAITS</h3>
                     </div>
-                    <p class="warning-text block-warning"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true">Les traits sont des archétypes utilisés par les maîtres du jeu.</span></p>
-                    <p class="counter-line"><span contenteditable="true">Traits sélectionnés : 0 / 4</span></p>
+                    <p class="warning-text block-warning"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true" data-i18n="traits_warn" data-i18n-mode="html">Les traits sont des archétypes utilisés par les maîtres du jeu.</span></p>
+                    <p class="counter-line"><span contenteditable="true" data-i18n="traits_count" data-i18n-mode="html">Traits sélectionnés : 0 / 4</span></p>
                     <div class="trait-picker">
                         <div class="trait-picker-head">
                             <button type="button" class="trait-nav editor-only" aria-label="Précédent"><i class="fas fa-chevron-left"></i></button>
-                            <span contenteditable="true">TRAIT #1</span>
+                            <span contenteditable="true" data-i18n="trait_num">TRAIT #1</span>
                             <button type="button" class="trait-nav editor-only" aria-label="Suivant"><i class="fas fa-chevron-right"></i></button>
                         </div>
-                        <p class="trait-name" contenteditable="true">LOGIQUE</p>
-                        <p class="trait-sub" contenteditable="true">Intellect — Le monde des idées</p>
-                        <div class="textarea-mock trait-desc" contenteditable="true">Arme de votre force intellectuelle, décryptez le monde environnant.</div>
-                        <button type="button" class="btn-validate editor-only">VALIDER CE TRAIT</button>
+                        <p class="trait-name" contenteditable="true" data-i18n="trait_nom">LOGIQUE</p>
+                        <p class="trait-sub" contenteditable="true" data-i18n="trait_sub">Intellect — Le monde des idées</p>
+                        <div class="textarea-mock trait-desc" contenteditable="true" data-i18n="trait_desc">Arme de votre force intellectuelle, décryptez le monde environnant.</div>
+                        <button type="button" class="btn-validate editor-only" data-i18n="btn_valider_trait">VALIDER CE TRAIT</button>
                     </div>
                     <div class="traits-summary">
                         <span>1</span><span>2</span><span>3</span><span>4</span>
@@ -228,15 +232,15 @@
                 <!-- ATTRIBUTS -->
                 <div id="tab-attributs" class="tab-content">
                     <div class="tab-head-row">
-                        <h3 class="section-heading">SÉLECTION DES ATTRIBUTS</h3>
+                        <h3 class="section-heading" data-i18n="attr_heading">SÉLECTION DES ATTRIBUTS</h3>
                         <span class="points-remaining" id="attr-points-label"><span id="attr-points-num">8</span> point(s) restant(s)</span>
                     </div>
                     <div class="stepper-list" data-pool="attr" data-pool-total="8">
                         <div class="stepper-row" data-min="0" data-max="8">
                             <div class="stepper-icon"><i class="fas fa-fist-raised"></i></div>
                             <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true">FORCE</span>
-                                <span class="stepper-desc" contenteditable="true">Bonus majeur aux armes à feu / Bonus mineur à la vitesse et au craft.</span>
+                                <span class="stepper-title" contenteditable="true" data-i18n="attr_force">FORCE</span>
+                                <span class="stepper-desc" contenteditable="true" data-i18n="attr_force_desc">Bonus majeur aux armes à feu / Bonus mineur à la vitesse et au craft.</span>
                             </div>
                             <div class="stepper-controls">
                                 <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
@@ -247,8 +251,8 @@
                         <div class="stepper-row" data-min="0" data-max="8">
                             <div class="stepper-icon"><i class="fas fa-eye"></i></div>
                             <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true">PERCEPTION</span>
-                                <span class="stepper-desc" contenteditable="true">Bonus majeur à la cuisine / Bonus mineur à la contrebande et aux armes.</span>
+                                <span class="stepper-title" contenteditable="true" data-i18n="attr_perc">PERCEPTION</span>
+                                <span class="stepper-desc" contenteditable="true" data-i18n="attr_perc_desc">Bonus majeur à la cuisine / Bonus mineur à la contrebande et aux armes.</span>
                             </div>
                             <div class="stepper-controls">
                                 <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
@@ -259,8 +263,8 @@
                         <div class="stepper-row" data-min="0" data-max="8">
                             <div class="stepper-icon"><i class="fas fa-person-running"></i></div>
                             <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true">AGILITÉ</span>
-                                <span class="stepper-desc" contenteditable="true">Bonus majeur à la contrebande et à la vitesse / Bonus mineur à la médecine.</span>
+                                <span class="stepper-title" contenteditable="true" data-i18n="attr_agi">AGILITÉ</span>
+                                <span class="stepper-desc" contenteditable="true" data-i18n="attr_agi_desc">Bonus majeur à la contrebande et à la vitesse / Bonus mineur à la médecine.</span>
                             </div>
                             <div class="stepper-controls">
                                 <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
@@ -271,8 +275,8 @@
                         <div class="stepper-row" data-min="0" data-max="8">
                             <div class="stepper-icon"><i class="fas fa-graduation-cap"></i></div>
                             <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true">INTELLIGENCE</span>
-                                <span class="stepper-desc" contenteditable="true">Bonus majeur à la médecine et au craft / Bonus mineur à la cuisine.</span>
+                                <span class="stepper-title" contenteditable="true" data-i18n="attr_int">INTELLIGENCE</span>
+                                <span class="stepper-desc" contenteditable="true" data-i18n="attr_int_desc">Bonus majeur à la médecine et au craft / Bonus mineur à la cuisine.</span>
                             </div>
                             <div class="stepper-controls">
                                 <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
@@ -281,22 +285,22 @@
                             </div>
                         </div>
                     </div>
-                    <p class="warning-text block-warning"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true">Les attributs sont permanents et ne peuvent être modifiés que temporairement en RP selon les règles du serveur.</span></p>
+                    <p class="warning-text block-warning"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true" data-i18n="warn_attr" data-i18n-mode="html">Les attributs sont permanents et ne peuvent être modifiés que temporairement en RP selon les règles du serveur.</span></p>
                 </div>
 
                 <!-- COMPÉTENCES -->
                 <div id="tab-competences" class="tab-content">
                     <div class="tab-head-row">
-                        <h3 class="section-heading">SÉLECTION DES COMPÉTENCES</h3>
+                        <h3 class="section-heading" data-i18n="skill_heading">SÉLECTION DES COMPÉTENCES</h3>
                         <span class="points-remaining" id="skill-points-label"><span id="skill-points-num">10</span> point(s) restant(s)</span>
                     </div>
                     <div class="stepper-list" data-pool="skill" data-pool-total="10">
                         <div class="stepper-row skill-row" data-min="0" data-max="50">
                             <div class="stepper-icon"><i class="fas fa-kit-medical"></i></div>
                             <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true">MÉDECINE</span>
-                                <span class="skill-meta" contenteditable="true">Niveaux d'attribut : +0</span>
-                                <span class="stepper-desc" contenteditable="true">Soignez-vous et soignez les autres.</span>
+                                <span class="stepper-title" contenteditable="true" data-i18n="sk_med">MÉDECINE</span>
+                                <span class="skill-meta" contenteditable="true" data-i18n="skill_meta">Niveaux d'attribut : +0</span>
+                                <span class="stepper-desc" contenteditable="true" data-i18n="sk_med_desc">Soignez-vous et soignez les autres.</span>
                             </div>
                             <div class="stepper-controls">
                                 <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
@@ -307,9 +311,9 @@
                         <div class="stepper-row skill-row" data-min="0" data-max="50">
                             <div class="stepper-icon"><i class="fas fa-skull-crossbones"></i></div>
                             <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true">CONTREBANDE</span>
-                                <span class="skill-meta" contenteditable="true">Niveaux d'attribut : +0</span>
-                                <span class="stepper-desc" contenteditable="true">Achetez des marchandises illégales au marché noir.</span>
+                                <span class="stepper-title" contenteditable="true" data-i18n="sk_contre">CONTREBANDE</span>
+                                <span class="skill-meta" contenteditable="true" data-i18n="skill_meta">Niveaux d'attribut : +0</span>
+                                <span class="stepper-desc" contenteditable="true" data-i18n="sk_contre_desc">Achetez des marchandises illégales au marché noir.</span>
                             </div>
                             <div class="stepper-controls">
                                 <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
@@ -320,9 +324,9 @@
                         <div class="stepper-row skill-row" data-min="0" data-max="50">
                             <div class="stepper-icon"><i class="fas fa-crosshairs"></i></div>
                             <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true">ARMES À FEU</span>
-                                <span class="skill-meta" contenteditable="true">Niveaux d'attribut : +0</span>
-                                <span class="stepper-desc" contenteditable="true">Connaissance du maniement des armes à feu.</span>
+                                <span class="stepper-title" contenteditable="true" data-i18n="sk_armes">ARMES À FEU</span>
+                                <span class="skill-meta" contenteditable="true" data-i18n="skill_meta">Niveaux d'attribut : +0</span>
+                                <span class="stepper-desc" contenteditable="true" data-i18n="sk_armes_desc">Connaissance du maniement des armes à feu.</span>
                             </div>
                             <div class="stepper-controls">
                                 <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
@@ -333,9 +337,9 @@
                         <div class="stepper-row skill-row" data-min="0" data-max="50">
                             <div class="stepper-icon"><i class="fas fa-gauge-high"></i></div>
                             <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true">VITESSE</span>
-                                <span class="skill-meta" contenteditable="true">Niveaux d'attribut : +0</span>
-                                <span class="stepper-desc" contenteditable="true">Gagnez l'initiative au combat, courez plus loin et plus vite.</span>
+                                <span class="stepper-title" contenteditable="true" data-i18n="sk_vit">VITESSE</span>
+                                <span class="skill-meta" contenteditable="true" data-i18n="skill_meta">Niveaux d'attribut : +0</span>
+                                <span class="stepper-desc" contenteditable="true" data-i18n="sk_vit_desc">Gagnez l'initiative au combat, courez plus loin et plus vite.</span>
                             </div>
                             <div class="stepper-controls">
                                 <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
@@ -346,9 +350,9 @@
                         <div class="stepper-row skill-row" data-min="0" data-max="50">
                             <div class="stepper-icon"><i class="fas fa-utensils"></i></div>
                             <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true">CUISINE</span>
-                                <span class="skill-meta" contenteditable="true">Niveaux d'attribut : +0</span>
-                                <span class="stepper-desc" contenteditable="true">Votre talent culinaire.</span>
+                                <span class="stepper-title" contenteditable="true" data-i18n="sk_cuisine">CUISINE</span>
+                                <span class="skill-meta" contenteditable="true" data-i18n="skill_meta">Niveaux d'attribut : +0</span>
+                                <span class="stepper-desc" contenteditable="true" data-i18n="sk_cuisine_desc">Votre talent culinaire.</span>
                             </div>
                             <div class="stepper-controls">
                                 <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
@@ -359,9 +363,9 @@
                         <div class="stepper-row skill-row" data-min="0" data-max="50">
                             <div class="stepper-icon"><i class="fas fa-hand-fist"></i></div>
                             <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true">CORPS À CORPS</span>
-                                <span class="skill-meta" contenteditable="true">Niveaux d'attribut : +0</span>
-                                <span class="stepper-desc" contenteditable="true">Votre maîtrise des armes de mêlée.</span>
+                                <span class="stepper-title" contenteditable="true" data-i18n="sk_cac">CORPS À CORPS</span>
+                                <span class="skill-meta" contenteditable="true" data-i18n="skill_meta">Niveaux d'attribut : +0</span>
+                                <span class="stepper-desc" contenteditable="true" data-i18n="sk_cac_desc">Votre maîtrise des armes de mêlée.</span>
                             </div>
                             <div class="stepper-controls">
                                 <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
@@ -372,9 +376,9 @@
                         <div class="stepper-row skill-row" data-min="0" data-max="50">
                             <div class="stepper-icon"><i class="fas fa-hammer"></i></div>
                             <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true">ARTISANAT</span>
-                                <span class="skill-meta" contenteditable="true">Niveaux d'attribut : +0</span>
-                                <span class="stepper-desc" contenteditable="true">Réparation, démontage et fabrication d'objets.</span>
+                                <span class="stepper-title" contenteditable="true" data-i18n="sk_art">ARTISANAT</span>
+                                <span class="skill-meta" contenteditable="true" data-i18n="skill_meta">Niveaux d'attribut : +0</span>
+                                <span class="stepper-desc" contenteditable="true" data-i18n="sk_art_desc">Réparation, démontage et fabrication d'objets.</span>
                             </div>
                             <div class="stepper-controls">
                                 <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
@@ -383,18 +387,18 @@
                             </div>
                         </div>
                     </div>
-                    <p class="warning-text block-warning"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true">Les compétences ont un niveau maximum de 50.</span></p>
+                    <p class="warning-text block-warning"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true" data-i18n="warn_skills" data-i18n-mode="html">Les compétences ont un niveau maximum de 50.</span></p>
                 </div>
 
                 <!-- PARCOURS -->
                 <div id="tab-parcours" class="tab-content">
-                    <h3 class="section-heading">SÉLECTION DU PARCOURS</h3>
+                    <h3 class="section-heading" data-i18n="parcours_heading">SÉLECTION DU PARCOURS</h3>
                     <div class="parcours-box">
-                        <p class="parcours-placeholder" contenteditable="true">Aucune sélection de parcours disponible pour cette faction — décrivez ici le parcours RP de Lua (études, emplois, événements marquants avant l'arrivée à City 17).</p>
+                        <p class="parcours-placeholder" contenteditable="true" data-i18n="parcours_ph" data-i18n-mode="html">Aucune sélection de parcours disponible pour cette faction — décrivez ici le parcours RP de Lua (études, emplois, événements marquants avant l'arrivée à City 17).</p>
                     </div>
                     <div class="form-group">
-                        <label>HISTOIRE &amp; PARCOURS (RP)</label>
-                        <div class="textarea-mock" contenteditable="true" style="min-height: 280px;">Enfance, formation, pertes, ralliement à l'U.N.I.S.C.A., tout ce qui forge le personnage aujourd'hui...</div>
+                        <label data-i18n="hist_heading">HISTOIRE &amp; PARCOURS (RP)</label>
+                        <div class="textarea-mock" contenteditable="true" style="min-height: 280px;" data-i18n="hist_ph">Enfance, formation, pertes, ralliement à l'U.N.I.S.C.A., tout ce qui forge le personnage aujourd'hui...</div>
                     </div>
                 </div>
 
@@ -402,7 +406,7 @@
                 <div class="form-actions">
                     <button type="button" class="btn-text" id="btn-retour-select"><i class="fas fa-arrow-left"></i> RETOUR</button>
                     <button type="button" class="btn-text" id="btn-next-journal">SUIVANT <i class="fas fa-arrow-right"></i></button>
-                    <button type="button" class="btn-text disabled editor-only">TERMINER <i class="fas fa-check"></i></button>
+                    <button type="button" class="btn-text disabled editor-only" id="btn-finish">TERMINER <i class="fas fa-check"></i></button>
                 </div>
             </div>
 
@@ -413,22 +417,22 @@
     <div id="journal-screen" class="screen hidden">
         <div class="journal-atmosphere"></div>
         <div class="journal-wrap journal-wrap--book">
-            <div class="journal-stamp">CONFIDENTIEL</div>
+            <div class="journal-stamp" data-i18n="journal_stamp">CONFIDENTIEL</div>
             <header class="journal-header journal-header--book">
-                <p class="journal-doc-id" contenteditable="true">DOCUMENT — NIVEAU D / USAGE RP</p>
-                <h1 class="journal-title" contenteditable="true">JOURNAL INTIME</h1>
-                <p class="journal-author" contenteditable="true">Lua Tyler — citoyenne — U.N.I.S.C.A.</p>
+                <p class="journal-doc-id" contenteditable="true" data-i18n="journal_doc" data-i18n-mode="html">DOCUMENT — NIVEAU D / USAGE RP</p>
+                <h1 class="journal-title" contenteditable="true" data-i18n="journal_title">JOURNAL INTIME</h1>
+                <p class="journal-author" contenteditable="true" data-i18n="journal_author" data-i18n-mode="html">Lua Tyler — citoyenne — U.N.I.S.C.A.</p>
             </header>
 
             <div class="journal-book" id="journal-entries">
                 <!-- Double page 1 -->
-                <section class="book-spread" aria-label="Double page 1">
+                <section class="book-spread" data-i18n-aria="spread_aria_1">
                     <div class="book-page book-page--left">
                         <div class="book-page-inner">
-                            <p class="book-text book-text--body" contenteditable="true">
+                            <p class="book-text book-text--body" contenteditable="true" data-i18n="book_p1" data-i18n-mode="html">
                                 City 9 ne ressemble à rien de ce que j’avais lu dans les romans de mon père. Ici, être loyaliste, c’est coopérer avec la Protection civile, accepter les rationnements, fermer les yeux sur ce qu’on entend la nuit. J’écris ces lignes pour moi seule — si quelqu’un les lit plus tard, qu’il sache que ce n’était pas de la lâcheté, seulement de la survie.
                             </p>
-                            <div class="combine-emblem" title="Emblème (décoratif)">
+                            <div class="combine-emblem" title="Emblème (décoratif)" data-i18n-title="emblem_title">
                                 <svg viewBox="0 0 100 100" aria-hidden="true" class="combine-emblem-svg">
                                     <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="2.5"/>
                                     <circle cx="50" cy="50" r="20" fill="currentColor"/>
@@ -442,33 +446,33 @@
                     <div class="book-page book-page--right">
                         <div class="book-page-inner">
                             <figure class="photo-taped">
-                                <img src="https://via.placeholder.com/520x340/d4d2cc/5a5a5a?text=Portrait+%28éditeur+%3D+URL%29" alt="" class="editable-image journal-photo book-photo" width="520" height="340">
+                                <img src="https://via.placeholder.com/520x340/d4d2cc/5a5a5a?text=Portrait+%28éditeur+%3D+URL%29" alt="" class="editable-image journal-photo book-photo" width="520" height="340" data-i18n-placeholder="img_ph_journal" data-ph-w="520" data-ph-h="340" data-ph-bg="d4d2cc" data-ph-fg="5a5a5a">
                             </figure>
-                            <p class="book-caption" contenteditable="true">Lua Tyler — Summer 2023.<br>—<br>Paris, City 9.</p>
+                            <p class="book-caption" contenteditable="true" data-i18n="book_cap1" data-i18n-mode="html">Lua Tyler — Summer 2023.<br>—<br>Paris, City 9.</p>
                             <div class="book-page-num" contenteditable="true">149</div>
                         </div>
                     </div>
                 </section>
 
                 <!-- Double page 2 -->
-                <section class="book-spread" aria-label="Double page 2">
+                <section class="book-spread" data-i18n-aria="spread_aria_2">
                     <div class="book-page book-page--left">
                         <div class="book-page-inner">
-                            <h2 class="book-heading" contenteditable="true">Identity card</h2>
+                            <h2 class="book-heading" contenteditable="true" data-i18n="id_heading">Identity card</h2>
                             <div class="book-id-grid">
-                                <div class="book-id-col" contenteditable="true">
+                                <div class="book-id-col" contenteditable="true" data-i18n="id_col1" data-i18n-mode="html">
                                     Name: Lua Tyler (Daisy).<br>
                                     Height: 170cm.<br>
                                     Weight: 52kg.<br>
                                     Eyes: Brown.<br>
                                     Age: 29.
                                 </div>
-                                <div class="book-id-col" contenteditable="true">
+                                <div class="book-id-col" contenteditable="true" data-i18n="id_col2" data-i18n-mode="html">
                                     Birth: May 3, 1998 — Seattle.
                                 </div>
                             </div>
-                            <p class="book-label" contenteditable="true">Biography:</p>
-                            <p class="book-text book-text--body book-text--justify" contenteditable="true">
+                            <p class="book-label" contenteditable="true" data-i18n="id_bio_label">Biography:</p>
+                            <p class="book-text book-text--body book-text--justify" contenteditable="true" data-i18n="id_bio_text" data-i18n-mode="html">
                                 Famille, livres de fantasy dans l’appartement trop petit, puis le voyage scolaire qui a coïncidé avec l’arrivée d’une espèce extraterrestre qui a conquis la Terre en quelques heures. Les lignes de redirection, les villes numérotées — je me suis retrouvée à City 9 pendant sa construction, quelque part entre ce qui restait de Paris et ce que les Combine voulaient en faire.
                             </p>
                             <div class="book-page-num" contenteditable="true">150</div>
@@ -480,18 +484,18 @@
                             <div class="scrap-row">
                                 <figure class="photo-taped photo-taped--small photo-taped--clip">
                                     <span class="paperclip" aria-hidden="true"></span>
-                                    <img src="https://via.placeholder.com/200x140/b0b0b0/333?text=Photo+1" alt="" class="editable-image journal-photo book-photo" width="200" height="140">
+                                    <img src="https://via.placeholder.com/200x140/b0b0b0/333?text=Photo+1" alt="" class="editable-image journal-photo book-photo" width="200" height="140" data-i18n-placeholder="jimg_photo1" data-ph-w="200" data-ph-h="140" data-ph-bg="b0b0b0" data-ph-fg="333">
                                 </figure>
                                 <figure class="photo-taped photo-taped--small photo-taped--clip">
                                     <span class="paperclip paperclip--right" aria-hidden="true"></span>
-                                    <img src="https://via.placeholder.com/200x140/c8c8c8/333?text=Croquis" alt="" class="editable-image journal-photo book-photo" width="200" height="140">
+                                    <img src="https://via.placeholder.com/200x140/c8c8c8/333?text=Croquis" alt="" class="editable-image journal-photo book-photo" width="200" height="140" data-i18n-placeholder="jimg_sketch" data-ph-w="200" data-ph-h="140" data-ph-bg="c8c8c8" data-ph-fg="333">
                                 </figure>
                             </div>
-                            <p class="book-caption book-caption--small" contenteditable="true">« Monster » — City 9 Incident 2024</p>
+                            <p class="book-caption book-caption--small" contenteditable="true" data-i18n="monster_cap">« Monster » — City 9 Incident 2024</p>
                             <figure class="photo-taped photo-taped--portrait">
-                                <img src="https://via.placeholder.com/400x480/c9c7c2/444?text=Portrait" alt="" class="editable-image journal-photo book-photo" width="400" height="480">
+                                <img src="https://via.placeholder.com/400x480/c9c7c2/444?text=Portrait" alt="" class="editable-image journal-photo book-photo" width="400" height="480" data-i18n-placeholder="jimg_portrait" data-ph-w="400" data-ph-h="480" data-ph-bg="c9c7c2" data-ph-fg="444">
                             </figure>
-                            <p class="book-caption" contenteditable="true">Lua Tyler — 25th December 2022.<br>—<br>Christmas Eve in City 9</p>
+                            <p class="book-caption" contenteditable="true" data-i18n="cap_xmas" data-i18n-mode="html">Lua Tyler — 25th December 2022.<br>—<br>Christmas Eve in City 9</p>
                             <div class="book-page-num" contenteditable="true">151</div>
                         </div>
                     </div>
@@ -511,10 +515,10 @@
     </div>
 
     <template id="journal-entry-template">
-        <section class="book-spread book-spread--new" aria-label="Nouvelle double page">
+        <section class="book-spread book-spread--new" data-i18n-aria="tpl_aria_spread">
             <div class="book-page book-page--left">
                 <div class="book-page-inner">
-                    <p class="book-text book-text--body" contenteditable="true">Écrire sur la page de gauche…</p>
+                    <p class="book-text book-text--body" contenteditable="true" data-i18n="tpl_write_left">Écrire sur la page de gauche…</p>
                     <div class="book-page-num" contenteditable="true">—</div>
                 </div>
             </div>
@@ -522,9 +526,9 @@
             <div class="book-page book-page--right">
                 <div class="book-page-inner">
                     <figure class="photo-taped">
-                        <img src="https://via.placeholder.com/520x340/d4d2cc/5a5a5a?text=Photo" alt="" class="editable-image journal-photo book-photo" width="520" height="340">
+                        <img src="https://via.placeholder.com/520x340/d4d2cc/5a5a5a?text=Photo" alt="" class="editable-image journal-photo book-photo" width="520" height="340" data-i18n-placeholder="tpl_photo_ph" data-ph-w="520" data-ph-h="340" data-ph-bg="d4d2cc" data-ph-fg="5a5a5a">
                     </figure>
-                    <p class="book-caption" contenteditable="true">Légende — lieu — date.</p>
+                    <p class="book-caption" contenteditable="true" data-i18n="tpl_caption">Légende — lieu — date.</p>
                     <div class="book-page-num" contenteditable="true">—</div>
                 </div>
             </div>
@@ -536,19 +540,20 @@
         <i class="fas fa-lock"></i>
     </button>
     <div id="editor-bar" class="editor-bar hidden" role="status">
-        <span class="editor-bar-title"><i class="fas fa-pen"></i> Mode éditeur</span>
+        <span class="editor-bar-title"><i class="fas fa-pen"></i> <span data-i18n="editor_title">Mode éditeur</span></span>
         <div class="editor-bar-actions">
-            <button type="button" id="btn-export-fiche" class="btn-text btn-editor-action" title="Télécharger pour GitHub Pages">Exporter JSON</button>
-            <button type="button" id="btn-import-fiche" class="btn-text btn-editor-action">Importer JSON</button>
+            <button type="button" id="btn-export-fiche" class="btn-text btn-editor-action" data-i18n="editor_export" data-i18n-title="editor_export">Exporter JSON</button>
+            <button type="button" id="btn-import-fiche" class="btn-text btn-editor-action" data-i18n="editor_import">Importer JSON</button>
             <input type="file" id="input-import-fiche" accept="application/json,.json" class="visually-hidden" aria-hidden="true">
         </div>
-        <button type="button" id="btn-lock-editor" class="btn-text btn-lock">Verrouiller</button>
-        <p class="editor-publish-hint">
+        <button type="button" id="btn-lock-editor" class="btn-text btn-lock" data-i18n="editor_lock">Verrouiller</button>
+        <p class="editor-publish-hint" data-i18n="editor_hint" data-i18n-mode="html">
             <strong>Publication :</strong> la navigation privée et les autres lecteurs ne voient que ce qui est sur GitHub.
             Après tes modifs, clique <strong>Exporter JSON</strong>, enregistre le fichier sous <code>data/fiche-export.json</code>, puis <code>git add</code> / <code>commit</code> / <code>push</code>.
         </p>
     </div>
 
+    <script src="i18n.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

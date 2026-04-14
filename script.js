@@ -19,6 +19,10 @@ function debounce(fn, ms) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    if (typeof window.applyLanguage === 'function' && typeof window.getLang === 'function') {
+        window.applyLanguage(window.getLang());
+    }
+
     const splashScreen = document.getElementById('splash-screen');
     const charSelectScreen = document.getElementById('char-select-screen');
     const charBioScreen = document.getElementById('char-bio-screen');
@@ -123,6 +127,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await loadSavedData();
 
+    document.getElementById('lang-switcher')?.addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-lang]');
+        if (!b) return;
+        const lang = b.getAttribute('data-lang');
+        if (!lang || (typeof window.getLang === 'function' && lang === window.getLang())) return;
+        if (typeof window.setLang === 'function') window.setLang(lang);
+        persistToLocalStorage();
+        location.reload();
+    });
+
     /** Réinitialise l'opacité inline (sinon l'écran reste invisible après une transition). */
     function clearScreenOpacity(el) {
         if (el) el.style.removeProperty('opacity');
@@ -183,12 +197,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function tryUnlockEditor() {
-        const pwd = window.prompt('Mot de passe — mode éditeur :');
+        const pwd = window.prompt(
+            typeof window.t === 'function' ? window.t('script_prompt_pwd') : 'Mot de passe — mode éditeur :'
+        );
         if (pwd === null) return;
         if (pwd === FICHE_RP_EDITOR_PASSWORD) {
             applyEditorMode();
         } else {
-            window.alert('Mot de passe incorrect.');
+            window.alert(typeof window.t === 'function' ? window.t('script_wrong_pwd') : 'Mot de passe incorrect.');
         }
     }
 
@@ -203,7 +219,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     if (btnLockEditor) {
         btnLockEditor.addEventListener('click', () => {
-            if (window.confirm('Passer en lecture seule ? Les visiteurs ne pourront plus modifier la page.')) {
+            const msg =
+                typeof window.t === 'function'
+                    ? window.t('script_lock_confirm')
+                    : 'Passer en lecture seule ? Les visiteurs ne pourront plus modifier la page.';
+            if (window.confirm(msg)) {
                 applyReadOnlyMode();
             }
         });
@@ -219,11 +239,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             a.click();
             URL.revokeObjectURL(a.href);
             window.alert(
-                'Fichier téléchargé.\n\n' +
-                    '1) Renomme-le exactement : fiche-export.json\n' +
-                    '2) Mets-le dans le dossier data/ de ton projet (à côté de index.html)\n' +
-                    '3) git add data/fiche-export.json && git commit -m "Données fiche" && git push\n\n' +
-                    'Sans cette étape, seul ton navigateur mémorise les changements — pas le site pour les autres ni la navigation privée.'
+                typeof window.t === 'function'
+                    ? window.t('script_export_alert')
+                    : 'Fichier téléchargé.\n\n' +
+                          '1) Renomme-le exactement : fiche-export.json\n' +
+                          '2) Mets-le dans le dossier data/ de ton projet (à côté de index.html)\n' +
+                          '3) git add data/fiche-export.json && git commit -m "Données fiche" && git push\n\n' +
+                          'Sans cette étape, seul ton navigateur mémorise les changements — pas le site pour les autres ni la navigation privée.'
             );
         });
     }
@@ -244,9 +266,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                         editableNodes.forEach((el) => el.setAttribute('contenteditable', 'false'));
                     }
                     persistToLocalStorage();
-                    window.alert('Import terminé.');
+                    window.alert(
+                        typeof window.t === 'function' ? window.t('script_import_ok') : 'Import terminé.'
+                    );
                 } catch (err) {
-                    window.alert('Fichier JSON invalide.');
+                    window.alert(
+                        typeof window.t === 'function' ? window.t('script_import_bad') : 'Fichier JSON invalide.'
+                    );
                 }
                 inputImportFiche.value = '';
             };
@@ -349,7 +375,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!img || !isEditorMode) return;
         e.stopPropagation();
         const newUrl = window.prompt(
-            "URL de l'image (lien direct .png, .jpg, etc.) :",
+            typeof window.t === 'function'
+                ? window.t('script_prompt_img')
+                : "URL de l'image (lien direct .png, .jpg, etc.) :",
             img.src
         );
         if (newUrl && newUrl.trim() !== '') {
