@@ -291,10 +291,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function hideScreen(screenEl, afterFadeMs, onHidden) {
+        // Enlève la classe active pour suspendre l'animation d'entrée
+        screenEl.classList.remove('active');
+        screenEl.style.animation = 'none';
+        screenEl.style.transition = `opacity ${afterFadeMs}ms cubic-bezier(0.19, 1, 0.22, 1), filter ${afterFadeMs}ms cubic-bezier(0.19, 1, 0.22, 1), transform ${afterFadeMs}ms cubic-bezier(0.19, 1, 0.22, 1)`;
         screenEl.style.opacity = '0';
+        screenEl.style.filter = 'blur(4px)';
+        screenEl.style.transform = 'scale(1.015)';
+
         setTimeout(() => {
-            screenEl.classList.remove('active');
             screenEl.classList.add('hidden');
+            screenEl.style.removeProperty('animation');
+            screenEl.style.removeProperty('transition');
+            screenEl.style.removeProperty('filter');
+            screenEl.style.removeProperty('transform');
             clearScreenOpacity(screenEl);
             if (onHidden) onHidden();
         }, afterFadeMs);
@@ -443,18 +453,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- 1. Splash Screen ---
     setTimeout(() => {
-        splashScreen.style.opacity = '0';
-        setTimeout(() => {
-            splashScreen.classList.remove('active');
-            splashScreen.classList.add('hidden');
-            clearScreenOpacity(splashScreen);
+        hideScreen(splashScreen, 1200, () => {
             showScreen(charSelectScreen);
-        }, 1000);
+        });
     }, 3500);
 
     // --- 2. Sélection -> Biographie ---
     selectLuaCard.addEventListener('click', () => {
-        hideScreen(charSelectScreen, 1000, () => {
+        hideScreen(charSelectScreen, 1200, () => {
             showScreen(charBioScreen);
         });
     });
@@ -463,7 +469,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnNextJournal) {
         btnNextJournal.addEventListener('click', (e) => {
             e.preventDefault();
-            hideScreen(charBioScreen, 600, () => {
+            hideScreen(charBioScreen, 1200, () => {
                 showScreen(journalScreen);
                 if (journalScreen) journalScreen.scrollTop = 0;
             });
@@ -474,7 +480,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnRetourDossier) {
         btnRetourDossier.addEventListener('click', (e) => {
             e.preventDefault();
-            hideScreen(journalScreen, 600, () => {
+            hideScreen(journalScreen, 1200, () => {
                 showScreen(charBioScreen);
             });
         });
@@ -483,7 +489,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- 3c. Biographie -> Sélection ---
     btnRetourSelect.addEventListener('click', (e) => {
         e.preventDefault();
-        hideScreen(charBioScreen, 1000, () => {
+        hideScreen(charBioScreen, 1200, () => {
             showScreen(charSelectScreen);
         });
     });
@@ -491,16 +497,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- 4. RETOUR écran sélection -> relance le splash ---
     if (btnRetourCharSelect) {
         btnRetourCharSelect.addEventListener('click', () => {
-            hideScreen(charSelectScreen, 600, () => {
+            hideScreen(charSelectScreen, 800, () => {
                 showScreen(splashScreen);
                 setTimeout(() => {
-                    splashScreen.style.opacity = '0';
-                    setTimeout(() => {
-                        splashScreen.classList.remove('active');
-                        splashScreen.classList.add('hidden');
-                        clearScreenOpacity(splashScreen);
+                    hideScreen(splashScreen, 1200, () => {
                         showScreen(charSelectScreen);
-                    }, 1000);
+                    });
                 }, 2000);
             });
         });
