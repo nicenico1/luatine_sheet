@@ -310,6 +310,52 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, afterFadeMs);
     }
 
+    // --- Transition Smooth : Fondu Enchaîné entre écrans ---
+    function crossfadeScreen(oldScreen, newScreen, fadeMs, logicBeforeShow) {
+        if (logicBeforeShow) logicBeforeShow();
+        
+        // Prépare le nouvel écran (le place en arrière-plan pendant son apparition)
+        newScreen.classList.remove('hidden');
+        
+        // Fige l'ancien écran à son état d'opacité maximal
+        oldScreen.style.opacity = '1';
+        oldScreen.style.filter = 'blur(0px)';
+        oldScreen.style.transform = 'scale(1)';
+        oldScreen.style.pointerEvents = 'none'; // Empêcher le multiclic
+        oldScreen.style.zIndex = '6';
+
+        // Force le navigateur à appliquer ces styles avant de déclencher la transition
+        void oldScreen.offsetWidth;
+
+        requestAnimationFrame(() => {
+            // Le nouvel écran commence à apparaître (animation CSS gérée par .active)
+            newScreen.classList.add('active');
+            newScreen.style.zIndex = '5';
+
+            // L'ancien écran commence à disparaître par-dessus
+            // On ne lui enlève pas '.active' pour éviter de casser son animation, on l'écrase
+            oldScreen.style.transition = `opacity ${fadeMs}ms ease-in-out, filter ${fadeMs}ms ease-in-out, transform ${fadeMs}ms ease-in-out`;
+            oldScreen.style.opacity = '0';
+            oldScreen.style.filter = 'blur(4px)';
+            oldScreen.style.transform = 'scale(1.02)';
+        });
+
+        // Nettoyage après la durée du fondu
+        setTimeout(() => {
+            oldScreen.classList.remove('active');
+            oldScreen.classList.add('hidden');
+            
+            oldScreen.style.removeProperty('transition');
+            oldScreen.style.removeProperty('opacity');
+            oldScreen.style.removeProperty('filter');
+            oldScreen.style.removeProperty('transform');
+            oldScreen.style.removeProperty('pointer-events');
+            oldScreen.style.removeProperty('z-index');
+            newScreen.style.removeProperty('z-index');
+            clearScreenOpacity(oldScreen);
+        }, fadeMs);
+    }
+
     function syncFicheEditableRegistry() {
         document.querySelectorAll('[contenteditable="true"]').forEach((el) => {
             el.classList.add('fiche-editable');
@@ -453,24 +499,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- 1. Splash Screen ---
     setTimeout(() => {
-        hideScreen(splashScreen, 1200, () => {
-            showScreen(charSelectScreen);
-        });
+        crossfadeScreen(splashScreen, charSelectScreen, 1200);
     }, 3500);
 
     // --- 2. Sélection -> Biographie ---
     selectLuaCard.addEventListener('click', () => {
-        hideScreen(charSelectScreen, 1200, () => {
-            showScreen(charBioScreen);
-        });
+        crossfadeScreen(charSelectScreen, charBioScreen, 1200);
     });
 
     // --- 3a. Dossier citoyen -> Journal intime ---
     if (btnNextJournal) {
         btnNextJournal.addEventListener('click', (e) => {
             e.preventDefault();
-            hideScreen(charBioScreen, 1200, () => {
-                showScreen(journalScreen);
+            crossfadeScreen(charBioScreen, journalScreen, 1200, () => {
                 if (journalScreen) journalScreen.scrollTop = 0;
             });
         });
@@ -480,29 +521,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnRetourDossier) {
         btnRetourDossier.addEventListener('click', (e) => {
             e.preventDefault();
-            hideScreen(journalScreen, 1200, () => {
-                showScreen(charBioScreen);
-            });
+            crossfadeScreen(journalScreen, charBioScreen, 1200);
         });
     }
 
     // --- 3c. Biographie -> Sélection ---
     btnRetourSelect.addEventListener('click', (e) => {
         e.preventDefault();
-        hideScreen(charBioScreen, 1200, () => {
-            showScreen(charSelectScreen);
-        });
+        crossfadeScreen(charBioScreen, charSelectScreen, 1200);
     });
 
     // --- 4. RETOUR écran sélection -> relance le splash ---
     if (btnRetourCharSelect) {
         btnRetourCharSelect.addEventListener('click', () => {
-            hideScreen(charSelectScreen, 800, () => {
-                showScreen(splashScreen);
+            crossfadeScreen(charSelectScreen, splashScreen, 1200, () => {
                 setTimeout(() => {
-                    hideScreen(splashScreen, 1200, () => {
-                        showScreen(charSelectScreen);
-                    });
+                    crossfadeScreen(splashScreen, charSelectScreen, 1200);
                 }, 2000);
             });
         });
