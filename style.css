@@ -111,11 +111,14 @@ body.is-editor .char-card-image img {
     align-items: center;
     justify-content: center;
     font-size: 18px;
-    transition: color 0.2s, background 0.2s;
+    opacity: 0; /* Entièrement caché par défaut */
+    transition: opacity 0.3s ease, color 0.2s, background 0.2s;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-.editor-fab:hover {
+.editor-fab:hover,
+.editor-fab:focus-visible {
+    opacity: 1; /* Apparaît au survol de la souris ou au clavier */
     color: var(--text-main);
     background: var(--input-bg);
 }
