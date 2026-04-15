@@ -22,10 +22,7 @@
             nav_cheveux: 'CHEVEUX',
             nav_vetements: 'VÊTEMENTS',
             nav_traits: 'TRAITS',
-            nav_attributs: 'ATTRIBUTS',
-            nav_competences: 'COMPÉTENCES',
-            nav_parcours: 'PARCOURS',
-            lab_nom_genre: 'NOM/GENRE',
+            lab_nom_genre: 'Prénom Nom',
             warn_nom: 'Votre nom doit contenir au minimum 4 caractères (9 / 32)',
             lab_genetique: 'DESCRIPTION GÉNÉTIQUE',
             dd_age: 'ÂGE',
@@ -40,12 +37,14 @@
             famille_heading: 'INFORMATIONS FAMILIALES',
             famille_warn:
                 "Aucun membre de la famille n'est dans votre district. Cette partie est facultative. (Ces informations pourraient être connues en RP.)",
+            membre_mere: 'MÈRE',
+            membre_pere: 'PÈRE',
             membre1: 'MEMBRE DE LA FAMILLE 1',
             membre2: 'MEMBRE DE LA FAMILLE 2',
             membre3: 'MEMBRE DE LA FAMILLE 3',
             dd_type: 'TYPE',
-            nom_membre_ph: 'Nom du membre...',
-            info_membre_ph: 'Informations sur cette personne...',
+            nom_membre_ph: 'Nom...',
+            info_membre_ph: 'Informations...',
             app_heading: 'APPARENCES GÉNÉRALES',
             app_warn: 'Décrivez ce qui est visible au premier regard (visage, corpulence, démarche, etc.).',
             lab_visage: 'VISAGE & SILHOUETTE',
@@ -174,10 +173,7 @@
             nav_cheveux: 'HAIR',
             nav_vetements: 'CLOTHING',
             nav_traits: 'TRAITS',
-            nav_attributs: 'ATTRIBUTES',
-            nav_competences: 'SKILLS',
-            nav_parcours: 'BACKGROUND',
-            lab_nom_genre: 'NAME / GENDER',
+            lab_nom_genre: 'First name Last name',
             warn_nom: 'Your name must be at least 4 characters (9 / 32)',
             lab_genetique: 'GENETIC DESCRIPTION',
             dd_age: 'AGE',
@@ -192,12 +188,14 @@
             famille_heading: 'FAMILY INFORMATION',
             famille_warn:
                 'No family members are in your district. This section is optional. (This may be known in RP.)',
+            membre_mere: 'MOTHER',
+            membre_pere: 'FATHER',
             membre1: 'FAMILY MEMBER 1',
             membre2: 'FAMILY MEMBER 2',
             membre3: 'FAMILY MEMBER 3',
             dd_type: 'TYPE',
-            nom_membre_ph: 'Member name...',
-            info_membre_ph: 'Notes about this person...',
+            nom_membre_ph: 'Name...',
+            info_membre_ph: 'Notes...',
             app_heading: 'GENERAL APPEARANCE',
             app_warn: 'Describe what is visible at first glance (face, build, gait, etc.).',
             lab_visage: 'FACE & SILHOUETTE',
@@ -318,9 +316,6 @@
         nav_cheveux: 'fa-cut',
         nav_vetements: 'fa-shirt',
         nav_traits: 'fa-dice',
-        nav_attributs: 'fa-scale-balanced',
-        nav_competences: 'fa-screwdriver-wrench',
-        nav_parcours: 'fa-person-walking',
     };
 
     function getLang() {
@@ -405,17 +400,6 @@
         });
 
         // Nav links: keep icon, replace text
-        const navMap = {
-            nav_personnage: 'nav_personnage',
-            nav_famille: 'nav_famille',
-            nav_apparences: 'nav_apparences',
-            nav_cheveux: 'nav_cheveux',
-            nav_vetements: 'nav_vetements',
-            nav_traits: 'nav_traits',
-            nav_attributs: 'nav_attributs',
-            nav_competences: 'nav_competences',
-            nav_parcours: 'nav_parcours',
-        };
         document.querySelectorAll('.nav-btn[data-i18n-nav]').forEach((a) => {
             const k = a.getAttribute('data-i18n-nav');
             const ic = NAV_ICONS[k];

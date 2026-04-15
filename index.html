@@ -66,9 +66,6 @@
                     <a href="#" class="nav-btn" data-target="tab-cheveux" data-i18n-nav="nav_cheveux"><i class="fas fa-cut"></i> CHEVEUX</a>
                     <a href="#" class="nav-btn" data-target="tab-vetements" data-i18n-nav="nav_vetements"><i class="fas fa-shirt"></i> VÊTEMENTS</a>
                     <a href="#" class="nav-btn" data-target="tab-traits" data-i18n-nav="nav_traits"><i class="fas fa-dice"></i> TRAITS</a>
-                    <a href="#" class="nav-btn" data-target="tab-attributs" data-i18n-nav="nav_attributs"><i class="fas fa-scale-balanced"></i> ATTRIBUTS</a>
-                    <a href="#" class="nav-btn" data-target="tab-competences" data-i18n-nav="nav_competences"><i class="fas fa-screwdriver-wrench"></i> COMPÉTENCES</a>
-                    <a href="#" class="nav-btn" data-target="tab-parcours" data-i18n-nav="nav_parcours"><i class="fas fa-person-walking"></i> PARCOURS</a>
                 </nav>
             </div>
 
@@ -78,12 +75,11 @@
                 <!-- Onglet Personnage -->
                 <div id="tab-personnage" class="tab-content active">
                     <div class="form-group">
-                        <label data-i18n="lab_nom_genre">NOM/GENRE</label>
+                        <label data-i18n="lab_nom_genre">Prénom Nom</label>
                         <div class="input-box flex-between">
                             <span contenteditable="true" class="editable-text">Lua Tyler</span>
                             <span class="gender-icons" contenteditable="true">♂ ♀</span>
                         </div>
-                        <p class="warning-text"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true" data-i18n="warn_nom" data-i18n-mode="html">Votre nom doit contenir au minimum 4 caractères (9 / 32)</span></p>
                     </div>
 
                     <div class="form-group">
@@ -96,7 +92,6 @@
                             <div class="progress-bar" style="width: 40%;"></div>
                             <span class="progress-text" contenteditable="true">1m72</span>
                         </div>
-                        <p class="warning-text"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true" data-i18n="warn_genetique" data-i18n-mode="html">Les valeurs de description génétique sont permanentes.</span></p>
                     </div>
 
                     <div class="form-group">
@@ -111,44 +106,27 @@
                             <br><br>
                             Lua est une citoyenne d'apparence fatiguée, portant des lunettes à monture noire. Ses vêtements standards de l'U.N.I.S.C.A. sont légèrement usés par le temps.
                         </div>
-                        <p class="warning-text"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true" data-i18n="warn_physique" data-i18n-mode="html">Votre description doit contenir au minimum 32 caractères (150 / 512)</span></p>
                     </div>
                 </div>
 
                 <!-- FAMILLE -->
                 <div id="tab-famille" class="tab-content">
                     <h3 class="section-heading" data-i18n="famille_heading">INFORMATIONS FAMILIALES</h3>
-                    <p class="warning-text block-warning"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true" data-i18n="famille_warn" data-i18n-mode="html">Aucun membre de la famille n'est dans votre district. Cette partie est facultative. (Ces informations pourraient être connues en RP.)</span></p>
                     <div class="member-block">
-                        <label data-i18n="membre1">MEMBRE DE LA FAMILLE 1</label>
-                        <div class="grid-2">
-                            <div class="dropdown-mock" contenteditable="true" data-i18n-key="dd_type">TYPE <i class="fas fa-chevron-down"></i></div>
-                            <div class="input-box" contenteditable="true" data-i18n="nom_membre_ph">Nom du membre...</div>
-                        </div>
-                        <div class="textarea-mock" contenteditable="true" style="min-height: 100px;" data-i18n="info_membre_ph">Informations sur cette personne...</div>
+                        <label data-i18n="membre_mere">MÈRE</label>
+                        <div class="input-box" contenteditable="true" data-i18n="nom_membre_ph">Nom...</div>
+                        <div class="textarea-mock" contenteditable="true" style="min-height: 100px;" data-i18n="info_membre_ph">Informations...</div>
                     </div>
                     <div class="member-block">
-                        <label data-i18n="membre2">MEMBRE DE LA FAMILLE 2</label>
-                        <div class="grid-2">
-                            <div class="dropdown-mock" contenteditable="true" data-i18n-key="dd_type">TYPE <i class="fas fa-chevron-down"></i></div>
-                            <div class="input-box" contenteditable="true" data-i18n="nom_membre_ph">Nom du membre...</div>
-                        </div>
-                        <div class="textarea-mock" contenteditable="true" style="min-height: 100px;" data-i18n="info_membre_ph">Informations sur cette personne...</div>
-                    </div>
-                    <div class="member-block">
-                        <label data-i18n="membre3">MEMBRE DE LA FAMILLE 3</label>
-                        <div class="grid-2">
-                            <div class="dropdown-mock" contenteditable="true" data-i18n-key="dd_type">TYPE <i class="fas fa-chevron-down"></i></div>
-                            <div class="input-box" contenteditable="true" data-i18n="nom_membre_ph">Nom du membre...</div>
-                        </div>
-                        <div class="textarea-mock" contenteditable="true" style="min-height: 100px;" data-i18n="info_membre_ph">Informations sur cette personne...</div>
+                        <label data-i18n="membre_pere">PÈRE</label>
+                        <div class="input-box" contenteditable="true" data-i18n="nom_membre_ph">Nom...</div>
+                        <div class="textarea-mock" contenteditable="true" style="min-height: 100px;" data-i18n="info_membre_ph">Informations...</div>
                     </div>
                 </div>
 
                 <!-- APPARENCES -->
                 <div id="tab-apparences" class="tab-content">
                     <h3 class="section-heading" data-i18n="app_heading">APPARENCES GÉNÉRALES</h3>
-                    <p class="warning-text block-warning"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true" data-i18n="app_warn" data-i18n-mode="html">Décrivez ce qui est visible au premier regard (visage, corpulence, démarche, etc.).</span></p>
                     <div class="form-group">
                         <label data-i18n="lab_visage">VISAGE &amp; SILHOUETTE</label>
                         <div class="textarea-mock" contenteditable="true" style="min-height: 140px;" data-i18n="visage_ph">Traits du visage, teint, cicatrices visibles, corpulence, posture...</div>
@@ -185,7 +163,6 @@
                 <!-- VÊTEMENTS -->
                 <div id="tab-vetements" class="tab-content">
                     <h3 class="section-heading" data-i18n="vet_heading">VÊTEMENTS &amp; TENUE</h3>
-                    <p class="warning-text block-warning"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true" data-i18n="vet_warn" data-i18n-mode="html">Tenue habituelle et accessoires portés en permanence.</span></p>
                     <div class="form-group">
                         <label data-i18n="lab_tenue">TENUE HABITUELLE</label>
                         <div class="textarea-mock" contenteditable="true" style="min-height: 140px;" data-i18n="tenue_ph">Veste U.N.I.S.C.A., pantalon sombre, chaussures usées...</div>
@@ -201,7 +178,6 @@
                     <div class="tab-head-row">
                         <h3 class="section-heading" data-i18n="traits_heading">SÉLECTION DES TRAITS</h3>
                     </div>
-                    <p class="warning-text block-warning"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true" data-i18n="traits_warn" data-i18n-mode="html">Les traits sont des archétypes utilisés par les maîtres du jeu.</span></p>
                     <p class="counter-line"><span contenteditable="true" data-i18n="traits_count" data-i18n-mode="html">Traits sélectionnés : 0 / 4</span></p>
                     <div class="trait-picker">
                         <div class="trait-picker-head">
@@ -222,179 +198,6 @@
                         <div class="trait-slot" contenteditable="true">—</div>
                         <div class="trait-slot" contenteditable="true">—</div>
                         <div class="trait-slot" contenteditable="true">—</div>
-                    </div>
-                </div>
-
-                <!-- ATTRIBUTS -->
-                <div id="tab-attributs" class="tab-content">
-                    <div class="tab-head-row">
-                        <h3 class="section-heading" data-i18n="attr_heading">SÉLECTION DES ATTRIBUTS</h3>
-                        <span class="points-remaining" id="attr-points-label"><span id="attr-points-num">8</span> point(s) restant(s)</span>
-                    </div>
-                    <div class="stepper-list" data-pool="attr" data-pool-total="8">
-                        <div class="stepper-row" data-min="0" data-max="8">
-                            <div class="stepper-icon"><i class="fas fa-fist-raised"></i></div>
-                            <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true" data-i18n="attr_force">FORCE</span>
-                                <span class="stepper-desc" contenteditable="true" data-i18n="attr_force_desc">Bonus majeur aux armes à feu / Bonus mineur à la vitesse et au craft.</span>
-                            </div>
-                            <div class="stepper-controls">
-                                <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
-                                <span class="stepper-value" contenteditable="true">0</span>
-                                <button type="button" class="stepper-btn step-down" aria-label="−"><i class="fas fa-chevron-down"></i></button>
-                            </div>
-                        </div>
-                        <div class="stepper-row" data-min="0" data-max="8">
-                            <div class="stepper-icon"><i class="fas fa-eye"></i></div>
-                            <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true" data-i18n="attr_perc">PERCEPTION</span>
-                                <span class="stepper-desc" contenteditable="true" data-i18n="attr_perc_desc">Bonus majeur à la cuisine / Bonus mineur à la contrebande et aux armes.</span>
-                            </div>
-                            <div class="stepper-controls">
-                                <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
-                                <span class="stepper-value" contenteditable="true">0</span>
-                                <button type="button" class="stepper-btn step-down" aria-label="−"><i class="fas fa-chevron-down"></i></button>
-                            </div>
-                        </div>
-                        <div class="stepper-row" data-min="0" data-max="8">
-                            <div class="stepper-icon"><i class="fas fa-person-running"></i></div>
-                            <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true" data-i18n="attr_agi">AGILITÉ</span>
-                                <span class="stepper-desc" contenteditable="true" data-i18n="attr_agi_desc">Bonus majeur à la contrebande et à la vitesse / Bonus mineur à la médecine.</span>
-                            </div>
-                            <div class="stepper-controls">
-                                <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
-                                <span class="stepper-value" contenteditable="true">0</span>
-                                <button type="button" class="stepper-btn step-down" aria-label="−"><i class="fas fa-chevron-down"></i></button>
-                            </div>
-                        </div>
-                        <div class="stepper-row" data-min="0" data-max="8">
-                            <div class="stepper-icon"><i class="fas fa-graduation-cap"></i></div>
-                            <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true" data-i18n="attr_int">INTELLIGENCE</span>
-                                <span class="stepper-desc" contenteditable="true" data-i18n="attr_int_desc">Bonus majeur à la médecine et au craft / Bonus mineur à la cuisine.</span>
-                            </div>
-                            <div class="stepper-controls">
-                                <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
-                                <span class="stepper-value" contenteditable="true">0</span>
-                                <button type="button" class="stepper-btn step-down" aria-label="−"><i class="fas fa-chevron-down"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                    <p class="warning-text block-warning"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true" data-i18n="warn_attr" data-i18n-mode="html">Les attributs sont permanents et ne peuvent être modifiés que temporairement en RP selon les règles du serveur.</span></p>
-                </div>
-
-                <!-- COMPÉTENCES -->
-                <div id="tab-competences" class="tab-content">
-                    <div class="tab-head-row">
-                        <h3 class="section-heading" data-i18n="skill_heading">SÉLECTION DES COMPÉTENCES</h3>
-                        <span class="points-remaining" id="skill-points-label"><span id="skill-points-num">10</span> point(s) restant(s)</span>
-                    </div>
-                    <div class="stepper-list" data-pool="skill" data-pool-total="10">
-                        <div class="stepper-row skill-row" data-min="0" data-max="50">
-                            <div class="stepper-icon"><i class="fas fa-kit-medical"></i></div>
-                            <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true" data-i18n="sk_med">MÉDECINE</span>
-                                <span class="skill-meta" contenteditable="true" data-i18n="skill_meta">Niveaux d'attribut : +0</span>
-                                <span class="stepper-desc" contenteditable="true" data-i18n="sk_med_desc">Soignez-vous et soignez les autres.</span>
-                            </div>
-                            <div class="stepper-controls">
-                                <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
-                                <span class="stepper-value" contenteditable="true">0</span>
-                                <button type="button" class="stepper-btn step-down" aria-label="−"><i class="fas fa-chevron-down"></i></button>
-                            </div>
-                        </div>
-                        <div class="stepper-row skill-row" data-min="0" data-max="50">
-                            <div class="stepper-icon"><i class="fas fa-skull-crossbones"></i></div>
-                            <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true" data-i18n="sk_contre">CONTREBANDE</span>
-                                <span class="skill-meta" contenteditable="true" data-i18n="skill_meta">Niveaux d'attribut : +0</span>
-                                <span class="stepper-desc" contenteditable="true" data-i18n="sk_contre_desc">Achetez des marchandises illégales au marché noir.</span>
-                            </div>
-                            <div class="stepper-controls">
-                                <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
-                                <span class="stepper-value" contenteditable="true">0</span>
-                                <button type="button" class="stepper-btn step-down" aria-label="−"><i class="fas fa-chevron-down"></i></button>
-                            </div>
-                        </div>
-                        <div class="stepper-row skill-row" data-min="0" data-max="50">
-                            <div class="stepper-icon"><i class="fas fa-crosshairs"></i></div>
-                            <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true" data-i18n="sk_armes">ARMES À FEU</span>
-                                <span class="skill-meta" contenteditable="true" data-i18n="skill_meta">Niveaux d'attribut : +0</span>
-                                <span class="stepper-desc" contenteditable="true" data-i18n="sk_armes_desc">Connaissance du maniement des armes à feu.</span>
-                            </div>
-                            <div class="stepper-controls">
-                                <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
-                                <span class="stepper-value" contenteditable="true">0</span>
-                                <button type="button" class="stepper-btn step-down" aria-label="−"><i class="fas fa-chevron-down"></i></button>
-                            </div>
-                        </div>
-                        <div class="stepper-row skill-row" data-min="0" data-max="50">
-                            <div class="stepper-icon"><i class="fas fa-gauge-high"></i></div>
-                            <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true" data-i18n="sk_vit">VITESSE</span>
-                                <span class="skill-meta" contenteditable="true" data-i18n="skill_meta">Niveaux d'attribut : +0</span>
-                                <span class="stepper-desc" contenteditable="true" data-i18n="sk_vit_desc">Gagnez l'initiative au combat, courez plus loin et plus vite.</span>
-                            </div>
-                            <div class="stepper-controls">
-                                <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
-                                <span class="stepper-value" contenteditable="true">0</span>
-                                <button type="button" class="stepper-btn step-down" aria-label="−"><i class="fas fa-chevron-down"></i></button>
-                            </div>
-                        </div>
-                        <div class="stepper-row skill-row" data-min="0" data-max="50">
-                            <div class="stepper-icon"><i class="fas fa-utensils"></i></div>
-                            <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true" data-i18n="sk_cuisine">CUISINE</span>
-                                <span class="skill-meta" contenteditable="true" data-i18n="skill_meta">Niveaux d'attribut : +0</span>
-                                <span class="stepper-desc" contenteditable="true" data-i18n="sk_cuisine_desc">Votre talent culinaire.</span>
-                            </div>
-                            <div class="stepper-controls">
-                                <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
-                                <span class="stepper-value" contenteditable="true">0</span>
-                                <button type="button" class="stepper-btn step-down" aria-label="−"><i class="fas fa-chevron-down"></i></button>
-                            </div>
-                        </div>
-                        <div class="stepper-row skill-row" data-min="0" data-max="50">
-                            <div class="stepper-icon"><i class="fas fa-hand-fist"></i></div>
-                            <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true" data-i18n="sk_cac">CORPS À CORPS</span>
-                                <span class="skill-meta" contenteditable="true" data-i18n="skill_meta">Niveaux d'attribut : +0</span>
-                                <span class="stepper-desc" contenteditable="true" data-i18n="sk_cac_desc">Votre maîtrise des armes de mêlée.</span>
-                            </div>
-                            <div class="stepper-controls">
-                                <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
-                                <span class="stepper-value" contenteditable="true">0</span>
-                                <button type="button" class="stepper-btn step-down" aria-label="−"><i class="fas fa-chevron-down"></i></button>
-                            </div>
-                        </div>
-                        <div class="stepper-row skill-row" data-min="0" data-max="50">
-                            <div class="stepper-icon"><i class="fas fa-hammer"></i></div>
-                            <div class="stepper-body">
-                                <span class="stepper-title" contenteditable="true" data-i18n="sk_art">ARTISANAT</span>
-                                <span class="skill-meta" contenteditable="true" data-i18n="skill_meta">Niveaux d'attribut : +0</span>
-                                <span class="stepper-desc" contenteditable="true" data-i18n="sk_art_desc">Réparation, démontage et fabrication d'objets.</span>
-                            </div>
-                            <div class="stepper-controls">
-                                <button type="button" class="stepper-btn step-up" aria-label="+"><i class="fas fa-chevron-up"></i></button>
-                                <span class="stepper-value" contenteditable="true">0</span>
-                                <button type="button" class="stepper-btn step-down" aria-label="−"><i class="fas fa-chevron-down"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                    <p class="warning-text block-warning"><i class="fas fa-exclamation-circle"></i> <span contenteditable="true" data-i18n="warn_skills" data-i18n-mode="html">Les compétences ont un niveau maximum de 50.</span></p>
-                </div>
-
-                <!-- PARCOURS -->
-                <div id="tab-parcours" class="tab-content">
-                    <h3 class="section-heading" data-i18n="parcours_heading">SÉLECTION DU PARCOURS</h3>
-                    <div class="parcours-box">
-                        <p class="parcours-placeholder" contenteditable="true" data-i18n="parcours_ph" data-i18n-mode="html">Aucune sélection de parcours disponible pour cette faction — décrivez ici le parcours RP de Lua (études, emplois, événements marquants avant l'arrivée à City 17).</p>
-                    </div>
-                    <div class="form-group">
-                        <label data-i18n="hist_heading">HISTOIRE &amp; PARCOURS (RP)</label>
-                        <div class="textarea-mock" contenteditable="true" style="min-height: 280px;" data-i18n="hist_ph">Enfance, formation, pertes, ralliement à l'U.N.I.S.C.A., tout ce qui forge le personnage aujourd'hui...</div>
                     </div>
                 </div>
 
