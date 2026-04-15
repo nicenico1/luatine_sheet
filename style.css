@@ -752,7 +752,7 @@ body.is-editor {
 
 .traits-slots {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: 1fr;
     gap: 8px;
 }
 
