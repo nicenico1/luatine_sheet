@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dossier Citoyen - Lua Tyler</title>
+    <meta name="description" content="Fiche RP de Lua Tyler — Dossier Citoyen U.N.I.S.C.A.">
+    <meta property="og:title" content="Dossier Citoyen - Lua Tyler">
+    <meta property="og:description" content="Fiche RP de Lua Tyler — citoyenne U.N.I.S.C.A. — City 13">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="assets/bg-main.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Special+Elite&family=Share+Tech+Mono&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -31,8 +38,8 @@
                     <img src="https://via.placeholder.com/300x500/1a1c23/ffffff?text=Cliquez+pour+changer+l'image" alt="Lua Tyler" class="editable-image" data-i18n-placeholder="img_placeholder_card" data-ph-w="300" data-ph-h="500" data-ph-bg="1a1c23" data-ph-fg="ffffff">
                 </div>
                 <div class="char-card-info">
-                    <h2 contenteditable="true">LUA TYLER</h2>
-                    <p contenteditable="true">U.N.I.S.C.A.</p>
+                    <h2 contenteditable="true" data-field-id="char-name">LUA TYLER</h2>
+                    <p contenteditable="true" data-field-id="char-faction">U.N.I.S.C.A.</p>
                     <div class="char-status">
                         <i class="fas fa-check text-green"></i>
                         <i class="fas fa-skull text-red"></i>
@@ -57,7 +64,7 @@
 
             <!-- Colonne centrale : Menu -->
             <div class="bio-menu">
-                <h2 class="menu-title" contenteditable="true" data-i18n="menu_dossier" data-i18n-mode="html">DOSSIER<br>CITOYEN</h2>
+                <h2 class="menu-title" contenteditable="true" data-field-id="menu-title" data-i18n="menu_dossier" data-i18n-mode="html">DOSSIER<br>CITOYEN</h2>
                 
                 <nav class="vertical-nav">
                     <a href="#" class="nav-btn active" data-target="tab-personnage" data-i18n-nav="nav_personnage"><i class="fas fa-id-card"></i> PERSONNAGE</a>
@@ -77,31 +84,31 @@
                     <div class="form-group">
                         <label data-i18n="lab_nom_genre">Prénom Nom</label>
                         <div class="input-box flex-between">
-                            <span contenteditable="true" class="editable-text">Lua Tyler</span>
-                            <span class="gender-icons" contenteditable="true">♂ ♀</span>
+                            <span contenteditable="true" data-field-id="bio-name" class="editable-text">Lua Tyler</span>
+                            <span class="gender-icons" contenteditable="true" data-field-id="bio-gender">♂ ♀</span>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label data-i18n="lab_genetique">DESCRIPTION GÉNÉTIQUE</label>
                         <div class="grid-2">
-                            <div class="dropdown-mock" contenteditable="true" data-i18n-key="dd_age">ÂGE <i class="fas fa-chevron-down"></i></div>
-                            <div class="dropdown-mock" contenteditable="true" data-i18n-key="dd_yeux">COULEUR DES YEUX <i class="fas fa-chevron-down"></i></div>
+                            <div class="dropdown-mock" contenteditable="true" data-field-id="dd-age" data-i18n-key="dd_age">ÂGE <i class="fas fa-chevron-down"></i></div>
+                            <div class="dropdown-mock" contenteditable="true" data-field-id="dd-yeux" data-i18n-key="dd_yeux">COULEUR DES YEUX <i class="fas fa-chevron-down"></i></div>
                         </div>
                         <div class="progress-bar-container">
                             <div class="progress-bar" style="width: 40%;"></div>
-                            <span class="progress-text" contenteditable="true">1m72</span>
+                            <span class="progress-text" contenteditable="true" data-field-id="bio-height">1m72</span>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label data-i18n="lab_langue">SECONDE LANGUE</label>
-                        <div class="dropdown-mock w-50" contenteditable="true" data-i18n-key="dd_langue">LANGUAGE <i class="fas fa-chevron-down"></i></div>
+                        <div class="dropdown-mock w-50" contenteditable="true" data-field-id="dd-langue" data-i18n-key="dd_langue">LANGUAGE <i class="fas fa-chevron-down"></i></div>
                     </div>
 
                     <div class="form-group">
                         <label data-i18n="lab_physique">DESCRIPTION PHYSIQUE</label>
-                        <div class="textarea-mock" contenteditable="true" data-i18n="phys_combined" data-i18n-mode="html">
+                        <div class="textarea-mock" contenteditable="true" data-field-id="bio-physique" data-i18n="phys_combined" data-i18n-mode="html">
                             Décrivez l'apparence physique de votre personnage ici...
                             <br><br>
                             Lua est une citoyenne d'apparence fatiguée, portant des lunettes à monture noire. Ses vêtements standards de l'U.N.I.S.C.A. sont légèrement usés par le temps.
@@ -114,13 +121,13 @@
                     <h3 class="section-heading" data-i18n="famille_heading">INFORMATIONS FAMILIALES</h3>
                     <div class="member-block">
                         <label data-i18n="membre_mere">MÈRE</label>
-                        <div class="input-box" contenteditable="true" data-i18n="nom_membre_ph">Nom...</div>
-                        <div class="textarea-mock" contenteditable="true" style="min-height: 100px;" data-i18n="info_membre_ph">Informations...</div>
+                        <div class="input-box" contenteditable="true" data-field-id="fam-mere-nom" data-i18n="nom_membre_ph">Nom...</div>
+                        <div class="textarea-mock" contenteditable="true" data-field-id="fam-mere-info" style="min-height: 100px;" data-i18n="info_membre_ph">Informations...</div>
                     </div>
                     <div class="member-block">
                         <label data-i18n="membre_pere">PÈRE</label>
-                        <div class="input-box" contenteditable="true" data-i18n="nom_membre_ph">Nom...</div>
-                        <div class="textarea-mock" contenteditable="true" style="min-height: 100px;" data-i18n="info_membre_ph">Informations...</div>
+                        <div class="input-box" contenteditable="true" data-field-id="fam-pere-nom" data-i18n="nom_membre_ph">Nom...</div>
+                        <div class="textarea-mock" contenteditable="true" data-field-id="fam-pere-info" style="min-height: 100px;" data-i18n="info_membre_ph">Informations...</div>
                     </div>
                 </div>
 
@@ -129,11 +136,11 @@
                     <h3 class="section-heading" data-i18n="app_heading">APPARENCES GÉNÉRALES</h3>
                     <div class="form-group">
                         <label data-i18n="lab_visage">VISAGE &amp; SILHOUETTE</label>
-                        <div class="textarea-mock" contenteditable="true" style="min-height: 140px;" data-i18n="visage_ph">Traits du visage, teint, cicatrices visibles, corpulence, posture...</div>
+                        <div class="textarea-mock" contenteditable="true" data-field-id="app-visage" style="min-height: 140px;" data-i18n="visage_ph">Traits du visage, teint, cicatrices visibles, corpulence, posture...</div>
                     </div>
                     <div class="form-group">
                         <label data-i18n="lab_presence">CARACTÈRE</label>
-                        <div class="textarea-mock" contenteditable="true" style="min-height: 100px;" data-i18n="presence_ph">Tempérament, attitude, façon d’être en société...</div>
+                        <div class="textarea-mock" contenteditable="true" data-field-id="app-caractere" style="min-height: 100px;" data-i18n="presence_ph">Tempérament, attitude, façon d'être en société...</div>
                     </div>
                 </div>
 
@@ -143,20 +150,20 @@
                     <div class="grid-2">
                         <div class="form-group">
                             <label data-i18n="lab_coupe">COUPE / STYLE</label>
-                            <div class="dropdown-mock" contenteditable="true" data-i18n-key="dd_style">STYLE <i class="fas fa-chevron-down"></i></div>
+                            <div class="dropdown-mock" contenteditable="true" data-field-id="hair-style" data-i18n-key="dd_style">STYLE <i class="fas fa-chevron-down"></i></div>
                         </div>
                         <div class="form-group">
                             <label data-i18n="lab_couleur">COULEUR</label>
-                            <div class="dropdown-mock" contenteditable="true" data-i18n-key="dd_couleur">COULEUR <i class="fas fa-chevron-down"></i></div>
+                            <div class="dropdown-mock" contenteditable="true" data-field-id="hair-color" data-i18n-key="dd_couleur">COULEUR <i class="fas fa-chevron-down"></i></div>
                         </div>
                     </div>
                     <div class="form-group">
                         <label data-i18n="lab_longueur">LONGUEUR</label>
-                        <div class="dropdown-mock w-50" contenteditable="true" data-i18n-key="dd_longueur">LONGUEUR <i class="fas fa-chevron-down"></i></div>
+                        <div class="dropdown-mock w-50" contenteditable="true" data-field-id="hair-length" data-i18n-key="dd_longueur">LONGUEUR <i class="fas fa-chevron-down"></i></div>
                     </div>
                     <div class="form-group">
                         <label data-i18n="lab_details_rp">DÉTAILS (RP)</label>
-                        <div class="textarea-mock" contenteditable="true" style="min-height: 160px;" data-i18n="cheveux_ph">Châtain, tirés en arrière, mèches rebelles, etc.</div>
+                        <div class="textarea-mock" contenteditable="true" data-field-id="hair-details" style="min-height: 160px;" data-i18n="cheveux_ph">Châtain, tirés en arrière, mèches rebelles, etc.</div>
                     </div>
                 </div>
 
@@ -165,11 +172,11 @@
                     <h3 class="section-heading" data-i18n="vet_heading">VÊTEMENTS &amp; TENUE</h3>
                     <div class="form-group">
                         <label data-i18n="lab_tenue">TENUE HABITUELLE</label>
-                        <div class="textarea-mock" contenteditable="true" style="min-height: 140px;" data-i18n="tenue_ph">Veste U.N.I.S.C.A., pantalon sombre, chaussures usées...</div>
+                        <div class="textarea-mock" contenteditable="true" data-field-id="vet-tenue" style="min-height: 140px;" data-i18n="tenue_ph">Veste U.N.I.S.C.A., pantalon sombre, chaussures usées...</div>
                     </div>
                     <div class="form-group">
                         <label data-i18n="lab_accessoires">ACCESSOIRES</label>
-                        <div class="textarea-mock" contenteditable="true" style="min-height: 100px;" data-i18n="acc_ph">Lunettes, badge, sac, montre...</div>
+                        <div class="textarea-mock" contenteditable="true" data-field-id="vet-accessoires" style="min-height: 100px;" data-i18n="acc_ph">Lunettes, badge, sac, montre...</div>
                     </div>
                 </div>
 
@@ -178,26 +185,26 @@
                     <div class="tab-head-row">
                         <h3 class="section-heading" data-i18n="traits_heading">SÉLECTION DES TRAITS</h3>
                     </div>
-                    <p class="counter-line"><span contenteditable="true" data-i18n="traits_count" data-i18n-mode="html">Traits sélectionnés : 0 / 4</span></p>
+                    <p class="counter-line"><span contenteditable="true" data-field-id="traits-count" data-i18n="traits_count" data-i18n-mode="html">Traits sélectionnés : 0 / 4</span></p>
                     <div class="trait-picker">
                         <div class="trait-picker-head">
                             <button type="button" class="trait-nav editor-only" aria-label="Précédent"><i class="fas fa-chevron-left"></i></button>
-                            <span contenteditable="true" data-i18n="trait_num">TRAIT #1</span>
+                            <span contenteditable="true" data-field-id="trait-num" data-i18n="trait_num">TRAIT #1</span>
                             <button type="button" class="trait-nav editor-only" aria-label="Suivant"><i class="fas fa-chevron-right"></i></button>
                         </div>
-                        <p class="trait-name" contenteditable="true" data-i18n="trait_nom">LOGIQUE</p>
-                        <p class="trait-sub" contenteditable="true" data-i18n="trait_sub">Intellect — Le monde des idées</p>
-                        <div class="textarea-mock trait-desc" contenteditable="true" data-i18n="trait_desc">Arme de votre force intellectuelle, décryptez le monde environnant.</div>
+                        <p class="trait-name" contenteditable="true" data-field-id="trait-name" data-i18n="trait_nom">LOGIQUE</p>
+                        <p class="trait-sub" contenteditable="true" data-field-id="trait-sub" data-i18n="trait_sub">Intellect — Le monde des idées</p>
+                        <div class="textarea-mock trait-desc" contenteditable="true" data-field-id="trait-desc" data-i18n="trait_desc">Arme de votre force intellectuelle, décryptez le monde environnant.</div>
                         <button type="button" class="btn-validate editor-only" data-i18n="btn_valider_trait">VALIDER CE TRAIT</button>
                     </div>
                     <div class="traits-summary">
                         <span>1</span><span>2</span><span>3</span><span>4</span>
                     </div>
                     <div class="traits-slots">
-                        <div class="trait-slot" contenteditable="true">—</div>
-                        <div class="trait-slot" contenteditable="true">—</div>
-                        <div class="trait-slot" contenteditable="true">—</div>
-                        <div class="trait-slot" contenteditable="true">—</div>
+                        <div class="trait-slot" contenteditable="true" data-field-id="trait-slot-1">—</div>
+                        <div class="trait-slot" contenteditable="true" data-field-id="trait-slot-2">—</div>
+                        <div class="trait-slot" contenteditable="true" data-field-id="trait-slot-3">—</div>
+                        <div class="trait-slot" contenteditable="true" data-field-id="trait-slot-4">—</div>
                     </div>
                 </div>
 
@@ -218,9 +225,9 @@
         <div class="journal-wrap journal-wrap--book">
             <div class="journal-stamp" data-i18n="journal_stamp">CONFIDENTIEL</div>
             <header class="journal-header journal-header--book">
-                <p class="journal-doc-id" contenteditable="true" data-i18n="journal_doc" data-i18n-mode="html">DOCUMENT — NIVEAU D / USAGE RP</p>
-                <h1 class="journal-title" contenteditable="true" data-i18n="journal_title">JOURNAL INTIME</h1>
-                <p class="journal-author" contenteditable="true" data-i18n="journal_author" data-i18n-mode="html">Lua Tyler — citoyenne — U.N.I.S.C.A.</p>
+                <p class="journal-doc-id" contenteditable="true" data-field-id="journal-doc" data-i18n="journal_doc" data-i18n-mode="html">DOCUMENT — NIVEAU D / USAGE RP</p>
+                <h1 class="journal-title" contenteditable="true" data-field-id="journal-title" data-i18n="journal_title">JOURNAL INTIME</h1>
+                <p class="journal-author" contenteditable="true" data-field-id="journal-author" data-i18n="journal_author" data-i18n-mode="html">Lua Tyler — citoyenne — U.N.I.S.C.A.</p>
             </header>
 
             <div class="journal-book" id="journal-entries">
@@ -356,6 +363,18 @@
     <div id="lang-switcher" class="lang-switcher" role="navigation" data-i18n-aria="lang_switcher_aria">
         <button type="button" class="lang-btn lang-btn--active" data-lang="fr" title="Français">🇫🇷</button>
         <button type="button" class="lang-btn" data-lang="en" title="English">🇬🇧</button>
+    </div>
+
+    <!-- Modal générique (remplace window.prompt / window.alert / window.confirm) -->
+    <div id="fiche-modal" class="fiche-modal-overlay hidden" role="dialog" aria-modal="true">
+        <div class="fiche-modal">
+            <p class="fiche-modal-message"></p>
+            <input type="text" class="fiche-modal-input hidden" autocomplete="off">
+            <div class="fiche-modal-actions">
+                <button type="button" class="fiche-modal-btn fiche-modal-cancel">Annuler</button>
+                <button type="button" class="fiche-modal-btn fiche-modal-ok">OK</button>
+            </div>
+        </div>
     </div>
 
     <script src="i18n.js"></script>

@@ -1,14 +1,19 @@
 /**
  * Fiche RP — mot de passe mode éditeur (modifiable ici).
  * Sauvegarde : localStorage + export JSON pour GitHub Pages (voir data/fiche-export.json).
+ *
+ * v3 : sauvegarde par data-field-id (robuste), HTML sanitisé, modales custom.
  */
 const FICHE_RP_EDITOR_PASSWORD = "je t'aime";
 
 const STORAGE_EDITOR = 'ficherp_editor_unlocked';
 const STORAGE_SAVE_V2 = 'ficherp_save_v2';
+const STORAGE_SAVE_V3 = 'ficherp_save_v3';
 
 let isEditorMode = false;
 let editableNodes = [];
+
+/* ─── Utilitaires ─── */
 
 function debounce(fn, ms) {
     let t;
@@ -18,12 +23,109 @@ function debounce(fn, ms) {
     };
 }
 
+/**
+ * Sanitise un fragment HTML : supprime <script>, on*, javascript:, data:text etc.
+ */
+function sanitizeHTML(dirty) {
+    const doc = new DOMParser().parseFromString(dirty, 'text/html');
+    doc.querySelectorAll('script, style, iframe, object, embed, link[rel="import"], meta, form').forEach(el => el.remove());
+    doc.querySelectorAll('*').forEach(el => {
+        for (const attr of Array.from(el.attributes)) {
+            const name = attr.name.toLowerCase();
+            const val = (attr.value || '').trim().toLowerCase();
+            if (name.startsWith('on') || val.startsWith('javascript:') || val.startsWith('data:text')) {
+                el.removeAttribute(attr.name);
+            }
+        }
+    });
+    return doc.body.innerHTML;
+}
+
+/**
+ * Valide qu'une URL d'image est raisonnablement sûre.
+ */
+function isValidImageUrl(url) {
+    if (!url || typeof url !== 'string') return false;
+    const trimmed = url.trim().toLowerCase();
+    if (trimmed.startsWith('javascript:') || trimmed.startsWith('data:text')) return false;
+    return true;
+}
+
+/* ─── Modal custom (remplace prompt / alert / confirm) ─── */
+
+function ficheModal({ message, input = false, defaultValue = '', confirmOnly = false }) {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('fiche-modal');
+        const msgEl = overlay.querySelector('.fiche-modal-message');
+        const inputEl = overlay.querySelector('.fiche-modal-input');
+        const okBtn = overlay.querySelector('.fiche-modal-ok');
+        const cancelBtn = overlay.querySelector('.fiche-modal-cancel');
+
+        msgEl.textContent = message;
+
+        if (input) {
+            inputEl.classList.remove('hidden');
+            inputEl.value = defaultValue;
+            inputEl.type = message.toLowerCase().includes('mot de passe') || message.toLowerCase().includes('password') ? 'password' : 'text';
+        } else {
+            inputEl.classList.add('hidden');
+        }
+
+        if (confirmOnly) {
+            cancelBtn.classList.add('hidden');
+        } else {
+            cancelBtn.classList.remove('hidden');
+        }
+
+        overlay.classList.remove('hidden');
+        if (input) {
+            inputEl.focus();
+        } else {
+            okBtn.focus();
+        }
+
+        function cleanup() {
+            overlay.classList.add('hidden');
+            okBtn.removeEventListener('click', onOk);
+            cancelBtn.removeEventListener('click', onCancel);
+            inputEl.removeEventListener('keydown', onKey);
+            overlay.removeEventListener('click', onBackdrop);
+        }
+
+        function onOk() {
+            cleanup();
+            resolve(input ? inputEl.value : true);
+        }
+
+        function onCancel() {
+            cleanup();
+            resolve(input ? null : false);
+        }
+
+        function onKey(e) {
+            if (e.key === 'Enter') onOk();
+            if (e.key === 'Escape') onCancel();
+        }
+
+        function onBackdrop(e) {
+            if (e.target === overlay) onCancel();
+        }
+
+        okBtn.addEventListener('click', onOk);
+        cancelBtn.addEventListener('click', onCancel);
+        inputEl.addEventListener('keydown', onKey);
+        overlay.addEventListener('click', onBackdrop);
+    });
+}
+
+/* ─── Main ─── */
+
 document.addEventListener('DOMContentLoaded', async () => {
     if (typeof window.applyLanguage === 'function' && typeof window.getLang === 'function') {
         window.applyLanguage(window.getLang());
     }
 
-    /** Langue : branché tout de suite (avant fetch sauvegarde) pour que les clics répondent toujours. */
+    /** Langue : changement sans rechargement de page. */
     function wireLangSwitcher() {
         const root = document.getElementById('lang-switcher');
         if (!root) return;
@@ -33,12 +135,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const lang = t.getAttribute('data-lang');
             if (!lang || (typeof window.getLang === 'function' && lang === window.getLang())) return;
             if (typeof window.setLang === 'function') window.setLang(lang);
+            if (typeof window.applyLanguage === 'function') window.applyLanguage(lang);
             try {
                 persistToLocalStorage();
-            } catch (_) {
-                /* ignore */
-            }
-            location.reload();
+            } catch (_) { /* ignore */ }
         });
     }
 
@@ -66,20 +166,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnImportFiche = document.getElementById('btn-import-fiche');
     const inputImportFiche = document.getElementById('input-import-fiche');
 
+    /* ─── Sauvegarde v3 : par data-field-id (robuste) ─── */
+
     function collectSaveSnapshot() {
         syncFicheEditableRegistry();
-        const textsOutside = editableNodes
-            .filter((el) => !journalEntriesEl?.contains(el))
-            .map((el) => el.innerHTML);
+
+        const fields = {};
+        document.querySelectorAll('[data-field-id]').forEach((el) => {
+            fields[el.getAttribute('data-field-id')] = el.innerHTML;
+        });
+
         const images = Array.from(document.querySelectorAll('.editable-image')).map(
             (img) => img.getAttribute('src') || ''
         );
         const stepperVals = Array.from(document.querySelectorAll('.stepper-value')).map((el) =>
             el.textContent.trim()
         );
+
         return {
-            version: 2,
-            textsOutside,
+            version: 3,
+            fields,
             journalHTML: journalEntriesEl ? journalEntriesEl.innerHTML : '',
             images,
             stepperVals,
@@ -89,23 +195,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function applySaveSnapshot(data) {
-        if (!data || data.version !== 2) return;
-        if (journalEntriesEl && typeof data.journalHTML === 'string') {
-            journalEntriesEl.innerHTML = data.journalHTML;
+        if (!data) return;
+
+        if (data.version === 3) {
+            if (data.fields) {
+                Object.entries(data.fields).forEach(([id, html]) => {
+                    const el = document.querySelector(`[data-field-id="${CSS.escape(id)}"]`);
+                    if (el) el.innerHTML = sanitizeHTML(html);
+                });
+            }
+            if (journalEntriesEl && typeof data.journalHTML === 'string') {
+                journalEntriesEl.innerHTML = sanitizeHTML(data.journalHTML);
+            }
+        } else if (data.version === 2) {
+            // Legacy v2 : rétro-compatibilité par index
+            if (journalEntriesEl && typeof data.journalHTML === 'string') {
+                journalEntriesEl.innerHTML = sanitizeHTML(data.journalHTML);
+            }
+            syncFicheEditableRegistry();
+            const outside = editableNodes.filter((el) => !journalEntriesEl?.contains(el));
+            data.textsOutside?.forEach((html, i) => {
+                if (outside[i]) outside[i].innerHTML = sanitizeHTML(html);
+            });
+        } else {
+            return;
         }
-        syncFicheEditableRegistry();
-        const outside = editableNodes.filter((el) => !journalEntriesEl?.contains(el));
-        data.textsOutside?.forEach((html, i) => {
-            if (outside[i]) outside[i].innerHTML = html;
-        });
+
         const imgs = Array.from(document.querySelectorAll('.editable-image'));
         data.images?.forEach((src, i) => {
-            if (src && imgs[i]) imgs[i].src = src;
+            if (isValidImageUrl(src) && imgs[i]) imgs[i].src = src;
         });
+
         const steppers = Array.from(document.querySelectorAll('.stepper-value'));
         data.stepperVals?.forEach((v, i) => {
             if (steppers[i]) steppers[i].textContent = v;
         });
+
         const an = document.getElementById('attr-points-num');
         const sn = document.getElementById('skill-points-num');
         if (an && data.attrPoints != null) an.textContent = data.attrPoints;
@@ -114,7 +239,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function persistToLocalStorage() {
         try {
-            localStorage.setItem(STORAGE_SAVE_V2, JSON.stringify(collectSaveSnapshot()));
+            localStorage.setItem(STORAGE_SAVE_V3, JSON.stringify(collectSaveSnapshot()));
         } catch (e) {
             console.warn('Sauvegarde locale impossible', e);
         }
@@ -124,31 +249,35 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     wireLangSwitcher();
 
-    /** D’abord le JSON du dépôt (visible par tout le monde), puis le localStorage (ta session navigateur). */
     async function loadSavedData() {
         try {
             const r = await fetch('data/fiche-export.json', { cache: 'no-store' });
             if (r.ok) {
                 const fromFetch = await r.json();
-                if (fromFetch && fromFetch.version === 2) applySaveSnapshot(fromFetch);
+                if (fromFetch && (fromFetch.version === 2 || fromFetch.version === 3)) {
+                    applySaveSnapshot(fromFetch);
+                }
             }
-        } catch (_) {
-            /* pas de fichier ou file:// */
+        } catch (e) {
+            console.debug('Pas de fiche-export.json ou file://', e);
         }
         try {
-            const raw = localStorage.getItem(STORAGE_SAVE_V2);
+            const raw3 = localStorage.getItem(STORAGE_SAVE_V3);
+            const raw2 = localStorage.getItem(STORAGE_SAVE_V2);
+            const raw = raw3 || raw2;
             if (raw) {
                 const fromLocal = JSON.parse(raw);
-                if (fromLocal && fromLocal.version === 2) applySaveSnapshot(fromLocal);
+                if (fromLocal && (fromLocal.version === 2 || fromLocal.version === 3)) {
+                    applySaveSnapshot(fromLocal);
+                }
             }
-        } catch (_) {
-            /* ignore */
+        } catch (e) {
+            console.warn('Erreur lecture localStorage', e);
         }
     }
 
     await loadSavedData();
 
-    /** Réinitialise l'opacité inline (sinon l'écran reste invisible après une transition). */
     function clearScreenOpacity(el) {
         if (el) el.style.removeProperty('opacity');
     }
@@ -171,9 +300,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, afterFadeMs);
     }
 
-    /**
-     * Registre tous les champs éditables (y compris entrées de journal ajoutées plus tard).
-     */
     function syncFicheEditableRegistry() {
         document.querySelectorAll('[contenteditable="true"]').forEach((el) => {
             el.classList.add('fiche-editable');
@@ -207,15 +333,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (btnUnlockEditor) btnUnlockEditor.classList.add('hidden');
     }
 
-    function tryUnlockEditor() {
-        const pwd = window.prompt(
-            typeof window.t === 'function' ? window.t('script_prompt_pwd') : 'Mot de passe — mode éditeur :'
-        );
+    async function tryUnlockEditor() {
+        const pwd = await ficheModal({
+            message: typeof window.t === 'function' ? window.t('script_prompt_pwd') : 'Mot de passe — mode éditeur :',
+            input: true,
+        });
         if (pwd === null) return;
         if (pwd === FICHE_RP_EDITOR_PASSWORD) {
             applyEditorMode();
         } else {
-            window.alert(typeof window.t === 'function' ? window.t('script_wrong_pwd') : 'Mot de passe incorrect.');
+            await ficheModal({
+                message: typeof window.t === 'function' ? window.t('script_wrong_pwd') : 'Mot de passe incorrect.',
+                confirmOnly: true,
+            });
         }
     }
 
@@ -229,19 +359,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         btnUnlockEditor.addEventListener('click', tryUnlockEditor);
     }
     if (btnLockEditor) {
-        btnLockEditor.addEventListener('click', () => {
+        btnLockEditor.addEventListener('click', async () => {
             const msg =
                 typeof window.t === 'function'
                     ? window.t('script_lock_confirm')
                     : 'Passer en lecture seule ? Les visiteurs ne pourront plus modifier la page.';
-            if (window.confirm(msg)) {
-                applyReadOnlyMode();
-            }
+            const ok = await ficheModal({ message: msg });
+            if (ok) applyReadOnlyMode();
         });
     }
 
     if (btnExportFiche) {
-        btnExportFiche.addEventListener('click', () => {
+        btnExportFiche.addEventListener('click', async () => {
             const data = collectSaveSnapshot();
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const a = document.createElement('a');
@@ -249,15 +378,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             a.download = 'fiche-export.json';
             a.click();
             URL.revokeObjectURL(a.href);
-            window.alert(
-                typeof window.t === 'function'
+            await ficheModal({
+                message: typeof window.t === 'function'
                     ? window.t('script_export_alert')
-                    : 'Fichier téléchargé.\n\n' +
-                          '1) Renomme-le exactement : fiche-export.json\n' +
-                          '2) Mets-le dans le dossier data/ de ton projet (à côté de index.html)\n' +
-                          '3) git add data/fiche-export.json && git commit -m "Données fiche" && git push\n\n' +
-                          'Sans cette étape, seul ton navigateur mémorise les changements — pas le site pour les autres ni la navigation privée.'
-            );
+                    : 'Fichier téléchargé.\n\n1) Renomme-le : fiche-export.json\n2) Mets-le dans data/\n3) git add, commit, push',
+                confirmOnly: true,
+            });
         });
     }
 
@@ -267,23 +393,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             const file = inputImportFiche.files?.[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = () => {
+            reader.onload = async () => {
                 try {
                     const data = JSON.parse(String(reader.result));
                     applySaveSnapshot(data);
+                    syncFicheEditableRegistry();
                     if (isEditorMode) {
                         editableNodes.forEach((el) => el.setAttribute('contenteditable', 'true'));
                     } else {
                         editableNodes.forEach((el) => el.setAttribute('contenteditable', 'false'));
                     }
                     persistToLocalStorage();
-                    window.alert(
-                        typeof window.t === 'function' ? window.t('script_import_ok') : 'Import terminé.'
-                    );
+                    await ficheModal({
+                        message: typeof window.t === 'function' ? window.t('script_import_ok') : 'Import terminé.',
+                        confirmOnly: true,
+                    });
                 } catch (err) {
-                    window.alert(
-                        typeof window.t === 'function' ? window.t('script_import_bad') : 'Fichier JSON invalide.'
-                    );
+                    console.error('Import JSON échoué', err);
+                    await ficheModal({
+                        message: typeof window.t === 'function' ? window.t('script_import_bad') : 'Fichier JSON invalide.',
+                        confirmOnly: true,
+                    });
                 }
                 inputImportFiche.value = '';
             };
@@ -358,12 +488,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // --- 4. RETOUR écran sélection ---
+    // --- 4. RETOUR écran sélection -> relance le splash ---
     if (btnRetourCharSelect) {
         btnRetourCharSelect.addEventListener('click', () => {
-            if (window.history.length > 1) {
-                window.history.back();
-            }
+            hideScreen(charSelectScreen, 600, () => {
+                showScreen(splashScreen);
+                setTimeout(() => {
+                    splashScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        splashScreen.classList.remove('active');
+                        splashScreen.classList.add('hidden');
+                        clearScreenOpacity(splashScreen);
+                        showScreen(charSelectScreen);
+                    }, 1000);
+                }, 2000);
+            });
         });
     }
 
@@ -380,18 +519,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // --- 6. Images ---
-    document.body.addEventListener('click', (e) => {
+    // --- 6. Images (avec modal custom) ---
+    document.body.addEventListener('click', async (e) => {
         const img = e.target.closest('.editable-image');
         if (!img || !isEditorMode) return;
         e.stopPropagation();
-        const newUrl = window.prompt(
-            typeof window.t === 'function'
+        const newUrl = await ficheModal({
+            message: typeof window.t === 'function'
                 ? window.t('script_prompt_img')
                 : "URL de l'image (lien direct .png, .jpg, etc.) :",
-            img.src
-        );
-        if (newUrl && newUrl.trim() !== '') {
+            input: true,
+            defaultValue: img.src,
+        });
+        if (newUrl && newUrl.trim() !== '' && isValidImageUrl(newUrl.trim())) {
             img.src = newUrl.trim();
             persistToLocalStorage();
         }
