@@ -113,6 +113,7 @@
             journal_author: 'Lua Tyler — citoyenne — U.N.I.S.C.A.',
             book_p1:
                 "City 9 ne ressemble à rien de ce que j'avais lu dans les romans de mon père. Ici, être loyaliste, c'est coopérer avec la Protection civile, accepter les rationnements, fermer les yeux sur ce qu'on entend la nuit. J'écris ces lignes pour moi seule — si quelqu'un les lit plus tard, qu'il sache que ce n'était pas de la lâcheté, seulement de la survie.",
+            img_ph_paris: 'Image de Paris (Editeur = URL)',
             book_cap1: 'Lua Tyler — Summer 2023.<br>—<br>Paris, City 9.',
             img_ph_journal: 'Portrait (éditeur = URL)',
             id_heading: 'Identity card',
@@ -264,6 +265,7 @@
             journal_author: 'Lua Tyler — citizen — U.N.I.S.C.A.',
             book_p1:
                 "City 9 is nothing like what I read in my father's novels. Here, being a loyalist means cooperating with Civil Protection, accepting rations, and closing your eyes to what you hear at night. I write these lines for myself alone—if someone reads them later, know it wasn't cowardice, only survival.",
+            img_ph_paris: 'Paris Image (Editor = URL)',
             book_cap1: 'Lua Tyler — Summer 2023.<br>—<br>Paris, City 9.',
             img_ph_journal: 'Portrait (editor = URL)',
             id_heading: 'Identity card',
