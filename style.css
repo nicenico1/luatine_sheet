@@ -1468,3 +1468,12 @@ body.is-editor .journal-photo:hover {
 }
 
 
+
+body.is-editor .screen {
+    height: calc(100% - 130px);
+}
+body.is-editor .bio-content {
+    max-height: calc(100vh - 178px);
+}
+
+
