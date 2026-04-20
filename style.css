@@ -1321,18 +1321,16 @@ body.is-editor .btn-validate {
 }
 
 .journal-footer {
-    position: sticky;
-    bottom: 0;
+    position: relative;
     text-align: center;
-    padding: 32px 0 24px;
-    margin: 40px -20px 0;
-    background: linear-gradient(0deg, var(--bg-dark) 50%, transparent 100%);
-    z-index: 100;
+    padding: 40px 0 32px;
+    margin: 20px auto 0;
+    z-index: 10;
 }
 
 @keyframes cinematicScreenFade {
     0% { opacity: 0; filter: blur(4px); transform: scale(1.015); }
-    100% { opacity: 1; filter: blur(0); transform: scale(1); }
+    100% { opacity: 1; filter: none; transform: none; }
 }
 .screen.active {
     animation: cinematicScreenFade 1.2s cubic-bezier(0.19, 1, 0.22, 1) forwards;
