@@ -904,7 +904,8 @@ body.is-editor .btn-validate {
     overflow-y: auto;
     overflow-x: hidden;
     z-index: 5;
-    background: transparent;
+    background: radial-gradient(circle at 50% 50%, rgba(15, 12, 10, 0.6) 0%, rgba(5, 3, 2, 0.95) 100%);
+    background-attachment: fixed;
 }
 
 #journal-screen.screen.active {
@@ -913,12 +914,7 @@ body.is-editor .btn-validate {
 
 /* Ambiance sombre et texturée autour du livre */
 .journal-atmosphere {
-    position: fixed;
-    inset: 0;
-    background:
-        radial-gradient(circle at 50% 50%, rgba(15, 12, 10, 0.6) 0%, rgba(5, 3, 2, 0.95) 100%);
-    pointer-events: none;
-    z-index: 0;
+    display: none;
 }
 
 .journal-wrap--book {
