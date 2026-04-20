@@ -1495,4 +1495,580 @@ body.is-editor .bio-content {
     max-height: calc(100vh - 178px);
 }
 
+/* ───────────────────────────────────────────────────────────────
+   LIVRE — Visionneuse double-page (one spread at a time, page-flip)
+   ─────────────────────────────────────────────────────────────── */
+
+.book-viewer {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 8px;
+    margin: 0 auto;
+    perspective: 2400px;
+}
+
+.book-nav {
+    flex: 0 0 56px;
+    align-self: stretch;
+    background: rgba(20, 22, 28, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #e8e4dc;
+    font-size: 22px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s, transform 0.2s, opacity 0.2s;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+}
+
+.book-nav:hover:not(:disabled) {
+    background: rgba(40, 44, 56, 0.85);
+    transform: scale(1.04);
+}
+
+.book-nav:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+}
+
+.book-stage {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    transform-style: preserve-3d;
+}
+
+/* Le conteneur des spreads passe en mode "stack" : tous superposés, un seul visible.
+   Le spread courant est en position relative (donne sa taille au livre),
+   les autres sont en absolute par-dessus. */
+.journal-book {
+    position: relative;
+    display: block;
+    min-height: 480px;
+    transform-style: preserve-3d;
+}
+
+.journal-book .book-spread {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    margin: 0;
+    transform-origin: center center;
+    transition:
+        opacity 650ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 650ms cubic-bezier(0.22, 1, 0.36, 1),
+        filter 650ms ease-out;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: rotateY(0deg) translateZ(0);
+    backface-visibility: hidden;
+}
+
+.journal-book .book-spread.is-current {
+    position: relative;
+    inset: auto;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: rotateY(0deg) translateZ(0);
+    z-index: 2;
+}
+
+/* Animation : page qui se tourne vers la droite (passage à la suivante) */
+.journal-book .book-spread.is-leaving-forward {
+    opacity: 0;
+    visibility: visible;
+    transform: rotateY(-22deg) translateX(-8%) translateZ(-40px);
+    filter: brightness(0.7) blur(1px);
+    z-index: 1;
+}
+
+.journal-book .book-spread.is-entering-forward {
+    opacity: 0;
+    visibility: visible;
+    transform: rotateY(22deg) translateX(10%) translateZ(-60px);
+    filter: brightness(0.7) blur(2px);
+    z-index: 3;
+}
+
+/* Animation : page qui se tourne vers la gauche (passage à la précédente) */
+.journal-book .book-spread.is-leaving-backward {
+    opacity: 0;
+    visibility: visible;
+    transform: rotateY(22deg) translateX(8%) translateZ(-40px);
+    filter: brightness(0.7) blur(1px);
+    z-index: 1;
+}
+
+.journal-book .book-spread.is-entering-backward {
+    opacity: 0;
+    visibility: visible;
+    transform: rotateY(-22deg) translateX(-10%) translateZ(-60px);
+    filter: brightness(0.7) blur(2px);
+    z-index: 3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .journal-book .book-spread {
+        transition: opacity 200ms ease;
+        transform: none !important;
+        filter: none !important;
+    }
+}
+
+.book-pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 16px 0 6px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    user-select: none;
+}
+
+.book-pager-current {
+    color: #e8e4dc;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.book-pager-hint {
+    margin-left: 14px;
+    opacity: 0.55;
+    font-size: 10px;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   Bouton "+" sur chaque page (mode éditeur) + menu d'ajout
+   ─────────────────────────────────────────────────────────────── */
+
+.book-page {
+    transition: box-shadow 0.2s;
+}
+
+body.is-editor .book-page-inner {
+    padding-bottom: 70px;
+}
+
+.page-add-btn {
+    position: absolute;
+    left: 50%;
+    bottom: 36px;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(40, 44, 56, 0.92);
+    color: #e8e4dc;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    cursor: pointer;
+    font-size: 16px;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    opacity: 0.35;
+    transition: opacity 0.2s, transform 0.2s, background 0.2s;
+}
+
+body.is-editor .book-page-inner:hover > .page-add-btn,
+body.is-editor .page-add-btn:focus,
+body.is-editor .page-add-btn.is-open {
+    opacity: 1;
+}
+
+.page-add-btn:hover {
+    background: var(--accent-red);
+    transform: translateX(-50%) scale(1.08);
+}
+
+.add-element-menu {
+    position: fixed;
+    z-index: 30000;
+    min-width: 200px;
+    background: #1a1c24;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 6px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    animation: aemFadeIn 0.15s ease;
+}
+
+.add-element-menu.hidden {
+    display: none;
+}
+
+@keyframes aemFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.aem-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 4px;
+    text-align: left;
+    transition: background 0.15s, color 0.15s;
+}
+
+.aem-item i {
+    width: 16px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.aem-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.aem-item:hover i {
+    color: var(--accent-red);
+}
+
+/* ───────────────────────────────────────────────────────────────
+   Outils par élément (delete / move / rotate) en mode éditeur
+   ─────────────────────────────────────────────────────────────── */
+
+body.is-editor .book-page-inner [contenteditable="true"],
+body.is-editor .book-page-inner figure {
+    position: relative;
+}
+
+.element-tools {
+    position: absolute;
+    top: -14px;
+    right: -10px;
+    display: none;
+    gap: 2px;
+    background: rgba(20, 22, 28, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 4px;
+    padding: 2px;
+    z-index: 6;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+body.is-editor .book-page-inner > [data-element]:hover > .element-tools,
+body.is-editor .book-page-inner > [data-element]:focus-within > .element-tools {
+    display: inline-flex;
+}
+
+.element-tools button {
+    background: transparent;
+    border: none;
+    color: #e8e4dc;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    cursor: pointer;
+    font-size: 11px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+}
+
+.element-tools button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.element-tools .et-del:hover {
+    background: var(--accent-red);
+    color: #fff;
+}
+
+/* Marquer les éléments éditables avec un léger contour pointillé en mode éditeur */
+body.is-editor .book-page-inner > [data-element] {
+    outline: 1px dashed transparent;
+    outline-offset: 4px;
+    border-radius: 2px;
+    transition: outline-color 0.2s;
+}
+
+body.is-editor .book-page-inner > [data-element]:hover {
+    outline-color: rgba(120, 90, 60, 0.45);
+}
+
+/* ───────────────────────────────────────────────────────────────
+   Barre de mise en forme flottante
+   ─────────────────────────────────────────────────────────────── */
+
+.format-toolbar {
+    position: fixed;
+    z-index: 25000;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 8px;
+    background: rgba(18, 20, 26, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #e8e4dc;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    transform-origin: bottom center;
+}
+
+.format-toolbar.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.95);
+}
+
+.ft-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 0 4px;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ft-group:last-child {
+    border-right: none;
+}
+
+.ft-select {
+    background: rgba(35, 38, 48, 0.9);
+    color: #e8e4dc;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+    padding: 5px 6px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    outline: none;
+    max-width: 170px;
+}
+
+.ft-select.ft-size {
+    max-width: 70px;
+}
+
+.ft-select:focus {
+    border-color: var(--accent-red);
+}
+
+.ft-btn {
+    background: transparent;
+    color: #e8e4dc;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+}
+
+.ft-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.ft-btn.is-active {
+    background: rgba(229, 57, 53, 0.85);
+    color: #fff;
+}
+
+.ft-inks {
+    gap: 4px;
+}
+
+.ft-ink {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.ft-ink:hover {
+    transform: scale(1.18);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18);
+}
+
+/* ───────────────────────────────────────────────────────────────
+   Pages : drop-zone, ajustements pour mode éditeur
+   ─────────────────────────────────────────────────────────────── */
+
+.book-page.is-drop-target {
+    box-shadow: inset 0 0 0 3px var(--accent-red), 0 0 24px rgba(229, 57, 53, 0.45);
+}
+
+.book-page.is-drop-target::after {
+    content: 'Déposer pour ajouter une image';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.6);
+    color: #1a1a1a;
+    font-family: 'Special Elite', monospace;
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* Permettre aux figures d'être centrées et avoir un peu d'espace */
+.book-page-inner > figure.photo-taped {
+    display: block;
+    margin: 16px auto;
+}
+
+/* Petite icône de rotation : photo qui se penche un peu */
+.photo-taped[data-rotate="-3"] { transform: rotate(-3deg); }
+.photo-taped[data-rotate="-2"] { transform: rotate(-2deg); }
+.photo-taped[data-rotate="-1"] { transform: rotate(-1deg); }
+.photo-taped[data-rotate="0"] { transform: rotate(0deg); }
+.photo-taped[data-rotate="1"] { transform: rotate(1deg); }
+.photo-taped[data-rotate="2"] { transform: rotate(2deg); }
+.photo-taped[data-rotate="3"] { transform: rotate(3deg); }
+.photo-taped[data-rotate="4"] { transform: rotate(4deg); }
+.photo-taped[data-rotate="5"] { transform: rotate(5deg); }
+
+/* Divider décoratif manuscrit */
+.book-divider {
+    height: 24px;
+    margin: 16px auto;
+    width: 70%;
+    background-image:
+        linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.5) 20%, rgba(0,0,0,0.5) 80%, transparent 100%);
+    background-repeat: no-repeat;
+    background-size: 100% 1px;
+    background-position: center;
+    position: relative;
+}
+
+.book-divider::after {
+    content: '✦';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--paper, #d8d4cc);
+    padding: 0 10px;
+    color: rgba(0, 0, 0, 0.55);
+    font-size: 12px;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   Notice : cacher l'ancien layout vertical des spreads
+   ─────────────────────────────────────────────────────────────── */
+
+/* Quand on ouvre un menu d'ajout, l'écran derrière reste cliquable mais le menu est au-dessus */
+body.aem-open {
+    cursor: default;
+}
+
+/* Polices manuscrites — utilisables via execCommand fontName */
+.font-caveat        { font-family: 'Caveat', cursive; }
+.font-dancing       { font-family: 'Dancing Script', cursive; }
+.font-kalam         { font-family: 'Kalam', cursive; }
+.font-indie         { font-family: 'Indie Flower', cursive; }
+.font-shadows       { font-family: 'Shadows Into Light', cursive; }
+.font-patrick       { font-family: 'Patrick Hand', cursive; }
+.font-reenie        { font-family: 'Reenie Beanie', cursive; }
+.font-architects    { font-family: 'Architects Daughter', cursive; }
+.font-homemade      { font-family: 'Homemade Apple', cursive; }
+.font-gloria        { font-family: 'Gloria Hallelujah', cursive; }
+.font-cedarville    { font-family: 'Cedarville Cursive', cursive; }
+.font-belle         { font-family: 'La Belle Aurore', cursive; }
+.font-marck         { font-family: 'Marck Script', cursive; }
+.font-nothing       { font-family: 'Nothing You Could Do', cursive; }
+.font-rocksalt      { font-family: 'Rock Salt', cursive; }
+.font-permanent     { font-family: 'Permanent Marker', cursive; }
+.font-sacramento    { font-family: 'Sacramento', cursive; }
+.font-pinyon        { font-family: 'Pinyon Script', cursive; }
+.font-elite         { font-family: 'Special Elite', monospace; }
+.font-imfell        { font-family: 'IM Fell English', serif; }
+.font-imfellsc      { font-family: 'IM Fell English SC', serif; }
+.font-cormorant     { font-family: 'Cormorant Garamond', serif; }
+.font-lora          { font-family: 'Lora', serif; }
+.font-tech          { font-family: 'Share Tech Mono', monospace; }
+
+@media (max-width: 1100px) {
+    .book-nav {
+        flex-basis: 40px;
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 700px) {
+    .book-nav {
+        flex-basis: 32px;
+        font-size: 16px;
+        min-height: 120px;
+    }
+    .format-toolbar {
+        max-width: 96vw;
+        overflow-x: auto;
+    }
+}
+
+/* ─── Cloud Sync Indicator ─── */
+
+.sync-indicator {
+    position: fixed;
+    bottom: 14px;
+    left: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px 5px 10px;
+    border-radius: 20px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .04em;
+    z-index: 10000;
+    pointer-events: none;
+    user-select: none;
+    transition: opacity .4s ease;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,.06);
+}
+.sync-icon { font-size: 14px; line-height: 1; }
+
+.sync--idle         { background: rgba(20,20,25,.65); color: #8899aa; }
+.sync--syncing      { background: rgba(50,42,10,.8);  color: #ffd54f; }
+.sync--synced       { background: rgba(12,40,22,.8);  color: #81c784; }
+.sync--error        { background: rgba(55,12,12,.8);  color: #ef5350; }
+.sync--local        { background: rgba(20,20,25,.5);  color: #666;    }
+
+.sync--syncing .sync-icon {
+    display: inline-block;
+    animation: syncSpin .9s linear infinite;
+}
+@keyframes syncSpin { to { transform: rotate(360deg); } }
 

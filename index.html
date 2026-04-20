@@ -14,8 +14,10 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <link rel="stylesheet" href="style.css?v=15">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Special+Elite&family=Share+Tech+Mono&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=20">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Special+Elite&family=Share+Tech+Mono&family=Lora:ital,wght@0,400;0,600;1,400&family=Caveat:wght@400;500;700&family=Dancing+Script:wght@400;600;700&family=Kalam:wght@300;400;700&family=Indie+Flower&family=Shadows+Into+Light&family=Patrick+Hand&family=Reenie+Beanie&family=Permanent+Marker&family=Architects+Daughter&family=Homemade+Apple&family=Gloria+Hallelujah&family=Sacramento&family=Cedarville+Cursive&family=La+Belle+Aurore&family=Marck+Script&family=Nothing+You+Could+Do&family=Rock+Salt&family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="is-read-only">
@@ -228,7 +230,13 @@
                 <p class="journal-author" contenteditable="true" data-field-id="journal-author" data-i18n="journal_author" data-i18n-mode="html">Lua Tyler — citoyenne — U.N.I.S.C.A.</p>
             </header>
 
-            <div class="journal-book" id="journal-entries">
+            <!-- Viewer du livre : une double-page à la fois -->
+            <div class="book-viewer" id="book-viewer">
+                <button type="button" class="book-nav book-nav--prev" id="book-prev" aria-label="Page précédente">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="book-stage" id="book-stage">
+                    <div class="journal-book" id="journal-entries">
                 <!-- Double page 1 -->
                 <section class="book-spread" data-i18n-aria="spread_aria_1">
                     <div class="book-page book-page--left">
@@ -301,11 +309,26 @@
                         </div>
                     </div>
                 </section>
+                    </div>
+                </div>
+                <button type="button" class="book-nav book-nav--next" id="book-next" aria-label="Page suivante">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <div class="book-pager">
+                <span class="book-pager-current" id="book-pager-current">1</span>
+                <span class="book-pager-sep">/</span>
+                <span class="book-pager-total" id="book-pager-total">1</span>
+                <span class="book-pager-hint">Pages — ← →</span>
             </div>
 
             <div class="journal-toolbar">
                 <button type="button" class="btn-journal-add editor-only" id="btn-add-journal-entry" title="Ajouter une double-page">
                     <i class="fas fa-plus"></i> Ajouter une double-page
+                </button>
+                <button type="button" class="btn-journal-add editor-only" id="btn-remove-journal-entry" title="Supprimer la double-page actuelle">
+                    <i class="fas fa-trash"></i> Supprimer cette double-page
                 </button>
             </div>
 
@@ -314,6 +337,89 @@
             </footer>
         </div>
     </div>
+
+    <!-- Barre de mise en forme flottante (apparait sur sélection de texte dans le livre) -->
+    <div id="format-toolbar" class="format-toolbar hidden" role="toolbar" aria-label="Mise en forme">
+        <div class="ft-group">
+            <select id="ft-font" class="ft-select" title="Police">
+                <optgroup label="Manuscrit">
+                    <option value="'Caveat', cursive">Caveat</option>
+                    <option value="'Dancing Script', cursive">Dancing Script</option>
+                    <option value="'Kalam', cursive">Kalam</option>
+                    <option value="'Indie Flower', cursive">Indie Flower</option>
+                    <option value="'Shadows Into Light', cursive">Shadows Into Light</option>
+                    <option value="'Patrick Hand', cursive">Patrick Hand</option>
+                    <option value="'Reenie Beanie', cursive">Reenie Beanie</option>
+                    <option value="'Architects Daughter', cursive">Architects Daughter</option>
+                    <option value="'Homemade Apple', cursive">Homemade Apple</option>
+                    <option value="'Gloria Hallelujah', cursive">Gloria Hallelujah</option>
+                    <option value="'Cedarville Cursive', cursive">Cedarville Cursive</option>
+                    <option value="'La Belle Aurore', cursive">La Belle Aurore</option>
+                    <option value="'Marck Script', cursive">Marck Script</option>
+                    <option value="'Nothing You Could Do', cursive">Nothing You Could Do</option>
+                    <option value="'Rock Salt', cursive">Rock Salt</option>
+                    <option value="'Permanent Marker', cursive">Permanent Marker</option>
+                    <option value="'Sacramento', cursive">Sacramento</option>
+                    <option value="'Pinyon Script', cursive">Pinyon Script</option>
+                </optgroup>
+                <optgroup label="Imprimé / vintage">
+                    <option value="'Special Elite', monospace">Special Elite (machine à écrire)</option>
+                    <option value="'IM Fell English', serif">IM Fell English</option>
+                    <option value="'IM Fell English SC', serif">IM Fell English SC</option>
+                    <option value="'Cormorant Garamond', serif">Cormorant Garamond</option>
+                    <option value="'Lora', serif">Lora</option>
+                    <option value="'Share Tech Mono', monospace">Share Tech Mono</option>
+                </optgroup>
+            </select>
+            <select id="ft-size" class="ft-select ft-size" title="Taille">
+                <option value="2">Très petit</option>
+                <option value="3" selected>Normal</option>
+                <option value="4">Grand</option>
+                <option value="5">Très grand</option>
+                <option value="6">Énorme</option>
+                <option value="7">Géant</option>
+            </select>
+        </div>
+        <div class="ft-group">
+            <button type="button" class="ft-btn" data-cmd="bold" title="Gras"><i class="fas fa-bold"></i></button>
+            <button type="button" class="ft-btn" data-cmd="italic" title="Italique"><i class="fas fa-italic"></i></button>
+            <button type="button" class="ft-btn" data-cmd="underline" title="Souligné"><i class="fas fa-underline"></i></button>
+            <button type="button" class="ft-btn" data-cmd="strikeThrough" title="Barré"><i class="fas fa-strikethrough"></i></button>
+        </div>
+        <div class="ft-group ft-inks" title="Couleur d'encre">
+            <button type="button" class="ft-ink" data-color="#1a1a1a" style="background:#1a1a1a" title="Encre noire"></button>
+            <button type="button" class="ft-ink" data-color="#1f3a8a" style="background:#1f3a8a" title="Encre bleue"></button>
+            <button type="button" class="ft-ink" data-color="#0d3b1f" style="background:#0d3b1f" title="Encre verte"></button>
+            <button type="button" class="ft-ink" data-color="#7a1212" style="background:#7a1212" title="Encre rouge"></button>
+            <button type="button" class="ft-ink" data-color="#5b3a1d" style="background:#5b3a1d" title="Sépia"></button>
+            <button type="button" class="ft-ink" data-color="#7a6d52" style="background:#7a6d52" title="Encre fanée"></button>
+            <button type="button" class="ft-ink" data-color="#5b00a8" style="background:#5b00a8" title="Encre violette"></button>
+        </div>
+        <div class="ft-group">
+            <button type="button" class="ft-btn" data-cmd="justifyLeft" title="Aligner à gauche"><i class="fas fa-align-left"></i></button>
+            <button type="button" class="ft-btn" data-cmd="justifyCenter" title="Centrer"><i class="fas fa-align-center"></i></button>
+            <button type="button" class="ft-btn" data-cmd="justifyRight" title="Aligner à droite"><i class="fas fa-align-right"></i></button>
+            <button type="button" class="ft-btn" data-cmd="justifyFull" title="Justifier"><i class="fas fa-align-justify"></i></button>
+        </div>
+        <div class="ft-group">
+            <button type="button" class="ft-btn" data-cmd="removeFormat" title="Effacer la mise en forme"><i class="fas fa-eraser"></i></button>
+        </div>
+    </div>
+
+    <!-- Menu d'ajout d'élément (apparait sur clic du bouton + dans une page en mode éditeur) -->
+    <div id="add-element-menu" class="add-element-menu hidden" role="menu">
+        <button type="button" class="aem-item" data-add="paragraph"><i class="fas fa-paragraph"></i> Paragraphe</button>
+        <button type="button" class="aem-item" data-add="heading"><i class="fas fa-heading"></i> Titre</button>
+        <button type="button" class="aem-item" data-add="caption"><i class="fas fa-quote-right"></i> Légende</button>
+        <button type="button" class="aem-item" data-add="divider"><i class="fas fa-grip-lines"></i> Séparateur</button>
+        <button type="button" class="aem-item" data-add="photo"><i class="fas fa-image"></i> Photo (scotch)</button>
+        <button type="button" class="aem-item" data-add="photo-portrait"><i class="fas fa-portrait"></i> Photo portrait</button>
+        <button type="button" class="aem-item" data-add="photo-clip"><i class="fas fa-thumbtack"></i> Photo (trombone)</button>
+        <button type="button" class="aem-item" data-add="id-card"><i class="fas fa-id-card"></i> Bloc identité</button>
+    </div>
+
+    <!-- Input fichier caché pour upload d'image -->
+    <input type="file" id="input-image-upload" accept="image/*" class="visually-hidden" aria-hidden="true">
 
     <template id="journal-entry-template">
         <section class="book-spread book-spread--new" data-i18n-aria="tpl_aria_spread">
@@ -372,7 +478,16 @@
         </div>
     </div>
 
+    <!-- Firebase SDK (compat — works without bundler) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+
+    <!-- Firebase config + sync (must load before script.js) -->
+    <script src="firebase-config.js?v=1"></script>
+    <script src="firebase-sync.js?v=1"></script>
+
     <script src="i18n.js"></script>
-    <script src="script.js?v=15"></script>
+    <script src="script.js?v=16"></script>
 </body>
 </html>

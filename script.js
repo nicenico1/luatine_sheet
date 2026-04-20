@@ -239,17 +239,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function persistToLocalStorage() {
         try {
-            localStorage.setItem(STORAGE_SAVE_V3, JSON.stringify(collectSaveSnapshot()));
+            var snapshot = collectSaveSnapshot();
+            localStorage.setItem(STORAGE_SAVE_V3, JSON.stringify(snapshot));
+            firebaseSaveDebounced(snapshot);
         } catch (e) {
             console.warn('Sauvegarde locale impossible', e);
         }
     }
+
+    const firebaseSaveDebounced = debounce(function (snapshot) {
+        if (typeof isFirebaseReady === 'function' && isFirebaseReady() && typeof saveToFirebase === 'function') {
+            saveToFirebase(snapshot);
+        }
+    }, 2000);
 
     const persistDebounced = debounce(persistToLocalStorage, 600);
 
     wireLangSwitcher();
 
     async function loadSavedData() {
+        // 1. Baseline from static JSON (committed to repo)
         try {
             const r = await fetch('data/fiche-export.json', { cache: 'no-store' });
             if (r.ok) {
@@ -261,6 +270,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) {
             console.debug('Pas de fiche-export.json ou file://', e);
         }
+
+        // 2. Firebase cloud data (takes priority when available)
+        if (typeof isFirebaseReady === 'function' && isFirebaseReady()) {
+            try {
+                const fromCloud = await loadFromFirebase();
+                if (fromCloud && (fromCloud.version === 2 || fromCloud.version === 3)) {
+                    applySaveSnapshot(fromCloud);
+                    try { localStorage.setItem(STORAGE_SAVE_V3, JSON.stringify(fromCloud)); } catch (_) {}
+                    return;
+                }
+            } catch (e) {
+                console.warn('Firebase load failed, falling back to localStorage', e);
+            }
+        }
+
+        // 3. Fallback: localStorage
         try {
             const raw3 = localStorage.getItem(STORAGE_SAVE_V3);
             const raw2 = localStorage.getItem(STORAGE_SAVE_V2);
@@ -269,6 +294,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const fromLocal = JSON.parse(raw);
                 if (fromLocal && (fromLocal.version === 2 || fromLocal.version === 3)) {
                     applySaveSnapshot(fromLocal);
+                    // First-time Firebase: migrate local data to cloud
+                    if (typeof isFirebaseReady === 'function' && isFirebaseReady() && typeof saveToFirebase === 'function') {
+                        saveToFirebase(fromLocal);
+                    }
                 }
             }
         } catch (e) {
@@ -545,38 +574,635 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // --- 6. Images (avec modal custom) ---
+    // --- 6. Images : ouvrir le picker (URL ou upload) ---
+    const inputImageUpload = document.getElementById('input-image-upload');
+    let pendingImageTarget = null;
+
+    function readFileAsDataURL(file) {
+        return new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = () => resolve(String(r.result));
+            r.onerror = reject;
+            r.readAsDataURL(file);
+        });
+    }
+
+    async function pickImageForElement(imgEl) {
+        const choice = await ficheModal({
+            message: "Comment veux-tu ajouter l'image ?\n\n• OK = importer un fichier depuis ton ordinateur\n• Annuler = utiliser une URL en ligne (.png, .jpg, .webp...)",
+        });
+        if (choice) {
+            pendingImageTarget = imgEl;
+            inputImageUpload.value = '';
+            inputImageUpload.click();
+            return;
+        }
+        const newUrl = await ficheModal({
+            message: "URL de l'image (lien direct .png, .jpg, .webp, etc.) :",
+            input: true,
+            defaultValue: imgEl.src && !imgEl.src.startsWith('data:') ? imgEl.src : '',
+        });
+        if (newUrl && newUrl.trim() !== '' && isValidImageUrl(newUrl.trim())) {
+            imgEl.src = newUrl.trim();
+            persistToLocalStorage();
+        }
+    }
+
     document.body.addEventListener('click', async (e) => {
         const img = e.target.closest('.editable-image');
         if (!img || !isEditorMode) return;
         e.stopPropagation();
-        const newUrl = await ficheModal({
-            message: typeof window.t === 'function'
-                ? window.t('script_prompt_img')
-                : "URL de l'image (lien direct .png, .jpg, etc.) :",
-            input: true,
-            defaultValue: img.src,
+        await pickImageForElement(img);
+    });
+
+    if (inputImageUpload) {
+        inputImageUpload.addEventListener('change', async () => {
+            const file = inputImageUpload.files?.[0];
+            if (!file || !pendingImageTarget) return;
+            try {
+                let imgSrc = null;
+                if (typeof uploadImageToFirebase === 'function' && typeof isFirebaseReady === 'function' && isFirebaseReady()) {
+                    imgSrc = await uploadImageToFirebase(file);
+                }
+                if (!imgSrc) {
+                    imgSrc = await readFileAsDataURL(file);
+                }
+                pendingImageTarget.src = imgSrc;
+                persistToLocalStorage();
+            } catch (err) {
+                console.warn('Lecture image impossible', err);
+            }
+            pendingImageTarget = null;
+            inputImageUpload.value = '';
         });
-        if (newUrl && newUrl.trim() !== '' && isValidImageUrl(newUrl.trim())) {
-            img.src = newUrl.trim();
-            persistToLocalStorage();
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       LIVRE — viewer une double-page à la fois + animation flip
+       ───────────────────────────────────────────────────────────── */
+
+    const bookViewer = document.getElementById('book-viewer');
+    const bookPrev = document.getElementById('book-prev');
+    const bookNext = document.getElementById('book-next');
+    const pagerCurrent = document.getElementById('book-pager-current');
+    const pagerTotal = document.getElementById('book-pager-total');
+    const btnRemoveJournalEntry = document.getElementById('btn-remove-journal-entry');
+
+    let currentSpreadIdx = 0;
+    let isFlipping = false;
+
+    function getSpreads() {
+        return Array.from(journalEntriesEl ? journalEntriesEl.querySelectorAll(':scope > .book-spread') : []);
+    }
+
+    function updatePager() {
+        const spreads = getSpreads();
+        if (pagerTotal) pagerTotal.textContent = String(spreads.length || 1);
+        if (pagerCurrent) pagerCurrent.textContent = String(Math.min(currentSpreadIdx + 1, spreads.length || 1));
+        if (bookPrev) bookPrev.disabled = currentSpreadIdx <= 0;
+        if (bookNext) bookNext.disabled = currentSpreadIdx >= spreads.length - 1;
+    }
+
+    function showSpread(idx, direction) {
+        const spreads = getSpreads();
+        if (!spreads.length) return;
+        idx = Math.max(0, Math.min(idx, spreads.length - 1));
+        const current = spreads.findIndex(s => s.classList.contains('is-current'));
+
+        if (current === idx) {
+            spreads.forEach((s, i) => {
+                s.classList.toggle('is-current', i === idx);
+            });
+            updatePager();
+            return;
+        }
+
+        if (current === -1) {
+            spreads[idx].classList.add('is-current');
+            currentSpreadIdx = idx;
+            updatePager();
+            return;
+        }
+
+        if (isFlipping) return;
+        isFlipping = true;
+
+        const dir = direction || (idx > current ? 'forward' : 'backward');
+        const oldEl = spreads[current];
+        const newEl = spreads[idx];
+
+        newEl.classList.add(dir === 'forward' ? 'is-entering-forward' : 'is-entering-backward');
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                oldEl.classList.remove('is-current');
+                oldEl.classList.add(dir === 'forward' ? 'is-leaving-forward' : 'is-leaving-backward');
+
+                newEl.classList.remove('is-entering-forward', 'is-entering-backward');
+                newEl.classList.add('is-current');
+                currentSpreadIdx = idx;
+                updatePager();
+
+                setTimeout(() => {
+                    oldEl.classList.remove('is-leaving-forward', 'is-leaving-backward');
+                    isFlipping = false;
+                }, 700);
+            });
+        });
+    }
+
+    function refreshBook() {
+        const spreads = getSpreads();
+        spreads.forEach(s => s.classList.remove('is-current', 'is-leaving-forward', 'is-leaving-backward', 'is-entering-forward', 'is-entering-backward'));
+        if (currentSpreadIdx >= spreads.length) currentSpreadIdx = Math.max(0, spreads.length - 1);
+        if (spreads[currentSpreadIdx]) spreads[currentSpreadIdx].classList.add('is-current');
+        updatePager();
+        injectPageAddButtons();
+        injectElementTags();
+    }
+
+    if (bookPrev) bookPrev.addEventListener('click', () => showSpread(currentSpreadIdx - 1, 'backward'));
+    if (bookNext) bookNext.addEventListener('click', () => showSpread(currentSpreadIdx + 1, 'forward'));
+
+    document.addEventListener('keydown', (e) => {
+        if (!journalScreen || journalScreen.classList.contains('hidden')) return;
+        if (document.activeElement && (document.activeElement.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName))) return;
+        if (e.key === 'ArrowLeft')  { showSpread(currentSpreadIdx - 1, 'backward'); }
+        if (e.key === 'ArrowRight') { showSpread(currentSpreadIdx + 1, 'forward');  }
+    });
+
+    /* ─────────────────────────────────────────────────────────────
+       Bouton "+" sur chaque page + menu d'ajout d'éléments
+       ───────────────────────────────────────────────────────────── */
+
+    const addElementMenu = document.getElementById('add-element-menu');
+    let addMenuTargetPage = null;
+
+    function injectPageAddButtons() {
+        if (!journalEntriesEl) return;
+        journalEntriesEl.querySelectorAll('.book-page-inner').forEach((pageInner) => {
+            if (pageInner.querySelector(':scope > .page-add-btn')) return;
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'page-add-btn editor-only';
+            btn.title = 'Ajouter un élément à cette page';
+            btn.setAttribute('aria-label', 'Ajouter un élément');
+            btn.innerHTML = '<i class="fas fa-plus"></i>';
+            pageInner.appendChild(btn);
+        });
+    }
+
+    function injectElementTags() {
+        if (!journalEntriesEl) return;
+        journalEntriesEl.querySelectorAll('.book-page-inner').forEach((pageInner) => {
+            Array.from(pageInner.children).forEach((child) => {
+                if (child.classList.contains('page-add-btn')) return;
+                if (child.classList.contains('book-page-num')) return;
+                if (child.classList.contains('book-decoration')) return;
+                if (child.classList.contains('element-tools')) return;
+                if (!child.hasAttribute('data-element')) {
+                    if (child.tagName === 'FIGURE') child.setAttribute('data-element', 'photo');
+                    else if (child.tagName === 'H2' || child.classList.contains('book-heading')) child.setAttribute('data-element', 'heading');
+                    else if (child.classList.contains('book-caption')) child.setAttribute('data-element', 'caption');
+                    else if (child.classList.contains('book-divider')) child.setAttribute('data-element', 'divider');
+                    else if (child.classList.contains('book-id-grid')) child.setAttribute('data-element', 'id-card');
+                    else child.setAttribute('data-element', 'paragraph');
+                }
+                if (!child.querySelector(':scope > .element-tools')) {
+                    const tools = document.createElement('div');
+                    tools.className = 'element-tools editor-only';
+                    tools.innerHTML = `
+                        <button type="button" class="et-up" title="Monter"><i class="fas fa-arrow-up"></i></button>
+                        <button type="button" class="et-down" title="Descendre"><i class="fas fa-arrow-down"></i></button>
+                        <button type="button" class="et-rotate" title="Tourner légèrement"><i class="fas fa-rotate-right"></i></button>
+                        <button type="button" class="et-del" title="Supprimer"><i class="fas fa-times"></i></button>
+                    `;
+                    child.appendChild(tools);
+                }
+            });
+        });
+    }
+
+    function openAddElementMenu(page, anchorEl) {
+        addMenuTargetPage = page;
+        const rect = anchorEl.getBoundingClientRect();
+        addElementMenu.classList.remove('hidden');
+        const menuRect = addElementMenu.getBoundingClientRect();
+        let top = rect.top - menuRect.height - 6;
+        if (top < 8) top = rect.bottom + 6;
+        let left = rect.left + rect.width / 2 - menuRect.width / 2;
+        left = Math.max(8, Math.min(left, window.innerWidth - menuRect.width - 8));
+        addElementMenu.style.top = `${top}px`;
+        addElementMenu.style.left = `${left}px`;
+        document.body.classList.add('aem-open');
+        anchorEl.classList.add('is-open');
+    }
+
+    function closeAddElementMenu() {
+        if (!addElementMenu) return;
+        addElementMenu.classList.add('hidden');
+        document.body.classList.remove('aem-open');
+        document.querySelectorAll('.page-add-btn.is-open').forEach(b => b.classList.remove('is-open'));
+        addMenuTargetPage = null;
+    }
+
+    function placeholderImg(w, h) {
+        return `https://via.placeholder.com/${w}x${h}/d4d2cc/5a5a5a?text=Cliquer+pour+changer`;
+    }
+
+    function buildElement(kind) {
+        const wrap = document.createElement('div');
+        switch (kind) {
+            case 'paragraph': {
+                const p = document.createElement('p');
+                p.className = 'book-text book-text--body book-text--justify';
+                p.setAttribute('contenteditable', 'true');
+                p.setAttribute('data-element', 'paragraph');
+                p.innerHTML = 'Écris ici… clique pour modifier, sélectionne du texte pour changer la police, la taille ou la couleur de l’encre.';
+                return p;
+            }
+            case 'heading': {
+                const h = document.createElement('h2');
+                h.className = 'book-heading';
+                h.setAttribute('contenteditable', 'true');
+                h.setAttribute('data-element', 'heading');
+                h.textContent = 'Titre…';
+                return h;
+            }
+            case 'caption': {
+                const p = document.createElement('p');
+                p.className = 'book-caption';
+                p.setAttribute('contenteditable', 'true');
+                p.setAttribute('data-element', 'caption');
+                p.textContent = 'Légende — lieu — date.';
+                return p;
+            }
+            case 'divider': {
+                const d = document.createElement('div');
+                d.className = 'book-divider';
+                d.setAttribute('data-element', 'divider');
+                d.setAttribute('aria-hidden', 'true');
+                return d;
+            }
+            case 'photo': {
+                const fig = document.createElement('figure');
+                fig.className = 'photo-taped';
+                fig.setAttribute('data-element', 'photo');
+                fig.setAttribute('data-rotate', String((Math.floor(Math.random() * 7) - 3)));
+                const img = document.createElement('img');
+                img.src = placeholderImg(420, 280);
+                img.alt = '';
+                img.className = 'editable-image journal-photo book-photo';
+                img.width = 420; img.height = 280;
+                fig.appendChild(img);
+                return fig;
+            }
+            case 'photo-portrait': {
+                const fig = document.createElement('figure');
+                fig.className = 'photo-taped photo-taped--portrait';
+                fig.setAttribute('data-element', 'photo');
+                fig.setAttribute('data-rotate', String((Math.floor(Math.random() * 7) - 3)));
+                const img = document.createElement('img');
+                img.src = placeholderImg(280, 380);
+                img.alt = '';
+                img.className = 'editable-image journal-photo book-photo';
+                img.width = 280; img.height = 380;
+                fig.appendChild(img);
+                return fig;
+            }
+            case 'photo-clip': {
+                const fig = document.createElement('figure');
+                fig.className = 'photo-taped photo-taped--small photo-taped--clip';
+                fig.setAttribute('data-element', 'photo');
+                const clip = document.createElement('span');
+                clip.className = 'paperclip';
+                clip.setAttribute('aria-hidden', 'true');
+                fig.appendChild(clip);
+                const img = document.createElement('img');
+                img.src = placeholderImg(220, 150);
+                img.alt = '';
+                img.className = 'editable-image journal-photo book-photo';
+                img.width = 220; img.height = 150;
+                fig.appendChild(img);
+                return fig;
+            }
+            case 'id-card': {
+                const grid = document.createElement('div');
+                grid.className = 'book-id-grid';
+                grid.setAttribute('data-element', 'id-card');
+                const colA = document.createElement('div');
+                colA.className = 'book-id-col';
+                colA.setAttribute('contenteditable', 'true');
+                colA.innerHTML = 'Name: …<br>Height: …<br>Weight: …<br>Eyes: …<br>Age: …';
+                const colB = document.createElement('div');
+                colB.className = 'book-id-col';
+                colB.setAttribute('contenteditable', 'true');
+                colB.innerHTML = 'Birth: … — …';
+                grid.appendChild(colA); grid.appendChild(colB);
+                return grid;
+            }
+            default: return null;
+        }
+    }
+
+    function addElementToPage(page, kind) {
+        if (!page) return;
+        const el = buildElement(kind);
+        if (!el) return;
+        const addBtn = page.querySelector(':scope > .page-add-btn');
+        const pageNum = page.querySelector(':scope > .book-page-num');
+        const before = addBtn || pageNum || null;
+        if (before) page.insertBefore(el, before);
+        else page.appendChild(el);
+        injectElementTags();
+        syncFicheEditableRegistry();
+        if (isEditorMode) {
+            editableNodes.forEach((n) => n.setAttribute('contenteditable', 'true'));
+        }
+        if (el.isContentEditable) {
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            el.focus();
+        }
+        persistToLocalStorage();
+    }
+
+    if (journalEntriesEl) {
+        journalEntriesEl.addEventListener('click', (e) => {
+            const addBtn = e.target.closest('.page-add-btn');
+            if (addBtn && isEditorMode) {
+                const page = addBtn.parentElement;
+                if (addElementMenu.classList.contains('hidden') || addMenuTargetPage !== page) {
+                    closeAddElementMenu();
+                    openAddElementMenu(page, addBtn);
+                } else {
+                    closeAddElementMenu();
+                }
+                e.stopPropagation();
+                return;
+            }
+            const tools = e.target.closest('.element-tools');
+            if (tools && isEditorMode) {
+                const target = tools.parentElement;
+                if (e.target.closest('.et-del')) {
+                    target.remove();
+                    persistToLocalStorage();
+                } else if (e.target.closest('.et-up')) {
+                    const prev = target.previousElementSibling;
+                    if (prev && !prev.classList.contains('book-page-num')) target.parentElement.insertBefore(target, prev);
+                    persistToLocalStorage();
+                } else if (e.target.closest('.et-down')) {
+                    const next = target.nextElementSibling;
+                    if (next && !next.classList.contains('page-add-btn') && !next.classList.contains('book-page-num')) {
+                        target.parentElement.insertBefore(next, target);
+                    }
+                    persistToLocalStorage();
+                } else if (e.target.closest('.et-rotate')) {
+                    if (target.classList.contains('photo-taped') || target.tagName === 'FIGURE') {
+                        const cur = parseInt(target.getAttribute('data-rotate') || '0', 10) || 0;
+                        const nxt = cur >= 5 ? -3 : cur + 1;
+                        target.setAttribute('data-rotate', String(nxt));
+                        persistToLocalStorage();
+                    }
+                }
+                e.stopPropagation();
+                return;
+            }
+        });
+    }
+
+    if (addElementMenu) {
+        addElementMenu.addEventListener('click', (e) => {
+            const item = e.target.closest('.aem-item');
+            if (!item) return;
+            const kind = item.getAttribute('data-add');
+            const page = addMenuTargetPage;
+            closeAddElementMenu();
+            if (page) addElementToPage(page, kind);
+        });
+    }
+
+    document.addEventListener('click', (e) => {
+        if (addElementMenu && !addElementMenu.classList.contains('hidden')) {
+            if (!e.target.closest('#add-element-menu') && !e.target.closest('.page-add-btn')) {
+                closeAddElementMenu();
+            }
         }
     });
 
-    // --- 7. Journal : ajouter une entrée ---
+    /* ─────────────────────────────────────────────────────────────
+       Drag & Drop d'une image directement sur une page
+       ───────────────────────────────────────────────────────────── */
+
+    if (journalEntriesEl) {
+        journalEntriesEl.addEventListener('dragover', (e) => {
+            if (!isEditorMode) return;
+            const page = e.target.closest('.book-page');
+            if (!page) return;
+            e.preventDefault();
+            page.classList.add('is-drop-target');
+        });
+        journalEntriesEl.addEventListener('dragleave', (e) => {
+            const page = e.target.closest('.book-page');
+            if (page) page.classList.remove('is-drop-target');
+        });
+        journalEntriesEl.addEventListener('drop', async (e) => {
+            if (!isEditorMode) return;
+            const page = e.target.closest('.book-page');
+            if (!page) return;
+            e.preventDefault();
+            page.classList.remove('is-drop-target');
+            const file = Array.from(e.dataTransfer?.files || []).find(f => f.type.startsWith('image/'));
+            if (!file) return;
+            try {
+                let imgSrc = null;
+                if (typeof uploadImageToFirebase === 'function' && typeof isFirebaseReady === 'function' && isFirebaseReady()) {
+                    imgSrc = await uploadImageToFirebase(file);
+                }
+                if (!imgSrc) {
+                    imgSrc = await readFileAsDataURL(file);
+                }
+                const fig = buildElement('photo');
+                fig.querySelector('img').src = imgSrc;
+                const inner = page.querySelector('.book-page-inner');
+                if (inner) {
+                    const addBtn = inner.querySelector(':scope > .page-add-btn');
+                    const pageNum = inner.querySelector(':scope > .book-page-num');
+                    inner.insertBefore(fig, addBtn || pageNum || null);
+                }
+                injectElementTags();
+                syncFicheEditableRegistry();
+                if (isEditorMode) editableNodes.forEach((n) => n.setAttribute('contenteditable', 'true'));
+                persistToLocalStorage();
+            } catch (err) { console.warn('Drop image impossible', err); }
+        });
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       Barre de mise en forme flottante (sélection dans le livre)
+       ───────────────────────────────────────────────────────────── */
+
+    const formatToolbar = document.getElementById('format-toolbar');
+    const ftFont = document.getElementById('ft-font');
+    const ftSize = document.getElementById('ft-size');
+
+    let savedRange = null;
+
+    function isSelectionInBook() {
+        const sel = window.getSelection();
+        if (!sel || !sel.rangeCount) return false;
+        const node = sel.anchorNode;
+        if (!node) return false;
+        const el = node.nodeType === 1 ? node : node.parentElement;
+        return !!el?.closest('.journal-book');
+    }
+
+    function rememberSelection() {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+            savedRange = sel.getRangeAt(0).cloneRange();
+        }
+    }
+    function restoreSelection() {
+        if (!savedRange) return;
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(savedRange);
+    }
+
+    function positionToolbarFromSelection() {
+        const sel = window.getSelection();
+        if (!sel || !sel.rangeCount) return;
+        const range = sel.getRangeAt(0);
+        let rect = range.getBoundingClientRect();
+        if (!rect || (rect.width === 0 && rect.height === 0)) {
+            const el = (sel.anchorNode?.nodeType === 1 ? sel.anchorNode : sel.anchorNode?.parentElement);
+            if (el) rect = el.getBoundingClientRect();
+        }
+        if (!rect) return;
+        formatToolbar.classList.remove('hidden');
+        const tbRect = formatToolbar.getBoundingClientRect();
+        let top = rect.top - tbRect.height - 10 + window.scrollY;
+        if (top < 8 + window.scrollY) top = rect.bottom + 8 + window.scrollY;
+        let left = rect.left + rect.width / 2 - tbRect.width / 2;
+        left = Math.max(8, Math.min(left, window.innerWidth - tbRect.width - 8));
+        formatToolbar.style.top = `${top}px`;
+        formatToolbar.style.left = `${left}px`;
+    }
+
+    function showFormatToolbar() {
+        if (!formatToolbar) return;
+        formatToolbar.classList.remove('hidden');
+        positionToolbarFromSelection();
+        updateToolbarState();
+    }
+    function hideFormatToolbar() {
+        if (!formatToolbar) return;
+        formatToolbar.classList.add('hidden');
+    }
+
+    function updateToolbarState() {
+        if (!formatToolbar) return;
+        ['bold', 'italic', 'underline', 'strikeThrough', 'justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'].forEach(cmd => {
+            const btn = formatToolbar.querySelector(`.ft-btn[data-cmd="${cmd}"]`);
+            if (!btn) return;
+            try {
+                btn.classList.toggle('is-active', document.queryCommandState(cmd));
+            } catch { /* ignore */ }
+        });
+    }
+
+    function execCmd(cmd, value) {
+        try {
+            document.execCommand('styleWithCSS', false, true);
+        } catch { /* ignore */ }
+        document.execCommand(cmd, false, value);
+    }
+
+    document.addEventListener('selectionchange', () => {
+        if (!isEditorMode) { hideFormatToolbar(); return; }
+        if (isSelectionInBook()) {
+            rememberSelection();
+            showFormatToolbar();
+        } else {
+            // Si la sélection part dans la toolbar (ex: ouverture d'un select), on garde la toolbar
+            const active = document.activeElement;
+            if (!active || !active.closest('#format-toolbar')) hideFormatToolbar();
+        }
+    });
+
+    if (formatToolbar) {
+        formatToolbar.addEventListener('mousedown', (e) => {
+            // empêche la perte de sélection au clic dans la toolbar — sauf pour les <select>
+            if (e.target.closest('select')) return;
+            e.preventDefault();
+        });
+        formatToolbar.addEventListener('click', (e) => {
+            const btn = e.target.closest('.ft-btn');
+            if (btn) { restoreSelection(); execCmd(btn.dataset.cmd); updateToolbarState(); persistToLocalStorage(); return; }
+            const ink = e.target.closest('.ft-ink');
+            if (ink) { restoreSelection(); execCmd('foreColor', ink.dataset.color); persistToLocalStorage(); return; }
+        });
+        if (ftFont) ftFont.addEventListener('change', () => { restoreSelection(); execCmd('fontName', ftFont.value); persistToLocalStorage(); });
+        if (ftSize) ftSize.addEventListener('change', () => { restoreSelection(); execCmd('fontSize', ftSize.value); persistToLocalStorage(); });
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       Journal : ajouter / supprimer une double-page
+       ───────────────────────────────────────────────────────────── */
+
     if (btnAddJournalEntry && journalEntriesEl && journalEntryTemplate) {
         btnAddJournalEntry.addEventListener('click', () => {
             if (!isEditorMode) return;
             const frag = journalEntryTemplate.content.cloneNode(true);
             journalEntriesEl.appendChild(frag);
+            refreshBook();
             syncFicheEditableRegistry();
-            editableNodes.forEach((el) => {
-                el.setAttribute('contenteditable', 'true');
-            });
-            const last = journalEntriesEl.lastElementChild;
-            if (last) last.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            editableNodes.forEach((el) => el.setAttribute('contenteditable', 'true'));
+            const spreads = getSpreads();
+            showSpread(spreads.length - 1, 'forward');
             persistToLocalStorage();
         });
     }
 
+    if (btnRemoveJournalEntry && journalEntriesEl) {
+        btnRemoveJournalEntry.addEventListener('click', async () => {
+            if (!isEditorMode) return;
+            const spreads = getSpreads();
+            if (spreads.length <= 1) {
+                await ficheModal({ message: 'Impossible : il doit rester au moins une double-page.', confirmOnly: true });
+                return;
+            }
+            const ok = await ficheModal({ message: 'Supprimer définitivement la double-page actuelle ?' });
+            if (!ok) return;
+            const target = spreads[currentSpreadIdx];
+            target.remove();
+            const newSpreads = getSpreads();
+            currentSpreadIdx = Math.min(currentSpreadIdx, newSpreads.length - 1);
+            refreshBook();
+            persistToLocalStorage();
+        });
+    }
+
+    // Initialisation : afficher la première double-page
+    refreshBook();
+
+    // Re-injection des helpers chaque fois qu'on entre/quitte le mode éditeur ou qu'on importe
+    const _origApplyEditor = applyEditorMode;
+    const _origApplyReadOnly = applyReadOnlyMode;
+    window.__refreshBook = refreshBook;
+    // Patch léger pour s'assurer qu'on rafraîchit après import
+    if (inputImportFiche) {
+        inputImportFiche.addEventListener('change', () => {
+            setTimeout(refreshBook, 200);
+        });
+    }
+    // Quand on (re)passe en édition, garantir que les outils sont injectés
+    new MutationObserver(() => {
+        injectPageAddButtons();
+        injectElementTags();
+    }).observe(journalEntriesEl, { childList: true, subtree: true });
 });
