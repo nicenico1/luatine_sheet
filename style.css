@@ -983,11 +983,9 @@ body.is-editor .btn-validate {
 /* Le conteneur du livre (La couverture) */
 .book-stage {
     position: relative;
-    /* flex-basis: 0 (au lieu de auto) : les spreads sont en position:absolute
-       donc le contenu n'a pas de largeur intrinsèque. Avec auto, Chromium
-       résout à ~0px et la couverture devient un filet. Avec 0, la stage prend
-       simplement tout l'espace restant dans le flex parent. */
-    flex: 1 1 0%;
+    /* Placée dans la colonne 1fr du grid .book-viewer : elle remplit
+       automatiquement toute la largeur restante. min-width: 0 permet
+       au grid de la rétrécir sous sa taille intrinsèque si nécessaire. */
     min-width: 0;
     width: 100%;
     transform-style: preserve-3d;
@@ -1586,9 +1584,12 @@ body.is-editor .bio-content {
 
 .book-viewer {
     position: relative;
-    display: flex;
+    /* Grid plutôt que flex : on fixe la largeur des colonnes (nav 64px /
+       stage 1fr / nav 64px) ce qui évite les problèmes d'intrinsic sizing
+       d'un flex item dont les enfants sont tous en position: absolute. */
+    display: grid;
+    grid-template-columns: 64px 1fr 64px;
     align-items: stretch;
-    justify-content: center;
     gap: 8px;
     margin: 0 auto;
     perspective: 2400px;
@@ -1596,7 +1597,6 @@ body.is-editor .bio-content {
 }
 
 .book-nav {
-    flex: 0 0 64px;
     align-self: stretch;
     background: transparent;
     border: none;
@@ -2090,15 +2090,19 @@ body.aem-open {
 .font-tech          { font-family: 'Share Tech Mono', monospace; }
 
 @media (max-width: 1100px) {
+    .book-viewer {
+        grid-template-columns: 40px 1fr 40px;
+    }
     .book-nav {
-        flex-basis: 40px;
         font-size: 18px;
     }
 }
 
 @media (max-width: 700px) {
+    .book-viewer {
+        grid-template-columns: 32px 1fr 32px;
+    }
     .book-nav {
-        flex-basis: 32px;
         font-size: 16px;
         min-height: 120px;
     }
