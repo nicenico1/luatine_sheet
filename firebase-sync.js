@@ -56,6 +56,8 @@
         if (!snapshot) return null;
         var s = Object.assign({}, snapshot);
         if (s.version === 4 && Array.isArray(s.journalPages)) {
+            delete s.journalHTML;
+            s.version = 4;
             return s;
         }
         if (s.journalHTML && typeof s.journalHTML === 'string') {
@@ -64,6 +66,7 @@
             s.journalPages = s.journalPages || [];
         }
         s.version = 4;
+        delete s.journalHTML;
         return s;
     }
 
@@ -88,6 +91,7 @@
                 storage: firebase.storage()
             };
             _status = 'idle';
+            console.log('[FicheRP] firebase-sync 2026-04-22 (pages subcollection, no journalHTML on parent)');
             renderIndicator();
             return true;
         } catch (e) {
