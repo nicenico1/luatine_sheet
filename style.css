@@ -1822,14 +1822,18 @@ body.is-editor .page-add-btn.is-open {
    ─────────────────────────────────────────────────────────────── */
 
 body.is-editor .book-page-inner [contenteditable="true"],
-body.is-editor .book-page-inner figure {
+body.is-editor .book-page-inner figure,
+body.is-editor .book-page-inner > [data-element] {
     position: relative;
 }
 
 .element-tools {
     position: absolute;
-    top: -14px;
-    right: -10px;
+    /* Positionnée à l'intérieur du coin haut-droit de l'élément pour ne
+       jamais être clippée par .book-page { overflow: hidden } lorsque
+       l'élément est tout en haut de la page. */
+    top: 4px;
+    right: 4px;
     display: none;
     gap: 2px;
     background: rgba(20, 22, 28, 0.95);
