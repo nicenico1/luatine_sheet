@@ -919,6 +919,7 @@ body.is-editor .btn-validate {
 .journal-wrap--book {
     position: relative;
     z-index: 1;
+    width: 100%;
     max-width: 1200px;
     margin: 0 auto;
     padding: 40px 20px 60px;
@@ -983,9 +984,6 @@ body.is-editor .btn-validate {
 /* Le conteneur du livre (La couverture) */
 .book-stage {
     position: relative;
-    /* Placée dans la colonne 1fr du grid .book-viewer : elle remplit
-       automatiquement toute la largeur restante. min-width: 0 permet
-       au grid de la rétrécir sous sa taille intrinsèque si nécessaire. */
     min-width: 0;
     width: 100%;
     transform-style: preserve-3d;
@@ -1010,6 +1008,7 @@ body.is-editor .btn-validate {
     height: clamp(540px, calc(100vh - 280px), 720px);
     transform-style: preserve-3d;
     width: 100%;
+    min-width: 0;
 }
 
 .book-spread {
