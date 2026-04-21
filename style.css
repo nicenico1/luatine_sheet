@@ -985,7 +985,9 @@ body.is-editor .btn-validate {
 .book-stage {
     position: relative;
     flex: 1 1 auto;
-    min-width: 0;
+    /* Les spreads sont en position:absolute : elles ne gonflent plus le flux.
+       Sans min-width explicite, ce flex item peut s'écraser à ~0px. */
+    min-width: min(100%, clamp(220px, 72vw, 1100px));
     transform-style: preserve-3d;
     
     /* Couverture en cuir usé */
@@ -1615,13 +1617,6 @@ body.is-editor .bio-content {
 .book-nav:disabled {
     opacity: 0.25;
     cursor: not-allowed;
-}
-
-.book-stage {
-    position: relative;
-    flex: 1 1 auto;
-    min-width: 0;
-    transform-style: preserve-3d;
 }
 
 /* Le conteneur des spreads passe en mode "stack" : tous superposés à taille fixe,
