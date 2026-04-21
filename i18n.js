@@ -7,7 +7,7 @@
     const I18N = {
         fr: {
             meta_title: 'Dossier Citoyen - Lua Tyler',
-            splash_text: '"There it is, the story of how I died... - Lua Tyler"',
+            splash_text: '"On n\'oublie rien de rien, on s\'habitue, c\'est tout - Jacques Brel"',
             chars_title: 'PERSONNAGES',
             btn_back: 'RETOUR',
             btn_back_dossier: 'RETOUR AU DOSSIER',
@@ -159,7 +159,7 @@
         },
         en: {
             meta_title: 'Citizen File - Lua Tyler',
-            splash_text: '"There it is, the story of how I died... - Lua Tyler"',
+            splash_text: '"On n\'oublie rien de rien, on s\'habitue, c\'est tout - Jacques Brel"',
             chars_title: 'CHARACTERS',
             btn_back: 'BACK',
             btn_back_dossier: 'BACK TO FILE',
