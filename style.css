@@ -1005,10 +1005,9 @@ body.is-editor .btn-validate {
 .journal-book {
     position: relative;
     display: block;
-    min-height: 540px;
+    height: clamp(540px, calc(100vh - 280px), 720px);
     transform-style: preserve-3d;
     width: 100%;
-    height: 100%;
 }
 
 .book-spread {
@@ -1044,6 +1043,10 @@ body.is-editor .btn-validate {
     background-color: var(--paper);
     color: #2c241b;
     border: 1px solid rgba(139, 115, 85, 0.4);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .book-page::before {
@@ -1086,9 +1089,27 @@ body.is-editor .btn-validate {
 
 .book-page-inner {
     padding: 36px 32px 48px;
-    min-height: 460px;
     position: relative;
     z-index: 1;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(139, 115, 85, 0.4) transparent;
+}
+
+.book-page-inner::-webkit-scrollbar {
+    width: 6px;
+}
+
+.book-page-inner::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.book-page-inner::-webkit-scrollbar-thumb {
+    background-color: rgba(139, 115, 85, 0.35);
+    border-radius: 3px;
 }
 
 .book-page-inner--scrap {
@@ -1165,12 +1186,19 @@ body.is-editor .btn-validate {
 
 .book-page-num {
     position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 14px;
+    left: 0;
+    right: 0;
+    text-align: center;
     font-family: 'IM Fell English SC', serif;
     font-size: 16px;
     color: rgba(44, 36, 27, 0.6);
+    pointer-events: none;
+    z-index: 2;
+}
+
+body.is-editor .book-page-num {
+    pointer-events: auto;
 }
 
 .combine-emblem {
@@ -1357,8 +1385,13 @@ body.is-editor .journal-photo:hover {
 }
 
 @media (max-width: 900px) {
+    .journal-book {
+        height: clamp(640px, calc(100vh - 240px), 900px);
+    }
+
     .book-spread {
         grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
     }
 
     .book-gutter {
@@ -1591,20 +1624,14 @@ body.is-editor .bio-content {
     transform-style: preserve-3d;
 }
 
-/* Le conteneur des spreads passe en mode "stack" : tous superposés, un seul visible.
-   Le spread courant est en position relative (donne sa taille au livre),
-   les autres sont en absolute par-dessus. */
-.journal-book {
-    position: relative;
-    display: block;
-    min-height: 480px;
-    transform-style: preserve-3d;
-}
-
+/* Le conteneur des spreads passe en mode "stack" : tous superposés à taille fixe,
+   un seul visible. Le livre garde une taille constante quelle que soit la page
+   affichée — les contenus plus longs scrollent à l'intérieur de la page. */
 .journal-book .book-spread {
     position: absolute;
     inset: 0;
     width: 100%;
+    height: 100%;
     margin: 0;
     transform-origin: center center;
     transition:
@@ -1619,8 +1646,6 @@ body.is-editor .bio-content {
 }
 
 .journal-book .book-spread.is-current {
-    position: relative;
-    inset: auto;
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
@@ -1675,25 +1700,20 @@ body.is-editor .bio-content {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    margin: 24px 0 12px;
+    margin: 24px auto 12px;
     font-family: 'IM Fell English SC', serif;
     font-size: 16px;
     color: rgba(255,255,255,0.4);
     letter-spacing: 0.1em;
     user-select: none;
+    text-align: center;
+    width: 100%;
 }
 
 .book-pager-current {
     color: rgba(255,255,255,0.8);
     font-weight: bold;
     font-size: 18px;
-}
-
-.book-pager-hint {
-    margin-left: 16px;
-    opacity: 0.4;
-    font-size: 12px;
-    font-family: 'Share Tech Mono', monospace;
 }
 
 /* ───────────────────────────────────────────────────────────────
