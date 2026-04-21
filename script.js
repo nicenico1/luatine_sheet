@@ -277,21 +277,59 @@ document.addEventListener('DOMContentLoaded', async () => {
             return false;
         };
         journalEntriesEl.querySelectorAll('.book-page-inner').forEach((inner) => {
+            // 1) Promouvoir les ELEMENTS enfants non-structurés sans contenteditable.
             Array.from(inner.children).forEach((child) => {
                 if (!child || child.nodeType !== 1) return;
                 if (STRUCTURED_TAGS.has(child.tagName)) return;
                 if (hasStructuredClass(child)) return;
-                // Déjà éditable : rien à faire
                 if (child.getAttribute('contenteditable') === 'true') return;
-                // S'il ne porte aucun texte ET aucun enfant descriptif, on
-                // laisse tel quel (p.ex. un <p></p> vraiment vide).
                 const hasText = (child.textContent || '').trim().length > 0;
                 if (!hasText) return;
-                // Promeut en zone éditable
                 child.setAttribute('contenteditable', 'true');
                 child.classList.add('fiche-editable');
                 if (!child.classList.contains('book-text')) {
                     child.classList.add('book-text', 'book-text--body');
+                }
+            });
+
+            // 2) Emballer les NOEUDS TEXTE orphelins (enfants directs de
+            //    .book-page-inner) dans un <p contenteditable> pour qu'ils
+            //    puissent être sélectionnés et édités. Ces nœuds apparaissent
+            //    typiquement quand un <p contenteditable> contenait des
+            //    <div>…</div> : le parser HTML ferme le <p> avant le <div>
+            //    et tout le texte qui suit devient un sibling direct.
+            const orphanTextNodes = [];
+            inner.childNodes.forEach((node) => {
+                if (node.nodeType === 3 && (node.textContent || '').trim().length > 0) {
+                    orphanTextNodes.push(node);
+                }
+            });
+            orphanTextNodes.forEach((textNode) => {
+                const p = document.createElement('p');
+                p.className = 'book-text book-text--body fiche-editable';
+                p.setAttribute('contenteditable', 'true');
+                textNode.parentNode.insertBefore(p, textNode);
+                p.appendChild(textNode);
+                // Absorbe les nœuds texte ET éléments inline contigus
+                // (ex. span, br) pour garder un paragraphe cohérent.
+                while (p.nextSibling) {
+                    const s = p.nextSibling;
+                    if (s.nodeType === 3) { p.appendChild(s); continue; }
+                    if (s.nodeType === 1) {
+                        const tag = s.tagName;
+                        const isBlockish = s.classList && (
+                            s.classList.contains('book-text') ||
+                            s.classList.contains('book-heading') ||
+                            s.classList.contains('photo-taped') ||
+                            s.classList.contains('book-page-num') ||
+                            s.classList.contains('page-add-btn')
+                        );
+                        if (isBlockish) break;
+                        if (['DIV', 'P', 'H1', 'H2', 'H3', 'FIGURE', 'HR'].includes(tag)) break;
+                        p.appendChild(s);
+                        continue;
+                    }
+                    break;
                 }
             });
         });
