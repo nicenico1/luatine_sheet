@@ -1237,14 +1237,10 @@ body.is-editor .book-page-num {
     display: inline-block;
     max-width: 100%;
     margin: 15px auto;
-    padding: 10px 10px 30px 10px; /* Espace pour le cadre blanc, plus grand en bas style polaroid */
-    background: #fdfbf7; /* Cadre blanc de la photo */
-    box-shadow: 
-        0 4px 12px rgba(0, 0, 0, 0.2),
-        0 1px 3px rgba(0, 0, 0, 0.15),
-        inset 0 0 2px rgba(255, 255, 255, 0.8);
+    padding: 0; /* Plus de cadre blanc */
+    background: transparent;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25)); /* Ombre qui respecte la transparence des PNG */
     transform: rotate(-2deg); /* Légère rotation */
-    border-radius: 2px;
 }
 
 .photo-taped:nth-child(even) {
@@ -1264,7 +1260,7 @@ body.is-editor .book-page-num {
     max-height: 65vh; /* Empêche l'image de dépasser la hauteur de la page */
     object-fit: cover;
     filter: sepia(0.3) contrast(1.1) brightness(0.95);
-    border-radius: 1px;
+    border-radius: 2px;
 }
 
 /* Effet Scotch (Tape) */
@@ -1288,14 +1284,14 @@ body.is-editor .book-page-num {
 }
 
 .photo-taped::before {
-    top: -12px;
-    left: -20px;
+    top: -5px;
+    left: -15px;
     transform: rotate(-45deg);
 }
 
 .photo-taped::after {
-    bottom: -12px;
-    right: -20px;
+    bottom: -5px;
+    right: -15px;
     transform: rotate(-45deg);
 }
 
