@@ -1006,8 +1006,8 @@ body.is-editor .btn-validate {
 .journal-book {
     position: relative;
     display: block;
-    height: calc(100vh - 180px);
-    min-height: 500px;
+    height: calc(100vh - 280px);
+    min-height: 280px;
     transform-style: preserve-3d;
     width: 100%;
     min-width: 0;
@@ -1612,8 +1612,8 @@ body.is-editor .journal-wrap--book {
     padding-bottom: 8px;
 }
 body.is-editor .journal-book {
-    height: calc(100vh - 310px);
-    min-height: 360px;
+    height: calc(100vh - 400px);
+    min-height: 240px;
 }
 
 /* ───────────────────────────────────────────────────────────────
@@ -2441,9 +2441,33 @@ body.aem-open {
         margin-top: 3vh;
         font-size: 32px;
     }
+    .journal-wrap--book {
+        padding: 12px 20px 8px;
+    }
+    .journal-header--book {
+        margin-bottom: 10px;
+    }
+    .journal-doc-id {
+        margin-bottom: 4px;
+        font-size: 10px;
+    }
+    .journal-title {
+        font-size: 26px !important;
+        margin-bottom: 2px;
+    }
+    .journal-author {
+        font-size: 16px;
+    }
+    .book-pager {
+        margin: 4px auto 2px;
+        font-size: 12px;
+    }
+    .journal-footer {
+        padding: 6px 0;
+    }
     .journal-book {
-        height: calc(100vh - 140px);
-        min-height: 380px;
+        height: calc(100vh - 200px);
+        min-height: 260px;
     }
     .char-card-image {
         height: 320px;
