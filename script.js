@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         let cleanJournalHTML = '';
         if (journalEntriesEl) {
             const clone = journalEntriesEl.cloneNode(true);
-            clone.querySelectorAll('.editable-image').forEach(img => {
+            clone.querySelectorAll('img').forEach(img => {
                 if (img.src && img.src.startsWith('data:image')) {
                     img.src = ''; // Retirer le base64 massif du HTML
                 }
