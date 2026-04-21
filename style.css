@@ -983,19 +983,22 @@ body.is-editor .btn-validate {
 /* Le conteneur du livre (La couverture) */
 .book-stage {
     position: relative;
-    flex: 1 1 auto;
-    /* Les spreads sont en position:absolute : elles ne gonflent plus le flux.
-       Sans min-width explicite, ce flex item peut s'écraser à ~0px. */
-    min-width: min(100%, clamp(220px, 72vw, 1100px));
+    /* flex-basis: 0 (au lieu de auto) : les spreads sont en position:absolute
+       donc le contenu n'a pas de largeur intrinsèque. Avec auto, Chromium
+       résout à ~0px et la couverture devient un filet. Avec 0, la stage prend
+       simplement tout l'espace restant dans le flex parent. */
+    flex: 1 1 0%;
+    min-width: 0;
+    width: 100%;
     transform-style: preserve-3d;
-    
+
     /* Couverture en cuir usé */
     background: #1a110a;
-    background-image: 
+    background-image:
         radial-gradient(circle at center, rgba(255,255,255,0.03) 0%, transparent 70%),
         linear-gradient(to right, #0a0603 0%, #1e140c 3%, #2a1b10 10%, #2a1b10 90%, #1e140c 97%, #0a0603 100%);
     border-radius: 12px;
-    box-shadow: 
+    box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.05),
         inset 0 0 30px rgba(0,0,0,0.9),
         0 40px 80px rgba(0,0,0,0.8),
@@ -1589,6 +1592,7 @@ body.is-editor .bio-content {
     gap: 8px;
     margin: 0 auto;
     perspective: 2400px;
+    width: 100%;
 }
 
 .book-nav {
