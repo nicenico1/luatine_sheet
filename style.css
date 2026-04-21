@@ -902,8 +902,7 @@ body.is-editor .btn-validate {
 
 /* --- Écran 4 : Journal — livre ouvert (scrapbook / monochrome + HUD site) --- */
 #journal-screen {
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
     z-index: 5;
     background: radial-gradient(circle at 50% 50%, rgba(15, 12, 10, 0.6) 0%, rgba(5, 3, 2, 0.95) 100%);
 }
@@ -923,8 +922,8 @@ body.is-editor .btn-validate {
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 40px 20px 60px;
-    min-height: 100%;
+    padding: 30px 20px 40px;
+    height: 100vh;
     display: flex;
     flex-direction: column;
 }
@@ -1006,8 +1005,8 @@ body.is-editor .btn-validate {
 .journal-book {
     position: relative;
     display: block;
-    height: calc(100vh - 120px);
-    min-height: 500px;
+    flex: 1;
+    min-height: 0;
     transform-style: preserve-3d;
     width: 100%;
     min-width: 0;
@@ -1407,7 +1406,6 @@ body.is-editor .journal-photo:hover {
 
 @media (max-width: 900px) {
     .journal-book {
-        height: calc(100vh - 120px);
         min-height: 640px;
     }
 
@@ -2312,7 +2310,6 @@ body.aem-open {
     .journal-book {
         /* Chaque page devient ~1/2 de la hauteur disponible au lieu
            d'être fixe, sinon elles sont trop petites sur mobile. */
-        height: calc(100vh - 120px);
         min-height: 720px;
     }
 }
@@ -2351,7 +2348,6 @@ body.aem-open {
         font-size: 16px;
     }
     .journal-book {
-        height: calc(100vh - 100px);
         min-height: 640px;
     }
 
@@ -2424,7 +2420,6 @@ body.aem-open {
         font-size: 32px;
     }
     .journal-book {
-        height: calc(100vh - 80px);
         min-height: 440px;
     }
     .char-card-image {
@@ -2455,7 +2450,6 @@ body.aem-open {
         max-height: 100vh;
     }
     .journal-book {
-        height: calc(100vh - 60px);
         min-height: 380px;
     }
 }
