@@ -18,6 +18,7 @@
 html {
     scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
     scrollbar-width: thin;
+    overflow-x: hidden;
 }
 
 .bio-content,
@@ -2150,4 +2151,287 @@ body.aem-open {
     animation: syncSpin .9s linear infinite;
 }
 @keyframes syncSpin { to { transform: rotate(360deg); } }
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE — mobile, tablet, desktop, widescreen, ultrawide
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Grands écrans : le livre et le dossier peuvent s'étirer plus large ─── */
+@media (min-width: 1600px) {
+    .journal-wrap--book {
+        max-width: 1400px;
+    }
+    .bio-container {
+        padding: 40px 8%;
+    }
+    .bio-content {
+        max-width: 860px;
+    }
+}
+
+@media (min-width: 2000px) {
+    .journal-wrap--book {
+        max-width: 1600px;
+    }
+    .bio-container {
+        padding: 40px 12%;
+    }
+}
+
+@media (min-width: 2600px) {
+    .journal-wrap--book {
+        max-width: 1800px;
+    }
+    .page-title {
+        font-size: 60px;
+    }
+}
+
+/* ─── Laptop standard : garder la disposition actuelle ─── */
+@media (max-width: 1200px) {
+    .bio-container {
+        padding: 32px 5%;
+    }
+    .journal-wrap--book {
+        padding: 32px 16px 50px;
+    }
+}
+
+/* ─── Tablette paysage / petit laptop : dossier plus compact ─── */
+@media (max-width: 1024px) {
+    .bio-container {
+        gap: 20px;
+        padding: 24px 4%;
+    }
+    .bio-menu {
+        width: 220px;
+    }
+    .nav-btn {
+        font-size: 13px;
+        padding: 10px 12px;
+        gap: 10px;
+    }
+}
+
+/* ─── Tablette portrait : le dossier passe en colonne ─── */
+@media (max-width: 900px) {
+    .bio-container {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 24px 4%;
+        gap: 16px;
+        overflow-y: auto;
+        height: auto;
+        min-height: 100%;
+    }
+    .bio-left {
+        flex: 0 0 auto;
+        max-height: 45vh;
+    }
+    .model-image {
+        max-height: 45vh;
+    }
+    .bio-menu {
+        width: 100%;
+        padding-top: 0;
+    }
+    .vertical-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .nav-btn {
+        flex: 1 1 auto;
+        min-width: 120px;
+        justify-content: center;
+    }
+    .bio-content {
+        max-width: 100%;
+        max-height: none;
+        padding-bottom: 32px;
+    }
+    .menu-title {
+        font-size: 20px;
+        margin-bottom: 16px;
+        text-align: center;
+    }
+
+    /* Splash / titres */
+    .page-title {
+        font-size: 36px;
+        margin-top: 6vh;
+    }
+
+    /* Sélection personnage */
+    .char-cards-container {
+        flex-direction: column;
+        gap: 24px;
+        padding: 12px 0 20px;
+        overflow-y: auto;
+    }
+    .char-card {
+        width: min(260px, 80vw);
+    }
+    .char-card-image {
+        height: 340px;
+    }
+
+    /* Journal : wrap plus compact */
+    .journal-wrap--book {
+        padding: 24px 12px 40px;
+    }
+    .journal-header--book {
+        margin-bottom: 24px;
+    }
+
+    /* La règle existante @media (max-width: 900px) empile déjà les pages
+       du livre (.book-spread grid-template-columns: 1fr), mais on doit
+       aussi laisser le journal scroller verticalement et pas tout le
+       contenu s'écraser. */
+    .journal-book {
+        /* Chaque page devient ~1/2 de la hauteur disponible au lieu
+           d'être fixe, sinon elles sont trop petites sur mobile. */
+        height: clamp(720px, calc(100vh - 200px), 1100px);
+    }
+}
+
+/* ─── Mobile ─── */
+@media (max-width: 600px) {
+    .page-title {
+        font-size: 28px;
+        letter-spacing: 1px;
+        margin-top: 4vh;
+    }
+    .bio-container {
+        padding: 16px 10px;
+    }
+    .nav-btn {
+        font-size: 12px;
+        padding: 8px 10px;
+        min-width: 100px;
+    }
+    .menu-title {
+        font-size: 18px;
+    }
+    .journal-wrap--book {
+        padding: 16px 8px 32px;
+    }
+    .journal-stamp {
+        top: 12px;
+        right: 12px;
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+    .journal-title {
+        font-size: clamp(22px, 7vw, 32px) !important;
+    }
+    .journal-author {
+        font-size: 16px;
+    }
+    .journal-book {
+        height: clamp(640px, calc(100vh - 180px), 980px);
+    }
+
+    /* Livre : padding interne des pages plus réduit sur mobile */
+    .book-page-inner {
+        padding: 20px 16px 32px;
+    }
+    .book-text {
+        font-size: 18px;
+    }
+    .book-heading {
+        font-size: 22px;
+    }
+    .book-stage {
+        padding: 10px 14px;
+    }
+
+    /* Editor UI plus compact */
+    .editor-fab {
+        bottom: 12px;
+        right: 12px;
+        width: 42px;
+        height: 42px;
+        font-size: 16px;
+    }
+    .editor-bar {
+        padding: 8px 12px;
+        gap: 8px;
+    }
+    .lang-switcher {
+        top: 8px;
+        right: 8px;
+    }
+    .sync-indicator {
+        bottom: 8px;
+        left: 8px;
+        font-size: 10px;
+    }
+
+    /* Modale et toolbar */
+    .format-toolbar {
+        gap: 6px;
+        padding: 6px 8px;
+    }
+}
+
+/* ─── Très petit mobile (≤ 380px) ─── */
+@media (max-width: 380px) {
+    .char-card {
+        width: 92vw;
+    }
+    .char-card-image {
+        height: 300px;
+    }
+    .journal-title {
+        font-size: 22px !important;
+    }
+    .book-text {
+        font-size: 16px;
+    }
+    .book-page-inner {
+        padding: 14px 10px 24px;
+    }
+}
+
+/* ─── Écrans courts (hauteur < 700px) ─── */
+@media (max-height: 700px) {
+    .page-title {
+        margin-top: 3vh;
+        font-size: 32px;
+    }
+    .journal-book {
+        height: clamp(440px, calc(100vh - 220px), 620px);
+    }
+    .char-card-image {
+        height: 320px;
+    }
+}
+
+/* ─── Mode paysage sur mobile (téléphone tenu horizontalement) ─── */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
+    .bio-container {
+        flex-direction: row;
+        padding: 12px 3%;
+    }
+    .bio-left {
+        flex: 1;
+        max-height: none;
+    }
+    .model-image {
+        max-height: 85vh;
+    }
+    .bio-menu {
+        width: 180px;
+    }
+    .vertical-nav {
+        flex-direction: column;
+    }
+    .bio-content {
+        max-height: 100vh;
+    }
+    .journal-book {
+        height: clamp(380px, calc(100vh - 140px), 520px);
+    }
+}
 
