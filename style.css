@@ -920,12 +920,13 @@ body.is-editor .btn-validate {
     position: relative;
     z-index: 1;
     width: 100%;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 30px 20px 40px;
+    padding: 20px 20px 20px;
     height: 100vh;
     display: flex;
     flex-direction: column;
+    gap: 8px;
 }
 
 .journal-stamp {
@@ -948,11 +949,12 @@ body.is-editor .btn-validate {
 
 .journal-header--book {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 14px;
     padding-bottom: 0;
     border-bottom: none;
     position: relative;
     z-index: 2;
+    flex-shrink: 0;
 }
 
 .journal-doc-id {
@@ -961,18 +963,18 @@ body.is-editor .btn-validate {
     letter-spacing: 0.3em;
     color: rgba(255, 255, 255, 0.4);
     text-transform: uppercase;
-    margin-bottom: 16px;
+    margin-bottom: 6px;
 }
 
 .journal-title {
     font-family: 'IM Fell English', serif;
-    font-size: clamp(32px, 5vw, 48px);
+    font-size: clamp(26px, 3.6vw, 40px);
     font-weight: normal;
     font-style: italic;
     letter-spacing: 0.05em;
     color: #d4c5b0;
     text-shadow: 0 4px 24px rgba(0, 0, 0, 0.8);
-    margin-bottom: 12px;
+    margin-bottom: 4px;
 }
 
 .journal-author {
@@ -1343,9 +1345,10 @@ body.is-editor .book-page-num {
 }
 
 .journal-toolbar {
-    margin: 36px 0 24px;
+    margin: 8px 0 6px;
     display: flex;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .btn-journal-add {
@@ -1371,9 +1374,10 @@ body.is-editor .book-page-num {
 .journal-footer {
     position: relative;
     text-align: center;
-    padding: 40px 0 32px;
-    margin: 20px auto 0;
+    padding: 8px 0 8px;
+    margin: 0 auto 0;
     z-index: 10;
+    flex-shrink: 0;
 }
 
 @keyframes cinematicScreenFade {
@@ -1612,13 +1616,15 @@ body.is-editor .bio-content {
        d'un flex item dont les enfants sont tous en position: absolute. */
     display: grid;
     grid-template-columns: 64px 1fr 64px;
+    grid-template-rows: minmax(0, 1fr);
     align-items: stretch;
     gap: 8px;
     margin: 0 auto;
     perspective: 2400px;
     width: 100%;
-    flex: 1;
+    flex: 1 1 0;
     min-height: 0;
+    height: 100%;
 }
 
 .book-nav {
@@ -1632,7 +1638,7 @@ body.is-editor .bio-content {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 200px;
+    min-height: 0;
 }
 
 .book-nav:hover:not(:disabled) {
@@ -1729,14 +1735,15 @@ body.is-editor .bio-content {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    margin: 24px auto 12px;
+    margin: 6px auto 2px;
     font-family: 'IM Fell English SC', serif;
-    font-size: 16px;
+    font-size: 14px;
     color: rgba(255,255,255,0.4);
     letter-spacing: 0.1em;
     user-select: none;
     text-align: center;
     width: 100%;
+    flex-shrink: 0;
 }
 
 .book-pager-current {
@@ -2133,7 +2140,7 @@ body.aem-open {
     }
     .book-nav {
         font-size: 16px;
-        min-height: 120px;
+        min-height: 0;
     }
     .format-toolbar {
         max-width: 96vw;
