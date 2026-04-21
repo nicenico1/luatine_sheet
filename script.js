@@ -955,7 +955,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function placeholderImg(w, h) {
-        return `https://via.placeholder.com/${w}x${h}/d4d2cc/5a5a5a?text=Cliquer+pour+changer`;
+        return `https://placehold.co/${w}x${h}/d4d2cc/5a5a5a?text=Cliquer+pour+changer`;
     }
 
     function buildElement(kind) {

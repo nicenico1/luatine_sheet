@@ -1261,6 +1261,8 @@ body.is-editor .book-page-num {
     object-fit: cover;
     filter: sepia(0.3) contrast(1.1) brightness(0.95);
     border-radius: 2px;
+    background-color: rgba(0, 0, 0, 0.1); /* Fallback si l'image ne charge pas */
+    min-height: 100px; /* S'assure qu'on voit quelque chose même si l'image est cassée */
 }
 
 /* Effet Scotch (Tape) */
