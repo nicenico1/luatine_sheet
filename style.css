@@ -188,7 +188,7 @@ body.is-editor .char-card-image img {
 }
 
 body.is-editor {
-    padding-bottom: 120px;
+    padding-bottom: 60px;
 }
 
 .editor-publish-hint {
@@ -1595,7 +1595,7 @@ body.is-editor .journal-photo:hover {
 
 
 body.is-editor .screen {
-    height: calc(100% - 130px);
+    height: calc(100% - 60px);
 }
 body.is-editor .bio-content {
     max-height: calc(100vh - 178px);
@@ -1608,12 +1608,12 @@ body.is-editor .bio-content {
 body.is-editor .journal-wrap--book {
     min-height: 0;
     height: 100%;
-    padding-top: 16px;
-    padding-bottom: 8px;
+    padding-top: 12px;
+    padding-bottom: 4px;
 }
 body.is-editor .journal-book {
-    height: calc(100vh - 400px);
-    min-height: 240px;
+    height: calc(100vh - 340px);
+    min-height: 280px;
 }
 
 /* ───────────────────────────────────────────────────────────────
@@ -2471,6 +2471,30 @@ body.aem-open {
     }
     .char-card-image {
         height: 320px;
+    }
+
+    /* En mode éditeur + écran court : on compacte encore plus et on
+       affiche la toolbar d'ajout de page sur la même ligne que le pager
+       pour laisser toute la place au livre. */
+    body.is-editor .journal-doc-id { display: none; }
+    body.is-editor .journal-author { display: none; }
+    body.is-editor .journal-title {
+        font-size: 22px !important;
+        margin-bottom: 0;
+    }
+    body.is-editor .journal-header--book { margin-bottom: 4px; }
+    body.is-editor .journal-toolbar {
+        margin: 2px 0;
+    }
+    body.is-editor .btn-journal-add {
+        padding: 4px 10px;
+        font-size: 11px;
+    }
+    body.is-editor .journal-footer { padding: 4px 0; }
+    body.is-editor .book-stage { padding: 8px 14px; }
+    body.is-editor .journal-book {
+        height: calc(100vh - 260px);
+        min-height: 300px;
     }
 }
 
