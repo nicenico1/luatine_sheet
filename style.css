@@ -1601,6 +1601,21 @@ body.is-editor .bio-content {
     max-height: calc(100vh - 178px);
 }
 
+/* En mode éditeur, la barre fixe en bas (editor-bar ~60px + padding)
+   + les contrôles éditeur supplémentaires mangent la hauteur disponible.
+   On raccourcit le livre pour garder pager / toolbar / footer visibles
+   au-dessus de la barre. */
+body.is-editor .journal-wrap--book {
+    min-height: 0;
+    height: 100%;
+    padding-top: 16px;
+    padding-bottom: 8px;
+}
+body.is-editor .journal-book {
+    height: calc(100vh - 310px);
+    min-height: 360px;
+}
+
 /* ───────────────────────────────────────────────────────────────
    LIVRE — Visionneuse double-page (one spread at a time, page-flip)
    ─────────────────────────────────────────────────────────────── */
