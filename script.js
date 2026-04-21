@@ -360,12 +360,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function persistToLocalStorage() {
+        var snapshot;
         try {
-            var snapshot = collectSaveSnapshot();
-            localStorage.setItem(STORAGE_SAVE_V3, JSON.stringify(snapshot));
+            snapshot = collectSaveSnapshot();
+        } catch (e) {
+            console.warn('Snapshot build failed', e);
+            return;
+        }
+
+        // Firebase se fait d'abord pour ne pas être bloqué si
+        // localStorage refuse (quota ~5 Mo dépassé avec beaucoup d'images).
+        try {
             firebaseSaveDebounced(snapshot);
         } catch (e) {
-            console.warn('Sauvegarde locale impossible', e);
+            console.warn('Firebase debounce error', e);
+        }
+
+        try {
+            localStorage.setItem(STORAGE_SAVE_V3, JSON.stringify(snapshot));
+        } catch (e) {
+            if (e && e.name === 'QuotaExceededError') {
+                // On essaie de stocker une version allégée (sans pages)
+                // pour au moins garder les infos de fiche.
+                try {
+                    var lite = Object.assign({}, snapshot);
+                    delete lite.journalPages;
+                    delete lite.journalHTML;
+                    localStorage.setItem(STORAGE_SAVE_V3, JSON.stringify(lite));
+                    console.warn('Sauvegarde locale allégée (pages omises, trop volumineuses pour localStorage)');
+                } catch (e2) {
+                    console.warn('Sauvegarde locale impossible', e2);
+                }
+            } else {
+                console.warn('Sauvegarde locale impossible', e);
+            }
         }
     }
 

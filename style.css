@@ -986,7 +986,11 @@ body.is-editor .btn-validate {
 .book-stage {
     position: relative;
     min-width: 0;
-    width: 100%;
+    width: auto;
+    max-width: 100%;
+    max-height: 100%;
+    justify-self: center;
+    align-self: center;
     transform-style: preserve-3d;
 
     /* Couverture en cuir usé */
@@ -1003,13 +1007,19 @@ body.is-editor .btn-validate {
     padding: 16px 24px; /* Débordement de la couverture */
 }
 
+/* Format royal 16×24 (page unique), soit 32×24 (double page ouverte) =>
+   aspect-ratio 4/3. On borne à la fois la largeur (100% du conteneur)
+   et la largeur équivalente pour ne pas dépasser la hauteur disponible.
+   Aspect-ratio déduit l'autre dimension. */
 .journal-book {
     position: relative;
     display: block;
-    height: calc(100vh - 280px);
-    min-height: 280px;
+    aspect-ratio: 4 / 3;
+    width: min(100%, calc((100vh - 280px) * 4 / 3));
+    height: auto;
+    min-height: 0;
     transform-style: preserve-3d;
-    width: 100%;
+    margin: 0 auto;
     min-width: 0;
 }
 
@@ -1409,7 +1419,9 @@ body.is-editor .journal-photo:hover {
 
 @media (max-width: 900px) {
     .journal-book {
-        height: calc(100vh - 160px);
+        width: 100%;
+        aspect-ratio: auto;
+        height: auto;
         min-height: 640px;
     }
 
@@ -1612,8 +1624,10 @@ body.is-editor .journal-wrap--book {
     padding-bottom: 4px;
 }
 body.is-editor .journal-book {
-    height: calc(100vh - 340px);
-    min-height: 280px;
+    width: min(100%, calc((100vh - 340px) * 4 / 3));
+    height: auto;
+    aspect-ratio: 4 / 3;
+    min-height: 0;
 }
 
 /* ───────────────────────────────────────────────────────────────
@@ -2328,9 +2342,10 @@ body.aem-open {
        aussi laisser le journal scroller verticalement et pas tout le
        contenu s'écraser. */
     .journal-book {
-        /* Chaque page devient ~1/2 de la hauteur disponible au lieu
-           d'être fixe, sinon elles sont trop petites sur mobile. */
-        height: calc(100vh - 160px);
+        /* Empilement mobile : on laisse un format plus haut pour lire confortablement. */
+        width: 100%;
+        aspect-ratio: auto;
+        height: auto;
         min-height: 720px;
     }
 }
@@ -2369,6 +2384,8 @@ body.aem-open {
         font-size: 16px;
     }
     .journal-book {
+        width: 100%;
+        aspect-ratio: auto;
         height: calc(100vh - 140px);
         min-height: 640px;
     }
@@ -2466,8 +2483,10 @@ body.aem-open {
         padding: 6px 0;
     }
     .journal-book {
-        height: calc(100vh - 200px);
-        min-height: 260px;
+        width: min(100%, calc((100vh - 200px) * 4 / 3));
+        height: auto;
+        aspect-ratio: 4 / 3;
+        min-height: 0;
     }
     .char-card-image {
         height: 320px;
@@ -2493,8 +2512,10 @@ body.aem-open {
     body.is-editor .journal-footer { padding: 4px 0; }
     body.is-editor .book-stage { padding: 8px 14px; }
     body.is-editor .journal-book {
-        height: calc(100vh - 260px);
-        min-height: 300px;
+        width: min(100%, calc((100vh - 260px) * 4 / 3));
+        height: auto;
+        aspect-ratio: 4 / 3;
+        min-height: 0;
     }
 }
 
@@ -2521,6 +2542,8 @@ body.aem-open {
         max-height: 100vh;
     }
     .journal-book {
+        width: 100%;
+        aspect-ratio: auto;
         height: calc(100vh - 100px);
         min-height: 380px;
     }
