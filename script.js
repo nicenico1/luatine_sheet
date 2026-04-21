@@ -1293,23 +1293,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function positionToolbarFromSelection() {
-        const sel = window.getSelection();
-        if (!sel || !sel.rangeCount) return;
-        const range = sel.getRangeAt(0);
-        let rect = range.getBoundingClientRect();
-        if (!rect || (rect.width === 0 && rect.height === 0)) {
-            const el = (sel.anchorNode?.nodeType === 1 ? sel.anchorNode : sel.anchorNode?.parentElement);
-            if (el) rect = el.getBoundingClientRect();
-        }
-        if (!rect) return;
-        formatToolbar.classList.remove('hidden');
-        const tbRect = formatToolbar.getBoundingClientRect();
-        let top = rect.top - tbRect.height - 10 + window.scrollY;
-        if (top < 8 + window.scrollY) top = rect.bottom + 8 + window.scrollY;
-        let left = rect.left + rect.width / 2 - tbRect.width / 2;
-        left = Math.max(8, Math.min(left, window.innerWidth - tbRect.width - 8));
-        formatToolbar.style.top = `${top}px`;
-        formatToolbar.style.left = `${left}px`;
+        // La toolbar est désormais positionnée statiquement en haut d'écran
+        // via CSS (.format-toolbar { top: 10px; left: 50%; transform: translateX(-50%); }).
+        // On ne repositionne plus dynamiquement pour ne jamais cacher le
+        // texte en cours d'édition. Cette fonction reste pour compat.
     }
 
     function showFormatToolbar() {

@@ -1942,7 +1942,12 @@ body.is-editor .book-page-inner > [data-element]:hover {
    ─────────────────────────────────────────────────────────────── */
 
 .format-toolbar {
+    /* Barre ancrée en haut de l'écran, toujours à la même place,
+       pour ne jamais cacher le texte en cours d'édition. */
     position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 25000;
     display: flex;
     flex-wrap: wrap;
@@ -1956,14 +1961,14 @@ body.is-editor .book-page-inner > [data-element]:hover {
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     color: #e8e4dc;
-    transition: opacity 0.15s ease, transform 0.15s ease;
-    transform-origin: bottom center;
+    transition: opacity 0.15s ease;
+    transform-origin: center top;
+    max-width: calc(100vw - 16px);
 }
 
 .format-toolbar.hidden {
     opacity: 0;
     pointer-events: none;
-    transform: scale(0.95);
 }
 
 .ft-group {
