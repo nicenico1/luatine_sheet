@@ -183,10 +183,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             el.textContent.trim()
         );
 
+        // Nettoyer les images en base64 du HTML du journal avant de sauvegarder
+        // (elles sont déjà sauvegardées dans le tableau images[] et restaurées par applySaveSnapshot)
+        let cleanJournalHTML = '';
+        if (journalEntriesEl) {
+            const clone = journalEntriesEl.cloneNode(true);
+            clone.querySelectorAll('.editable-image').forEach(img => {
+                if (img.src && img.src.startsWith('data:image')) {
+                    img.src = ''; // Retirer le base64 massif du HTML
+                }
+            });
+            cleanJournalHTML = clone.innerHTML;
+        }
+
         return {
             version: 3,
             fields,
-            journalHTML: journalEntriesEl ? journalEntriesEl.innerHTML : '',
+            journalHTML: cleanJournalHTML,
             images,
             stepperVals,
             attrPoints: document.getElementById('attr-points-num')?.textContent?.trim() ?? '8',
