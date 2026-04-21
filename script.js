@@ -188,29 +188,42 @@ document.addEventListener('DOMContentLoaded', async () => {
         let cleanJournalHTML = '';
         if (journalEntriesEl) {
             const clone = journalEntriesEl.cloneNode(true);
+            // Nuke all img src attributes entirely - they'll be restored from images[] array
             clone.querySelectorAll('img').forEach(img => {
-                const src = img.getAttribute('src') || '';
-                if (src.startsWith('data:')) {
-                    img.setAttribute('src', '');
-                }
-                const srcset = img.getAttribute('srcset') || '';
-                if (srcset.includes('data:')) {
-                    img.removeAttribute('srcset');
+                img.removeAttribute('src');
+                img.removeAttribute('srcset');
+            });
+            // Strip any inline styles that may contain data: URIs (background-image, etc.)
+            clone.querySelectorAll('[style]').forEach(el => {
+                const style = el.getAttribute('style') || '';
+                if (style.includes('data:') || style.includes('base64')) {
+                    el.removeAttribute('style');
                 }
             });
-            clone.querySelectorAll('[style*="data:"]').forEach(el => {
-                el.removeAttribute('style');
+            // Remove any element with a data-* attribute containing base64
+            clone.querySelectorAll('*').forEach(el => {
+                Array.from(el.attributes).forEach(attr => {
+                    if (attr.value && (attr.value.includes('data:image') || attr.value.length > 10000)) {
+                        el.removeAttribute(attr.name);
+                    }
+                });
             });
             cleanJournalHTML = clone.innerHTML;
-            // Filet de sécurité final : strip tout ce qui ressemble à du base64
-            cleanJournalHTML = cleanJournalHTML.replace(/data:[^"'\s)]+/g, '');
+            // Filet de sécurité ultime : strip tout ce qui pourrait rester
+            cleanJournalHTML = cleanJournalHTML.replace(/data:image[^"'\s)>]+/gi, '');
+            cleanJournalHTML = cleanJournalHTML.replace(/data:application[^"'\s)>]+/gi, '');
             console.log('[FicheRP] journalHTML size:', cleanJournalHTML.length, 'bytes');
+            if (cleanJournalHTML.length > 500000) {
+                console.warn('[FicheRP] journalHTML still huge! Sample:', cleanJournalHTML.substring(0, 2000));
+                console.warn('[FicheRP] Longest chunk:', cleanJournalHTML.split(/\s/).reduce((a, b) => a.length > b.length ? a : b).substring(0, 500));
+            }
         }
 
         // Nettoyer aussi les champs (au cas où un base64 serait collé ailleurs)
         Object.keys(fields).forEach(k => {
-            if (fields[k] && fields[k].includes('data:')) {
-                fields[k] = fields[k].replace(/data:[^"'\s)]+/g, '');
+            if (fields[k] && (fields[k].includes('data:image') || fields[k].length > 100000)) {
+                fields[k] = fields[k].replace(/data:image[^"'\s)>]+/gi, '');
+                fields[k] = fields[k].replace(/src\s*=\s*"[^"]{10000,}"/gi, 'src=""');
             }
         });
 
