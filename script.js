@@ -643,7 +643,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     function readFileAsDataURL(file) {
         return new Promise((resolve, reject) => {
             const r = new FileReader();
-            r.onload = () => resolve(String(r.result));
+            r.onload = () => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const max = 1200;
+
+                    if (width > height) {
+                        if (width > max) {
+                            height = Math.round((height * max) / width);
+                            width = max;
+                        }
+                    } else {
+                        if (height > max) {
+                            width = Math.round((width * max) / height);
+                            height = max;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.75));
+                };
+                img.onerror = reject;
+                img.src = r.result;
+            };
             r.onerror = reject;
             r.readAsDataURL(file);
         });
