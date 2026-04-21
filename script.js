@@ -2,7 +2,7 @@
  * Fiche RP — mot de passe mode éditeur (modifiable ici).
  * Sauvegarde : localStorage + export JSON pour GitHub Pages (voir data/fiche-export.json).
  *
- * v3 : sauvegarde par data-field-id (robuste), HTML sanitisé, modales custom.
+ * v3/v4 : sauvegarde par data-field-id ; journal découpé en spreads (v4, pages Firestore).
  */
 const FICHE_RP_EDITOR_PASSWORD = "je t'aime";
 
@@ -166,7 +166,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnImportFiche = document.getElementById('btn-import-fiche');
     const inputImportFiche = document.getElementById('input-import-fiche');
 
-    /* ─── Sauvegarde v3 : par data-field-id (robuste) ─── */
+    /* ─── Sauvegarde v4 : champs + journal en spreads (Firestore `pages`) ─── */
+
+    function sanitizeSpreadHTMLForSave(spreadEl) {
+        const clone = spreadEl.cloneNode(true);
+        clone.querySelectorAll('img').forEach((img) => {
+            img.removeAttribute('src');
+            img.removeAttribute('srcset');
+        });
+        clone.querySelectorAll('[style]').forEach((el) => {
+            const style = el.getAttribute('style') || '';
+            if (style.includes('data:') || style.includes('base64')) el.removeAttribute('style');
+        });
+        clone.querySelectorAll('*').forEach((el) => {
+            Array.from(el.attributes).forEach((attr) => {
+                if (attr.value && (attr.value.includes('data:image') || attr.value.length > 10000)) {
+                    el.removeAttribute(attr.name);
+                }
+            });
+        });
+        let html = clone.outerHTML;
+        html = html.replace(/data:image[^"'\s)>]+/gi, '');
+        html = html.replace(/data:application[^"'\s)>]+/gi, '');
+        return sanitizeHTML(html);
+    }
 
     function collectSaveSnapshot() {
         syncFicheEditableRegistry();
@@ -183,59 +206,33 @@ document.addEventListener('DOMContentLoaded', async () => {
             el.textContent.trim()
         );
 
-        // Nettoyer les images en base64 du HTML du journal avant de sauvegarder
-        // (elles sont déjà sauvegardées dans le tableau images[] et restaurées par applySaveSnapshot)
-        let cleanJournalHTML = '';
+        const journalPages = [];
         if (journalEntriesEl) {
-            const clone = journalEntriesEl.cloneNode(true);
-            // Nuke all img src attributes entirely - they'll be restored from images[] array
-            clone.querySelectorAll('img').forEach(img => {
-                img.removeAttribute('src');
-                img.removeAttribute('srcset');
+            journalEntriesEl.querySelectorAll(':scope > .book-spread').forEach((spread, i) => {
+                journalPages.push({ order: i, html: sanitizeSpreadHTMLForSave(spread) });
             });
-            // Strip any inline styles that may contain data: URIs (background-image, etc.)
-            clone.querySelectorAll('[style]').forEach(el => {
-                const style = el.getAttribute('style') || '';
-                if (style.includes('data:') || style.includes('base64')) {
-                    el.removeAttribute('style');
-                }
-            });
-            // Remove any element with a data-* attribute containing base64
-            clone.querySelectorAll('*').forEach(el => {
-                Array.from(el.attributes).forEach(attr => {
-                    if (attr.value && (attr.value.includes('data:image') || attr.value.length > 10000)) {
-                        el.removeAttribute(attr.name);
-                    }
-                });
-            });
-            cleanJournalHTML = clone.innerHTML;
-            // Filet de sécurité ultime : strip tout ce qui pourrait rester
-            cleanJournalHTML = cleanJournalHTML.replace(/data:image[^"'\s)>]+/gi, '');
-            cleanJournalHTML = cleanJournalHTML.replace(/data:application[^"'\s)>]+/gi, '');
-            console.log('[FicheRP] journalHTML size:', cleanJournalHTML.length, 'bytes');
-            if (cleanJournalHTML.length > 500000) {
-                console.warn('[FicheRP] journalHTML still huge! Sample:', cleanJournalHTML.substring(0, 2000));
-                console.warn('[FicheRP] Longest chunk:', cleanJournalHTML.split(/\s/).reduce((a, b) => a.length > b.length ? a : b).substring(0, 500));
-            }
         }
 
-        // Nettoyer aussi les champs (au cas où un base64 serait collé ailleurs)
-        Object.keys(fields).forEach(k => {
+        Object.keys(fields).forEach((k) => {
             if (fields[k] && (fields[k].includes('data:image') || fields[k].length > 100000)) {
                 fields[k] = fields[k].replace(/data:image[^"'\s)>]+/gi, '');
                 fields[k] = fields[k].replace(/src\s*=\s*"[^"]{10000,}"/gi, 'src=""');
             }
         });
 
-        return {
-            version: 3,
+        const snap = {
+            version: 4,
             fields,
-            journalHTML: cleanJournalHTML,
+            journalPages,
             images,
             stepperVals,
             attrPoints: document.getElementById('attr-points-num')?.textContent?.trim() ?? '8',
             skillPoints: document.getElementById('skill-points-num')?.textContent?.trim() ?? '10',
         };
+        if (typeof window.getLang === 'function') {
+            try { snap.lang = window.getLang(); } catch (_) { /* ignore */ }
+        }
+        return snap;
     }
 
     function migrateBookPageNums() {
@@ -303,7 +300,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     function applySaveSnapshot(data) {
         if (!data) return;
 
-        if (data.version === 3) {
+        if (data.version === 4) {
+            if (data.fields) {
+                Object.entries(data.fields).forEach(([id, html]) => {
+                    const el = document.querySelector(`[data-field-id="${CSS.escape(id)}"]`);
+                    if (el) el.innerHTML = sanitizeHTML(html);
+                });
+            }
+            if (journalEntriesEl && Array.isArray(data.journalPages)) {
+                const sorted = [...data.journalPages].sort(
+                    (a, b) => (a.order || 0) - (b.order || 0)
+                );
+                journalEntriesEl.innerHTML = sorted.map((p) => sanitizeHTML(p.html || '')).join('');
+                migrateBookPageNums();
+                migrateBrokenEditableParagraphs();
+            }
+        } else if (data.version === 3) {
             if (data.fields) {
                 Object.entries(data.fields).forEach(([id, html]) => {
                     const el = document.querySelector(`[data-field-id="${CSS.escape(id)}"]`);
@@ -373,7 +385,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const r = await fetch('data/fiche-export.json', { cache: 'no-store' });
             if (r.ok) {
                 const fromFetch = await r.json();
-                if (fromFetch && (fromFetch.version === 2 || fromFetch.version === 3)) {
+                if (fromFetch && (fromFetch.version === 2 || fromFetch.version === 3 || fromFetch.version === 4)) {
                     applySaveSnapshot(fromFetch);
                 }
             }
@@ -385,9 +397,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (typeof isFirebaseReady === 'function' && isFirebaseReady()) {
             try {
                 const fromCloud = await loadFromFirebase();
-                if (fromCloud && (fromCloud.version === 2 || fromCloud.version === 3)) {
+                if (fromCloud && (fromCloud.version === 2 || fromCloud.version === 3 || fromCloud.version === 4)) {
                     applySaveSnapshot(fromCloud);
-                    try { localStorage.setItem(STORAGE_SAVE_V3, JSON.stringify(fromCloud)); } catch (_) {}
+                    try { localStorage.setItem(STORAGE_SAVE_V3, JSON.stringify(collectSaveSnapshot())); } catch (_) {}
                     return;
                 }
             } catch (e) {
@@ -402,11 +414,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const raw = raw3 || raw2;
             if (raw) {
                 const fromLocal = JSON.parse(raw);
-                if (fromLocal && (fromLocal.version === 2 || fromLocal.version === 3)) {
+                if (fromLocal && (fromLocal.version === 2 || fromLocal.version === 3 || fromLocal.version === 4)) {
                     applySaveSnapshot(fromLocal);
-                    // First-time Firebase: migrate local data to cloud
                     if (typeof isFirebaseReady === 'function' && isFirebaseReady() && typeof saveToFirebase === 'function') {
-                        saveToFirebase(fromLocal);
+                        saveToFirebase(collectSaveSnapshot());
                     }
                 }
             }

@@ -21,11 +21,14 @@
  *   service cloud.firestore {
  *     match /databases/{database}/documents {
  *       match /sheets/{sheetId} {
- *         allow read : if true;
- *         allow write: if true;
+ *         allow read, write: if true;
+ *         match /pages/{pageId} {
+ *           allow read, write: if true;
+ *         }
  *       }
  *     }
  *   }
+ *   (Le journal est découpé en sous-documents `pages` pour rester < 1 Mo par document.)
  *
  * RECOMMENDED STORAGE RULES (Storage → Rules tab):
  *   rules_version = '2';
