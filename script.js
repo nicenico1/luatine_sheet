@@ -194,6 +194,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
     }
 
+    function migrateBookPageNums() {
+        if (!journalEntriesEl) return;
+        journalEntriesEl.querySelectorAll('.book-page').forEach((page) => {
+            const inner = page.querySelector(':scope > .book-page-inner');
+            if (!inner) return;
+            const nested = inner.querySelector(':scope > .book-page-num');
+            if (nested) {
+                page.appendChild(nested);
+            }
+        });
+    }
+
     function applySaveSnapshot(data) {
         if (!data) return;
 
@@ -206,11 +218,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             if (journalEntriesEl && typeof data.journalHTML === 'string') {
                 journalEntriesEl.innerHTML = sanitizeHTML(data.journalHTML);
+                migrateBookPageNums();
             }
         } else if (data.version === 2) {
             // Legacy v2 : rétro-compatibilité par index
             if (journalEntriesEl && typeof data.journalHTML === 'string') {
                 journalEntriesEl.innerHTML = sanitizeHTML(data.journalHTML);
+                migrateBookPageNums();
             }
             syncFicheEditableRegistry();
             const outside = editableNodes.filter((el) => !journalEntriesEl?.contains(el));
