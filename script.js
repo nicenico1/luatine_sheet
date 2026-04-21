@@ -189,12 +189,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (journalEntriesEl) {
             const clone = journalEntriesEl.cloneNode(true);
             clone.querySelectorAll('img').forEach(img => {
-                if (img.src && img.src.startsWith('data:image')) {
-                    img.src = ''; // Retirer le base64 massif du HTML
+                const src = img.getAttribute('src') || '';
+                if (src.startsWith('data:')) {
+                    img.setAttribute('src', '');
+                }
+                const srcset = img.getAttribute('srcset') || '';
+                if (srcset.includes('data:')) {
+                    img.removeAttribute('srcset');
                 }
             });
+            clone.querySelectorAll('[style*="data:"]').forEach(el => {
+                el.removeAttribute('style');
+            });
             cleanJournalHTML = clone.innerHTML;
+            // Filet de sécurité final : strip tout ce qui ressemble à du base64
+            cleanJournalHTML = cleanJournalHTML.replace(/data:[^"'\s)]+/g, '');
+            console.log('[FicheRP] journalHTML size:', cleanJournalHTML.length, 'bytes');
         }
+
+        // Nettoyer aussi les champs (au cas où un base64 serait collé ailleurs)
+        Object.keys(fields).forEach(k => {
+            if (fields[k] && fields[k].includes('data:')) {
+                fields[k] = fields[k].replace(/data:[^"'\s)]+/g, '');
+            }
+        });
 
         return {
             version: 3,
