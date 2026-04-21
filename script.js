@@ -337,16 +337,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Enlève la classe active pour suspendre l'animation d'entrée
         screenEl.classList.remove('active');
         screenEl.style.animation = 'none';
-        screenEl.style.transition = `opacity ${afterFadeMs}ms cubic-bezier(0.19, 1, 0.22, 1), filter ${afterFadeMs}ms cubic-bezier(0.19, 1, 0.22, 1), transform ${afterFadeMs}ms cubic-bezier(0.19, 1, 0.22, 1)`;
+        screenEl.style.transition = `opacity ${afterFadeMs}ms cubic-bezier(0.19, 1, 0.22, 1), transform ${afterFadeMs}ms cubic-bezier(0.19, 1, 0.22, 1)`;
         screenEl.style.opacity = '0';
-        screenEl.style.filter = 'blur(4px)';
         screenEl.style.transform = 'scale(1.015)';
 
         setTimeout(() => {
             screenEl.classList.add('hidden');
             screenEl.style.removeProperty('animation');
             screenEl.style.removeProperty('transition');
-            screenEl.style.removeProperty('filter');
             screenEl.style.removeProperty('transform');
             clearScreenOpacity(screenEl);
             if (onHidden) onHidden();
@@ -354,37 +352,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- Transition Smooth : Fondu Séquentiel (disparition complète avant l'apparition) ---
+    // Optim : plus de filter blur (GPU-lourd sur plein écran), opacity + transform seulement.
     function crossfadeScreen(oldScreen, newScreen, fadeMs, logicBeforeShow) {
-        // 1. On "verrouille" l'écran actuel pour éviter qu'on clique partout
         oldScreen.style.pointerEvents = 'none';
 
-        // 2. On lance la douce disparition (Fade Out)
-        oldScreen.style.transition = `opacity ${fadeMs}ms ease-in-out, filter ${fadeMs}ms ease-in-out, transform ${fadeMs}ms ease-in-out`;
+        oldScreen.style.transition = `opacity ${fadeMs}ms ease-in-out, transform ${fadeMs}ms ease-in-out`;
         oldScreen.style.opacity = '0';
-        oldScreen.style.filter = 'blur(4px)';
         oldScreen.style.transform = 'scale(1.02)';
 
-        // 3. On attend la fin totale de la disparition
         setTimeout(() => {
-            // Nettoyage de l'ancien
             oldScreen.classList.remove('active');
             oldScreen.classList.add('hidden');
             oldScreen.style.removeProperty('transition');
             oldScreen.style.removeProperty('opacity');
-            oldScreen.style.removeProperty('filter');
             oldScreen.style.removeProperty('transform');
             oldScreen.style.removeProperty('pointer-events');
             oldScreen.style.zIndex = '';
             clearScreenOpacity(oldScreen);
 
-            // Action intermédiaire si besoin (scrollTop, etc.)
             if (logicBeforeShow) logicBeforeShow();
 
-            // 4. On fait apparaître le nouvel écran d'un coup (Fade In via CSS active)
             newScreen.classList.remove('hidden');
             requestAnimationFrame(() => {
-                newScreen.classList.add('active'); 
-                // L'animation @keyframes cinematicScreenFade (1.2s) prend le relais ici!
+                newScreen.classList.add('active');
             });
         }, fadeMs);
     }
@@ -704,7 +694,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const dir = direction || (idx > current ? 'forward' : 'backward');
         const oldEl = spreads[current];
         const newEl = spreads[idx];
+        const book = journalEntriesEl;
 
+        if (book) book.classList.add('is-flipping');
         newEl.classList.add(dir === 'forward' ? 'is-entering-forward' : 'is-entering-backward');
 
         requestAnimationFrame(() => {
@@ -719,8 +711,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 setTimeout(() => {
                     oldEl.classList.remove('is-leaving-forward', 'is-leaving-backward');
+                    if (book) book.classList.remove('is-flipping');
                     isFlipping = false;
-                }, 700);
+                }, 440);
             });
         });
     }
@@ -1136,16 +1129,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.execCommand(cmd, false, value);
     }
 
+    // Optim : selectionchange se déclenche à chaque micro-mouvement du caret.
+    // On coalesce en un seul traitement par frame via rAF pour éviter de
+    // lire getBoundingClientRect + queryCommandState 60+ fois/seconde.
+    let _selRafScheduled = false;
     document.addEventListener('selectionchange', () => {
-        if (!isEditorMode) { hideFormatToolbar(); return; }
-        if (isSelectionInBook()) {
-            rememberSelection();
-            showFormatToolbar();
-        } else {
-            // Si la sélection part dans la toolbar (ex: ouverture d'un select), on garde la toolbar
-            const active = document.activeElement;
-            if (!active || !active.closest('#format-toolbar')) hideFormatToolbar();
-        }
+        if (_selRafScheduled) return;
+        _selRafScheduled = true;
+        requestAnimationFrame(() => {
+            _selRafScheduled = false;
+            if (!isEditorMode) { hideFormatToolbar(); return; }
+            if (isSelectionInBook()) {
+                rememberSelection();
+                showFormatToolbar();
+            } else {
+                const active = document.activeElement;
+                if (!active || !active.closest('#format-toolbar')) hideFormatToolbar();
+            }
+        });
     });
 
     if (formatToolbar) {
@@ -1214,9 +1215,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             setTimeout(refreshBook, 200);
         });
     }
-    // Quand on (re)passe en édition, garantir que les outils sont injectés
-    new MutationObserver(() => {
-        injectPageAddButtons();
-        injectElementTags();
+    // Quand on (re)passe en édition, garantir que les outils sont injectés.
+    // Optim : on ne réagit qu'aux ajouts/suppressions de nœuds (pas à chaque
+    // caractère tapé), et on coalesce les mutations proches dans le temps via
+    // un microtask unique + rAF pour éviter des dizaines de passes/s.
+    let _injectScheduled = false;
+    function scheduleInject() {
+        if (_injectScheduled) return;
+        _injectScheduled = true;
+        requestAnimationFrame(() => {
+            _injectScheduled = false;
+            injectPageAddButtons();
+            injectElementTags();
+        });
+    }
+    new MutationObserver((mutations) => {
+        for (const m of mutations) {
+            if (m.addedNodes.length || m.removedNodes.length) {
+                scheduleInject();
+                return;
+            }
+        }
     }).observe(journalEntriesEl, { childList: true, subtree: true });
 });
