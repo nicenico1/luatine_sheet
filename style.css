@@ -987,7 +987,7 @@ body.is-editor .btn-validate {
     position: relative;
     min-width: 0;
     width: 100%;
-    max-width: calc((100vh - 280px) * 4 / 3 + 48px);
+    max-width: calc((100vh - 240px) * 1.5 + 48px);
     margin: 0 auto;
     transform-style: preserve-3d;
 
@@ -1005,14 +1005,14 @@ body.is-editor .btn-validate {
     padding: 16px 24px; /* Débordement de la couverture */
 }
 
-/* Livre au format royal 16×24 (double page ouverte = 32:24 = 4/3).
+/* Livre au format royal / paperback (~3:2 spread ouvert).
    Hauteur explicite pilotée par le viewport, largeur 100% du stage
-   qui lui-même est plafonné par aspect. */
+   qui lui-même est plafonné pour garder un look livre. */
 .journal-book {
     position: relative;
     display: block;
-    height: calc(100vh - 280px);
-    min-height: 280px;
+    height: calc(100vh - 240px);
+    min-height: 260px;
     width: 100%;
     transform-style: preserve-3d;
     min-width: 0;
@@ -1619,12 +1619,12 @@ body.is-editor .journal-wrap--book {
     padding-bottom: 4px;
 }
 body.is-editor .journal-book {
-    height: calc(100vh - 340px);
-    min-height: 280px;
+    height: calc(100vh - 300px);
+    min-height: 260px;
     width: 100%;
 }
 body.is-editor .book-stage {
-    max-width: calc((100vh - 340px) * 4 / 3 + 48px);
+    max-width: calc((100vh - 300px) * 1.5 + 48px);
 }
 
 /* ───────────────────────────────────────────────────────────────
@@ -2480,13 +2480,21 @@ body.aem-open {
         padding: 6px 0;
     }
     .journal-book {
-        height: calc(100vh - 200px);
-        min-height: 260px;
+        height: calc(100vh - 160px);
+        min-height: 220px;
         width: 100%;
     }
     .book-stage {
-        max-width: calc((100vh - 200px) * 4 / 3 + 48px);
+        max-width: calc((100vh - 160px) * 1.5 + 48px);
+        padding: 10px 14px;
     }
+    .journal-header--book { margin-bottom: 6px; }
+    .journal-doc-id { margin-bottom: 2px; font-size: 10px; }
+    .journal-title { font-size: 24px !important; margin-bottom: 0; }
+    .journal-author { font-size: 14px; }
+    .book-pager { margin: 2px auto; font-size: 11px; }
+    .journal-footer { padding: 4px 0; }
+    .journal-wrap--book { padding: 8px 16px 4px; }
     .char-card-image {
         height: 320px;
     }
@@ -2511,12 +2519,12 @@ body.aem-open {
     body.is-editor .journal-footer { padding: 4px 0; }
     body.is-editor .book-stage { padding: 8px 14px; }
     body.is-editor .journal-book {
-        height: calc(100vh - 260px);
-        min-height: 300px;
+        height: calc(100vh - 220px);
+        min-height: 240px;
         width: 100%;
     }
     body.is-editor .book-stage {
-        max-width: calc((100vh - 260px) * 4 / 3 + 48px);
+        max-width: calc((100vh - 220px) * 1.5 + 48px);
     }
 }
 

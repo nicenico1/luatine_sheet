@@ -539,6 +539,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         sessionStorage.setItem(STORAGE_EDITOR, '1');
         document.body.classList.remove('is-read-only');
         document.body.classList.add('is-editor');
+        // Le DOM baseline peut contenir des <div> orphelins hors de leur
+        // <p contenteditable> parent (parseur HTML qui ferme le <p> devant
+        // un <div>). On les repromeut en éléments éditables avant de
+        // flipper contenteditable partout.
+        try { migrateBrokenEditableParagraphs(); } catch (_) {}
         syncFicheEditableRegistry();
         editableNodes.forEach((el) => {
             el.setAttribute('contenteditable', 'true');
