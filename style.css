@@ -920,13 +920,12 @@ body.is-editor .btn-validate {
     position: relative;
     z-index: 1;
     width: 100%;
-    max-width: 1400px;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 20px 20px 20px;
-    height: 100vh;
+    padding: 24px 20px 20px;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    gap: 8px;
 }
 
 .journal-stamp {
@@ -949,7 +948,7 @@ body.is-editor .btn-validate {
 
 .journal-header--book {
     text-align: center;
-    margin-bottom: 14px;
+    margin-bottom: 24px;
     padding-bottom: 0;
     border-bottom: none;
     position: relative;
@@ -963,18 +962,18 @@ body.is-editor .btn-validate {
     letter-spacing: 0.3em;
     color: rgba(255, 255, 255, 0.4);
     text-transform: uppercase;
-    margin-bottom: 6px;
+    margin-bottom: 12px;
 }
 
 .journal-title {
     font-family: 'IM Fell English', serif;
-    font-size: clamp(26px, 3.6vw, 40px);
+    font-size: clamp(28px, 4vw, 42px);
     font-weight: normal;
     font-style: italic;
     letter-spacing: 0.05em;
     color: #d4c5b0;
     text-shadow: 0 4px 24px rgba(0, 0, 0, 0.8);
-    margin-bottom: 4px;
+    margin-bottom: 8px;
 }
 
 .journal-author {
@@ -987,11 +986,7 @@ body.is-editor .btn-validate {
 .book-stage {
     position: relative;
     min-width: 0;
-    min-height: 0;
     width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
     transform-style: preserve-3d;
 
     /* Couverture en cuir usé */
@@ -1011,8 +1006,8 @@ body.is-editor .btn-validate {
 .journal-book {
     position: relative;
     display: block;
-    height: 100%;
-    min-height: 0;
+    height: calc(100vh - 180px);
+    min-height: 500px;
     transform-style: preserve-3d;
     width: 100%;
     min-width: 0;
@@ -1374,7 +1369,7 @@ body.is-editor .book-page-num {
 .journal-footer {
     position: relative;
     text-align: center;
-    padding: 8px 0 8px;
+    padding: 12px 0 12px;
     margin: 0 auto 0;
     z-index: 10;
     flex-shrink: 0;
@@ -1414,6 +1409,7 @@ body.is-editor .journal-photo:hover {
 
 @media (max-width: 900px) {
     .journal-book {
+        height: calc(100vh - 160px);
         min-height: 640px;
     }
 
@@ -1616,15 +1612,11 @@ body.is-editor .bio-content {
        d'un flex item dont les enfants sont tous en position: absolute. */
     display: grid;
     grid-template-columns: 64px 1fr 64px;
-    grid-template-rows: minmax(0, 1fr);
     align-items: stretch;
     gap: 8px;
     margin: 0 auto;
     perspective: 2400px;
     width: 100%;
-    flex: 1 1 0;
-    min-height: 0;
-    height: 100%;
 }
 
 .book-nav {
@@ -1638,7 +1630,7 @@ body.is-editor .bio-content {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 0;
+    min-height: 200px;
 }
 
 .book-nav:hover:not(:disabled) {
@@ -1735,7 +1727,7 @@ body.is-editor .bio-content {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    margin: 6px auto 2px;
+    margin: 12px auto 4px;
     font-family: 'IM Fell English SC', serif;
     font-size: 14px;
     color: rgba(255,255,255,0.4);
@@ -2323,6 +2315,7 @@ body.aem-open {
     .journal-book {
         /* Chaque page devient ~1/2 de la hauteur disponible au lieu
            d'être fixe, sinon elles sont trop petites sur mobile. */
+        height: calc(100vh - 160px);
         min-height: 720px;
     }
 }
@@ -2361,6 +2354,7 @@ body.aem-open {
         font-size: 16px;
     }
     .journal-book {
+        height: calc(100vh - 140px);
         min-height: 640px;
     }
 
@@ -2433,7 +2427,8 @@ body.aem-open {
         font-size: 32px;
     }
     .journal-book {
-        min-height: 440px;
+        height: calc(100vh - 140px);
+        min-height: 380px;
     }
     .char-card-image {
         height: 320px;
@@ -2463,6 +2458,7 @@ body.aem-open {
         max-height: 100vh;
     }
     .journal-book {
+        height: calc(100vh - 100px);
         min-height: 380px;
     }
 }
