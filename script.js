@@ -206,6 +206,56 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    /**
+     * Restaure l'editabilité des éléments cassés par le parseur HTML.
+     *
+     * Chrome, quand on appuie sur Enter à l'intérieur d'un <p contenteditable>,
+     * insère un <div>. Sérialisé via innerHTML puis re-parsé, le <p> se ferme
+     * avant le <div>, qui devient un SIBLING du <p>. Le texte se retrouve
+     * ainsi dans des <div>/<span> orphelins non-editables, et l'utilisateur
+     * ne peut plus cliquer dessus pour modifier.
+     *
+     * Fix pragmatique : pour chaque enfant direct de .book-page-inner qui
+     * porte du texte mais n'est pas "structuré" (photo, titre, légende,
+     * divider, toolbar, etc.), on pose contenteditable="true" et la classe
+     * book-text/fiche-editable si besoin. L'utilisateur peut ainsi recliquer
+     * et éditer, peu importe comment le parseur a réorganisé le DOM.
+     */
+    function migrateBrokenEditableParagraphs() {
+        if (!journalEntriesEl) return;
+        const STRUCTURED_CLASSES = [
+            'book-heading', 'book-caption', 'book-label', 'book-divider',
+            'book-id-grid', 'combine-emblem', 'book-decoration',
+            'photo-taped', 'scrap-row', 'book-page-num',
+            'element-tools', 'page-add-btn',
+        ];
+        const STRUCTURED_TAGS = new Set(['FIGURE', 'HR', 'BUTTON', 'IMG', 'SVG']);
+        const hasStructuredClass = (el) => {
+            if (!el.classList) return false;
+            for (const c of STRUCTURED_CLASSES) if (el.classList.contains(c)) return true;
+            return false;
+        };
+        journalEntriesEl.querySelectorAll('.book-page-inner').forEach((inner) => {
+            Array.from(inner.children).forEach((child) => {
+                if (!child || child.nodeType !== 1) return;
+                if (STRUCTURED_TAGS.has(child.tagName)) return;
+                if (hasStructuredClass(child)) return;
+                // Déjà éditable : rien à faire
+                if (child.getAttribute('contenteditable') === 'true') return;
+                // S'il ne porte aucun texte ET aucun enfant descriptif, on
+                // laisse tel quel (p.ex. un <p></p> vraiment vide).
+                const hasText = (child.textContent || '').trim().length > 0;
+                if (!hasText) return;
+                // Promeut en zone éditable
+                child.setAttribute('contenteditable', 'true');
+                child.classList.add('fiche-editable');
+                if (!child.classList.contains('book-text')) {
+                    child.classList.add('book-text', 'book-text--body');
+                }
+            });
+        });
+    }
+
     function applySaveSnapshot(data) {
         if (!data) return;
 
@@ -219,12 +269,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (journalEntriesEl && typeof data.journalHTML === 'string') {
                 journalEntriesEl.innerHTML = sanitizeHTML(data.journalHTML);
                 migrateBookPageNums();
+                migrateBrokenEditableParagraphs();
             }
         } else if (data.version === 2) {
             // Legacy v2 : rétro-compatibilité par index
             if (journalEntriesEl && typeof data.journalHTML === 'string') {
                 journalEntriesEl.innerHTML = sanitizeHTML(data.journalHTML);
                 migrateBookPageNums();
+                migrateBrokenEditableParagraphs();
             }
             syncFicheEditableRegistry();
             const outside = editableNodes.filter((el) => !journalEntriesEl?.contains(el));
@@ -408,6 +460,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         editableNodes.forEach((el) => {
             el.setAttribute('contenteditable', 'true');
         });
+        // Chrome insère par défaut un <div> à chaque Enter dans un <p
+        // contenteditable>, ce qui corrompt la structure (le <p> ne peut pas
+        // contenir de <div>, donc à la sérialisation/ré-affichage, le P est
+        // fermé et le contenu devient orphelin non editable). On force <br>
+        // pour garder tout le texte dans le même noeud editable.
+        try { document.execCommand('defaultParagraphSeparator', false, 'br'); } catch (_) {}
         if (editorBar) editorBar.classList.remove('hidden');
         if (btnUnlockEditor) btnUnlockEditor.classList.add('hidden');
     }
