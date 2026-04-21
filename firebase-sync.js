@@ -115,6 +115,17 @@
                 setStatus('error');
                 return false;
             }
+            var pages = Array.isArray(snap.journalPages) ? snap.journalPages : [];
+
+            // Filet de sécurité : on refuse d'écraser les pages cloud avec
+            // un snapshot vide. Ce cas peut arriver après un QuotaExceededError
+            // ou un bug qui aurait wipé le DOM. On sauvegarde quand même les
+            // champs (metadata) mais on NE touche PAS à la sous-collection pages.
+            var skipPagesWrite = pages.length === 0;
+            if (skipPagesWrite) {
+                console.warn('[FicheRP] Snapshot sans pages — sync metadata seulement (protection perte de données).');
+            }
+
             var sheetRef = _fb.db.collection(col()).doc(docId());
             var parent = {
                 version: 4,
@@ -126,34 +137,34 @@
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             if (typeof snap.lang !== 'undefined') parent.lang = snap.lang;
-            var pages = Array.isArray(snap.journalPages) ? snap.journalPages : [];
             parent.journalHTML = firebase.firestore.FieldValue.delete();
             await sheetRef.set(parent, { merge: true });
 
-            var existing = await sheetRef.collection('pages').get();
-            var toDelete = existing.docs;
-            for (var i = 0; i < toDelete.length; i += 400) {
-                var batchDel = _fb.db.batch();
-                toDelete.slice(i, i + 400).forEach(function (docSnap) {
-                    batchDel.delete(docSnap.ref);
-                });
-                await batchDel.commit();
-            }
-
-            // Write new pages
-            for (var j = 0; j < pages.length; j += 400) {
-                var batchSet = _fb.db.batch();
-                var chunk = pages.slice(j, j + 400);
-                chunk.forEach(function (p, k) {
-                    var idx = j + k;
-                    var ref = sheetRef.collection('pages').doc('p' + String(idx).padStart(4, '0'));
-                    batchSet.set(ref, {
-                        order: typeof p.order === 'number' ? p.order : idx,
-                        html: p.html || '',
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            if (!skipPagesWrite) {
+                var existing = await sheetRef.collection('pages').get();
+                var toDelete = existing.docs;
+                for (var i = 0; i < toDelete.length; i += 400) {
+                    var batchDel = _fb.db.batch();
+                    toDelete.slice(i, i + 400).forEach(function (docSnap) {
+                        batchDel.delete(docSnap.ref);
                     });
-                });
-                await batchSet.commit();
+                    await batchDel.commit();
+                }
+
+                for (var j = 0; j < pages.length; j += 400) {
+                    var batchSet = _fb.db.batch();
+                    var chunk = pages.slice(j, j + 400);
+                    chunk.forEach(function (p, k) {
+                        var idx = j + k;
+                        var ref = sheetRef.collection('pages').doc('p' + String(idx).padStart(4, '0'));
+                        batchSet.set(ref, {
+                            order: typeof p.order === 'number' ? p.order : idx,
+                            html: p.html || '',
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    });
+                    await batchSet.commit();
+                }
             }
 
             setStatus('synced', true);
