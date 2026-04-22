@@ -2668,3 +2668,25 @@ body[data-content-lang="en"] .editor-bar::before {
     transform: translateX(-50%) translateY(0);
 }
 
+/* ─── Journal EN draft : paragraphes vides à remplir ─── */
+[data-en-draft] .book-text:empty,
+[data-en-draft] .book-caption:empty {
+    min-height: 2.2em;
+    border-bottom: 1px dashed rgba(100, 180, 255, 0.35);
+    border-radius: 2px;
+}
+[data-en-draft] .book-text:empty::before {
+    content: 'Write English translation here…';
+    color: rgba(100, 180, 255, 0.35);
+    font-style: italic;
+    font-size: 0.85em;
+    pointer-events: none;
+}
+[data-en-draft] .book-caption:empty::before {
+    content: 'Caption…';
+    color: rgba(100, 180, 255, 0.3);
+    font-style: italic;
+    font-size: 0.8em;
+    pointer-events: none;
+}
+

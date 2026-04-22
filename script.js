@@ -182,6 +182,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Journal
         if (journalEntriesEl) {
+            const enJournalEmpty = lang === 'en' && !_bilingualCache.journalPagesEN.length;
             const pages = lang === 'en'
                 ? (_bilingualCache.journalPagesEN.length ? _bilingualCache.journalPagesEN : _bilingualCache.journalPagesFR)
                 : _bilingualCache.journalPagesFR;
@@ -193,6 +194,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 _bilingualCache.images.forEach((src, i) => {
                     if (isValidImageUrl(src) && imgs[i]) imgs[i].src = src;
                 });
+                // Premier passage EN : vider les paragraphes de texte — la structure reste
+                if (enJournalEmpty) {
+                    journalEntriesEl.querySelectorAll('.book-text, .book-caption').forEach((el) => {
+                        el.innerHTML = '';
+                    });
+                    journalEntriesEl.setAttribute('data-en-draft', '1');
+                } else {
+                    journalEntriesEl.removeAttribute('data-en-draft');
+                }
                 migrateBookPageNums();
                 migrateBrokenEditableParagraphs();
                 refreshBook();
@@ -204,7 +214,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Toast d'information en mode éditeur
         if (isEditorMode) {
             if (lang === 'en') {
-                showToast('EN mode — The French text is shown as a starting point. Click any text to edit the English version.', 5000);
+                showToast('EN mode — Write your English translation in the empty fields. Photos and headings are kept as reference.', 5000);
             } else {
                 showToast('FR mode — Editing the French version.', 3000);
             }
