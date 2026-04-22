@@ -125,8 +125,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.applyLanguage(window.getLang());
     }
 
-    // Cache bilingue : { fields: { [id]: { fr, en } }, journalPagesFR, journalPagesEN }
-    let _bilingualCache = { fields: {}, journalPagesFR: [], journalPagesEN: [] };
+    // Cache bilingue : { fields: { [id]: { fr, en } }, journalPagesFR, journalPagesEN, images }
+    let _bilingualCache = { fields: {}, journalPagesFR: [], journalPagesEN: [], images: [] };
 
     /** Sauvegarde le DOM actuel dans le cache bilingue pour la langue courante. */
     function flushDOMtoBilingualCache() {
@@ -146,14 +146,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    /** Affiche un toast temporaire en bas de l'écran. */
+    function showToast(msg, durationMs) {
+        let el = document.getElementById('bilingual-toast');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'bilingual-toast';
+            document.body.appendChild(el);
+        }
+        el.textContent = msg;
+        el.classList.add('is-visible');
+        clearTimeout(el._hideTimer);
+        el._hideTimer = setTimeout(() => el.classList.remove('is-visible'), durationMs || 4000);
+    }
+
     /** Applique le contenu bilingue de la langue donnée dans le DOM. */
     function applyBilingualContent(lang) {
         document.body.setAttribute('data-content-lang', lang);
+
+        // Champs data-field-id (dossier citoyen)
         document.querySelectorAll('[data-field-id]').forEach((el) => {
             const id = el.getAttribute('data-field-id');
             const cached = _bilingualCache.fields[id];
             if (!cached) return;
-            // Si EN vide : pré-remplir avec FR comme point de départ (le contour jaune indique "à traduire")
+            // Si EN vide : pré-remplir avec FR comme point de départ
             const enIsEmpty = lang === 'en' && !cached.en;
             const content = lang === 'en' ? (cached.en || cached.fr || '') : (cached.fr || '');
             el.innerHTML = sanitizeHTML(content);
@@ -163,6 +179,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 el.removeAttribute('data-untranslated');
             }
         });
+
+        // Journal
         if (journalEntriesEl) {
             const pages = lang === 'en'
                 ? (_bilingualCache.journalPagesEN.length ? _bilingualCache.journalPagesEN : _bilingualCache.journalPagesFR)
@@ -170,11 +188,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (pages && pages.length > 0) {
                 const sorted = [...pages].sort((a, b) => (a.order || 0) - (b.order || 0));
                 journalEntriesEl.innerHTML = sorted.map((p) => sanitizeHTML(p.html || '')).join('');
+                // Restaurer les images (strips par sanitizeSpreadHTMLForSave)
+                const imgs = Array.from(journalEntriesEl.querySelectorAll('.editable-image'));
+                _bilingualCache.images.forEach((src, i) => {
+                    if (isValidImageUrl(src) && imgs[i]) imgs[i].src = src;
+                });
                 migrateBookPageNums();
                 migrateBrokenEditableParagraphs();
                 refreshBook();
                 syncFicheEditableRegistry();
                 if (isEditorMode) editableNodes.forEach((n) => n.setAttribute('contenteditable', 'true'));
+            }
+        }
+
+        // Toast d'information en mode éditeur
+        if (isEditorMode) {
+            if (lang === 'en') {
+                showToast('EN mode — The French text is shown as a starting point. Click any text to edit the English version.', 5000);
+            } else {
+                showToast('FR mode — Editing the French version.', 3000);
             }
         }
     }
@@ -286,6 +318,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const images = Array.from(document.querySelectorAll('.editable-image')).map(
             (img) => img.getAttribute('src') || ''
         );
+        _bilingualCache.images = images.slice();
         const stepperVals = Array.from(document.querySelectorAll('.stepper-value')).map((el) =>
             el.textContent.trim()
         );
@@ -493,6 +526,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         data.images?.forEach((src, i) => {
             if (isValidImageUrl(src) && imgs[i]) imgs[i].src = src;
         });
+        // Garder les images dans le cache pour les restaurer après un changement de langue
+        if (data.images) _bilingualCache.images = data.images.slice();
 
         const steppers = Array.from(document.querySelectorAll('.stepper-value'));
         data.stepperVals?.forEach((v, i) => {
