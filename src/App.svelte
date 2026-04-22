@@ -27,21 +27,58 @@
     import { initFirebase }     from './lib/firebase.js';
     import { loadSnapshot, persistSnapshot, debounce } from './lib/persist.js';
     import { resolveImageSrc }  from './lib/images.js';
-    import { parseSpreadHTML, serializeSpread, defaultSpreads } from './lib/spreadParser.js';
+    import {
+        parseSpreadHTML,
+        serializeSpread,
+        defaultSpreads,
+        deepCloneSpreads,
+        mergeJournalSpreadsEnFromFr,
+    } from './lib/spreadParser.js';
 
     // ── modal ──────────────────────────────────────────────────────────────
     let modalComp = $state(null);
     const modal = (opts) => modalComp?.open(opts);
 
     // ── app state ──────────────────────────────────────────────────────────
-    let fields      = $state({});
-    let images      = $state([]);
-    let stepperVals = $state([]);
-    let spreads     = $state([]);
+    let fields           = $state({});
+    let images           = $state([]);
+    let stepperVals      = $state([]);
+    let spreads          = $state([]);
+    let journalPagesFR   = $state([]);
+    let journalPagesEN   = $state([]);
 
     const addMenuItems = $derived(
         ADD_ITEM_KEYS.map((row) => ({ ...row, label: $trStore(row.key) }))
     );
+
+    /** @param {unknown} raw @param {'fr'|'en'} L */
+    function bilingualHtmlField(raw, L, fallback = '') {
+        if (raw && typeof raw === 'object' && ('fr' in raw || 'en' in raw)) {
+            const b = /** @type {{ fr?: string; en?: string }} */ (raw);
+            if (L === 'en') {
+                if (b.en && String(b.en).trim()) return b.en;
+                return '';
+            }
+            return b.fr || '';
+        }
+        if (typeof raw === 'string') return raw;
+        return fallback;
+    }
+
+    let charNameHtml = $derived(bilingualHtmlField(fields['char-name'], $lang, 'LUA TYLER'));
+    let charFactionHtml = $derived(bilingualHtmlField(fields['char-faction'], $lang, 'U.N.I.S.C.A.'));
+
+    let cardImgSrc = $derived.by(() => {
+        const ph = `https://placehold.co/300x500/1a1c23/ffffff?text=${encodeURIComponent($trStore('img_placeholder_card'))}`;
+        const v = fields['card-img'];
+        if (typeof v === 'string' && v) return v;
+        if (v && typeof v === 'object' && ('fr' in v || 'en' in v)) {
+            const b = /** @type {{ fr?: string; en?: string }} */ (v);
+            if ($lang === 'en' && b.en && String(b.en).trim()) return b.en;
+            if (b.fr) return b.fr;
+        }
+        return ph;
+    });
 
     // FIX: mirror isEditor onto document.body so all body.is-editor CSS works
     $effect(() => {
@@ -56,21 +93,74 @@
 
     // ── persistence ────────────────────────────────────────────────────────
 
+    /** @param {Record<string, unknown>} raw */
+    function migrateFieldsToBilingual(raw) {
+        /** @type {Record<string, { fr: string; en: string }>} */
+        const out = {};
+        for (const [id, val] of Object.entries(raw)) {
+            if (val && typeof val === 'object' && ('fr' in val || 'en' in val)) {
+                const o = /** @type {{ fr?: unknown; en?: unknown }} */ (val);
+                out[id] = {
+                    fr: typeof o.fr === 'string' ? o.fr : '',
+                    en: typeof o.en === 'string' ? o.en : '',
+                };
+            } else if (typeof val === 'string') {
+                out[id] = { fr: val, en: '' };
+            }
+        }
+        return out;
+    }
+
     function collectSnapshot() {
+        const L = get(lang);
+        const frPages = journalPagesFR.length ? journalPagesFR : defaultSpreads();
+        const enPages = journalPagesEN.length
+            ? mergeJournalSpreadsEnFromFr(journalPagesEN, frPages)
+            : [];
+        const activePages =
+            L === 'en' && enPages.length ? enPages : frPages;
         return {
-            version:      4,
+            version:        4,
             fields,
-            journalPages: spreads.map((s, i) => ({ order: i, html: serializeSpread(s) })),
+            journalPages:   activePages.map((s, i) => ({ order: i, html: serializeSpread(s) })),
+            journalPagesFR: frPages.map((s, i) => ({ order: i, html: serializeSpread(s) })),
+            journalPagesEN: enPages.map((s, i) => ({ order: i, html: serializeSpread(s) })),
             images,
             stepperVals,
-            attrPoints:   '8',
-            skillPoints:  '10',
-            lang:         get(lang),
+            attrPoints:     '8',
+            skillPoints:    '10',
+            lang:           L,
         };
     }
 
     const saveDebounced = debounce(() => persistSnapshot(collectSnapshot()), 600);
-    function onDataChanged() { saveDebounced(); }
+    function onDataChanged() {
+        const L = get(lang);
+        if (L === 'en') journalPagesEN = deepCloneSpreads(spreads);
+        else journalPagesFR = deepCloneSpreads(spreads);
+        saveDebounced();
+    }
+
+    /** @type {'fr' | 'en' | null} */
+    let prevContentLang = $state(null);
+
+    /** Swap journal spreads when UI language changes; flush previous language first. */
+    $effect(() => {
+        const L = $lang;
+        if (prevContentLang === null) {
+            prevContentLang = L;
+            return;
+        }
+        if (prevContentLang === L) return;
+        if (prevContentLang === 'en') journalPagesEN = deepCloneSpreads(spreads);
+        else journalPagesFR = deepCloneSpreads(spreads);
+        if (L === 'en') {
+            spreads = mergeJournalSpreadsEnFromFr(journalPagesEN, journalPagesFR);
+        } else {
+            spreads = journalPagesFR.length ? deepCloneSpreads(journalPagesFR) : defaultSpreads();
+        }
+        prevContentLang = L;
+    });
 
     // FIX: handle v3 journalHTML blob by splitting into spreads
     function splitJournalHTML(html) {
@@ -83,30 +173,56 @@
     }
 
     function applySnapshot(data) {
-        if (!data) return;
-        if (data.fields)      fields      = data.fields;
+        if (!data) {
+            journalPagesFR = defaultSpreads();
+            journalPagesEN = [];
+            spreads = deepCloneSpreads(journalPagesFR);
+            prevContentLang = get(lang);
+            return;
+        }
+        if (data.fields) fields = migrateFieldsToBilingual(data.fields);
         if (data.images)      images      = data.images;
         if (data.stepperVals) stepperVals = data.stepperVals;
         if (data.lang === 'en' || data.lang === 'fr') setLang(data.lang);
 
-        if (Array.isArray(data.journalPages) && data.journalPages.length > 0) {
-            // v4 format — array of { order, html } objects
-            spreads = data.journalPages
+        const pagesFrom = (arr) =>
+            (Array.isArray(arr) && arr.length > 0
+                ? arr
+                : Array.isArray(data.journalPages) && data.journalPages.length > 0
+                  ? data.journalPages
+                  : null);
+
+        const frArr = pagesFrom(data.journalPagesFR);
+        if (frArr) {
+            journalPagesFR = frArr
                 .slice()
                 .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
                 .map((p) => parseSpreadHTML(p.html ?? ''));
         } else if (typeof data.journalHTML === 'string' && data.journalHTML.trim()) {
-            // v3 format — one big HTML blob
             const parsed = splitJournalHTML(data.journalHTML);
-            if (parsed.length > 0) spreads = parsed;
+            if (parsed.length > 0) journalPagesFR = parsed;
         }
-    }
 
-    $effect(() => {
-        if (spreads.length === 0) {
-            spreads = defaultSpreads();
+        if (Array.isArray(data.journalPagesEN) && data.journalPagesEN.length > 0) {
+            journalPagesEN = data.journalPagesEN
+                .slice()
+                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                .map((p) => parseSpreadHTML(p.html ?? ''));
+        } else {
+            journalPagesEN = [];
         }
-    });
+
+        if (!journalPagesFR.length) {
+            journalPagesFR = defaultSpreads();
+        }
+        const L = data.lang === 'en' ? 'en' : 'fr';
+        if (L === 'en') {
+            spreads = mergeJournalSpreadsEnFromFr(journalPagesEN, journalPagesFR);
+        } else {
+            spreads = deepCloneSpreads(journalPagesFR);
+        }
+        prevContentLang = L;
+    }
 
     $effect(() => {
         document.title = $trStore('meta_title');
@@ -164,7 +280,7 @@
         const file = cardFileInput.files?.[0];
         if (!file) return;
         const src = await resolveImageSrc(file);
-        fields = { ...fields, 'card-img': src };
+        fields = { ...fields, 'card-img': { fr: src, en: src } };
         onDataChanged();
         cardFileInput.value = '';
     }
@@ -216,7 +332,7 @@
                 <!-- svelte-ignore a11y_click_events_have_key_events -->
                 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
                 <img
-                    src={fields['card-img'] || `https://placehold.co/300x500/1a1c23/ffffff?text=${encodeURIComponent($trStore('img_placeholder_card'))}`}
+                    src={cardImgSrc}
                     alt="Lua Tyler"
                     class="editable-image"
                     class:cursor-pointer={$isEditor}
@@ -224,8 +340,8 @@
                 />
             </div>
             <div class="char-card-info">
-                <h2>{@html fields['char-name'] || 'LUA TYLER'}</h2>
-                <p>{@html fields['char-faction'] || 'U.N.I.S.C.A.'}</p>
+                <h2>{@html charNameHtml}</h2>
+                <p>{@html charFactionHtml}</p>
                 <div class="char-status">
                     <i class="fas fa-check text-green"></i>
                     <i class="fas fa-skull text-red"></i>

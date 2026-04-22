@@ -2,7 +2,8 @@
  * Save / load logic for the fiche RP.
  *
  * Data format v4:
- *   { version: 4, fields: {}, journalPages: [], images: [], stepperVals: [], attrPoints, skillPoints, lang }
+ *   { version: 4, fields: { id: { fr, en } }, journalPages, journalPagesFR, journalPagesEN,
+ *     images: [], stepperVals: [], attrPoints, skillPoints, lang }
  *
  * Load priority: data/fiche-export.json → Firebase → localStorage
  */

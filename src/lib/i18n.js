@@ -22,6 +22,7 @@ export const lang = writable(readStoredLang());
 lang.subscribe((value) => {
     if (typeof document !== 'undefined') {
         document.documentElement.lang = value === 'en' ? 'en' : 'fr';
+        document.body.setAttribute('data-content-lang', value);
     }
     if (typeof localStorage !== 'undefined') {
         try {

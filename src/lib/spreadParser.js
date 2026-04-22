@@ -248,3 +248,105 @@ export function defaultSpread() {
 export function defaultSpreads() {
     return [defaultSpread()];
 }
+
+/** Deep clone a spread tree (pages + elements). */
+export function deepCloneSpread(spread) {
+    return spread ? JSON.parse(JSON.stringify(spread)) : defaultSpread();
+}
+
+export function deepCloneSpreads(spreads) {
+    if (!Array.isArray(spreads) || spreads.length === 0) return [];
+    return spreads.map((s) => deepCloneSpread(s));
+}
+
+/**
+ * Clear paragraph + caption body text for an EN "blank page" draft.
+ * Headings, id-card columns, and photos stay (same behaviour as legacy script.js).
+ */
+export function clearJournalTranslatableText(spread) {
+    const s = deepCloneSpread(spread);
+    for (const side of ['left', 'right']) {
+        const page = s[side];
+        if (!page?.elements) continue;
+        page.elements = page.elements.map((el) => {
+            if (el.type === 'paragraph' || el.type === 'caption') {
+                return { ...el, content: '' };
+            }
+            return { ...el };
+        });
+    }
+    return s;
+}
+
+function mergeElementForEnSync(enEl, frEl) {
+    if (!frEl) return enEl;
+    if (!enEl) {
+        if (frEl.type === 'paragraph' || frEl.type === 'caption') {
+            return { ...frEl, content: '' };
+        }
+        if (frEl.type === 'heading') {
+            return { ...frEl };
+        }
+        if (frEl.type === 'id-card') {
+            return { ...frEl, colA: '', colB: '' };
+        }
+        if (frEl.type === 'photo') {
+            return { ...frEl };
+        }
+        if (frEl.type === 'divider') {
+            return { ...frEl };
+        }
+        return { ...frEl };
+    }
+    if (frEl.type === 'photo' && enEl.type === 'photo') {
+        return {
+            ...enEl,
+            src:     frEl.src ?? enEl.src,
+            variant: frEl.variant ?? enEl.variant,
+            rotate:  frEl.rotate ?? enEl.rotate,
+            w:       frEl.w ?? enEl.w,
+            h:       frEl.h ?? enEl.h,
+        };
+    }
+    if (frEl.type === enEl.type) {
+        return { ...enEl };
+    }
+    return { ...frEl };
+}
+
+function mergePageForEnSync(enPage, frPage) {
+    const fr = frPage ?? { pageNum: '—', elements: [] };
+    const en = enPage ?? { pageNum: fr.pageNum, elements: [] };
+    const frEls = fr.elements ?? [];
+    const enEls = en.elements ?? [];
+    const elements = frEls.map((frEl, i) => mergeElementForEnSync(enEls[i], frEl));
+    return {
+        pageNum: fr.pageNum ?? en.pageNum,
+        elements,
+    };
+}
+
+/**
+ * EN journal: same layout and photos as FR, keep EN text where it exists.
+ * Call when switching to EN (or after FR layout changes).
+ */
+export function mergeJournalSpreadsEnFromFr(enSpreads, frSpreads) {
+    const fr = Array.isArray(frSpreads) && frSpreads.length ? frSpreads : [defaultSpread()];
+    const en = Array.isArray(enSpreads) ? enSpreads : [];
+    const hadNoEn = en.length === 0;
+    const n = Math.max(fr.length, en.length);
+    const out = [];
+    for (let i = 0; i < n; i++) {
+        const frS = fr[i] ?? defaultSpread();
+        if (i >= fr.length) {
+            out.push(en[i] ? deepCloneSpread(en[i]) : defaultSpread());
+            continue;
+        }
+        const merged = {
+            left:  mergePageForEnSync(en[i]?.left, frS.left),
+            right: mergePageForEnSync(en[i]?.right, frS.right),
+        };
+        out.push(hadNoEn ? clearJournalTranslatableText(merged) : merged);
+    }
+    return out;
+}
