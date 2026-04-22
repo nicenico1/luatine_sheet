@@ -91,15 +91,33 @@ export async function loadSnapshot() {
         }
     } catch { /* file:// or not found */ }
 
-    // 2. Firebase (takes priority)
+    // 2. Firebase (takes priority for fields/images/meta, but only replaces
+    //    journal pages when Firebase actually HAS pages — prevents an empty
+    //    Firebase cloud save from wiping the static fiche-export.json journal)
     if (isFirebaseReady()) {
         try {
             const cloud = await loadFromFirebase();
             if (cloud?.version >= 2) {
-                data = cloud;
-                // Back-fill localStorage so offline works
-                try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch { /* ignore */ }
-                return data;
+                const cloudHasJournal =
+                    (Array.isArray(cloud.journalPages) && cloud.journalPages.length > 0) ||
+                    (typeof cloud.journalHTML === 'string' && cloud.journalHTML.trim().length > 0);
+
+                if (cloudHasJournal) {
+                    // Cloud has full data — use it exclusively
+                    data = cloud;
+                    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch { /* ignore */ }
+                    return data;
+                } else {
+                    // Cloud only has metadata (fields, images) — merge over static JSON
+                    // but KEEP the static journal pages
+                    data = {
+                        ...data,           // static JSON (has journalHTML / journalPages)
+                        ...cloud,          // cloud fields/images/meta override
+                        // Preserve journal from static if cloud has none
+                        journalPages: (data?.journalPages?.length > 0) ? data.journalPages : cloud.journalPages,
+                        journalHTML:  cloud.journalHTML ?? data?.journalHTML,
+                    };
+                }
             }
         } catch (e) {
             console.warn('[FicheRP] Firebase load failed, falling back', e);

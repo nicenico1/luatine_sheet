@@ -1,14 +1,14 @@
 <script>
     import { FONT_FAMILIES, FONT_SIZES, INK_COLORS } from '../lib/tiptap.js';
     import { isEditor } from '../stores/editor.js';
+    import { activeEditor } from '../stores/toolbar.js';
 
-    let { activeEditor = $bindable(null) } = $props();
-
-    let visible = $derived($isEditor && activeEditor !== null);
+    // Reads directly from the global store — no prop drilling needed
+    $: visible = $isEditor && $activeEditor !== null;
 
     function cmd(command, ...args) {
-        if (!activeEditor) return;
-        activeEditor.chain().focus()[command](...args).run();
+        if (!$activeEditor) return;
+        $activeEditor.chain().focus()[command](...args).run();
     }
 
     function setFont(e)  { cmd('setFontFamily', e.target.value); }
@@ -16,7 +16,7 @@
     function setColor(c) { cmd('setColor', c); }
 
     function isActive(name, attrs) {
-        return activeEditor?.isActive(name, attrs) ?? false;
+        return $activeEditor?.isActive(name, attrs) ?? false;
     }
 </script>
 

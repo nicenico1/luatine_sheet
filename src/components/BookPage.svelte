@@ -12,6 +12,7 @@
     import { onMount, onDestroy } from 'svelte';
     import { createEditor }       from '../lib/tiptap.js';
     import { isEditor }           from '../stores/editor.js';
+    import { activeEditor }       from '../stores/toolbar.js';
     import { resolveImageSrc, placeholderImg } from '../lib/images.js';
 
     let {
@@ -20,7 +21,6 @@
         pageNum   = $bindable(''),
         hasBlot   = false,
         onUpdate  = () => {},
-        setActive = () => {},
     } = $props();
 
     // ── DOM refs ──────────────────────────────────────────────────────────────
@@ -30,6 +30,19 @@
 
     // ── page number editor ────────────────────────────────────────────────────
 
+    function onEditorFocus(key) {
+        // Write directly to the global store — works across component boundaries
+        activeEditor.set(editors[key] ?? null);
+    }
+
+    function onEditorBlur() {
+        // Delay so toolbar clicks don't lose the editor reference
+        setTimeout(() => {
+            const anyFocused = Object.values(editors).some((ed) => ed?.isFocused);
+            if (!anyFocused) activeEditor.set(null);
+        }, 150);
+    }
+
     function mountPageNumEditor() {
         if (!pageNumEl) return;
         editors['pagenum']?.destroy();
@@ -38,14 +51,8 @@
             content:  pageNum || '—',
             editable: $isEditor,
             onUpdate(html) { pageNum = html; emit(); },
-            // FIX: use Tiptap onFocus / onBlur for toolbar wiring
-            onFocus() { setActive(editors['pagenum']); },
-            onBlur()  {
-                setTimeout(() => {
-                    const anyFocused = Object.values(editors).some((ed) => ed?.isFocused);
-                    if (!anyFocused) setActive(null);
-                }, 80);
-            },
+            onFocus() { onEditorFocus('pagenum'); },
+            onBlur()  { onEditorBlur(); },
         });
     }
 
@@ -67,14 +74,8 @@
                 elements[idx] = { ...elements[idx], content: html };
                 emit();
             },
-            // FIX: Tiptap onFocus/onBlur — reliable vs. DOM focusin
-            onFocus() { setActive(editors[idx]); },
-            onBlur()  {
-                setTimeout(() => {
-                    const anyFocused = Object.values(editors).some((ed) => ed?.isFocused);
-                    if (!anyFocused) setActive(null);
-                }, 80);
-            },
+            onFocus() { onEditorFocus(idx); },
+            onBlur()  { onEditorBlur(); },
         });
     }
 

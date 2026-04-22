@@ -15,7 +15,6 @@
         footer,
     } = $props();
 
-    let activeEditor = $state(null);
     let isFlipping   = $state(false);
     let directionMap = $state({});
 
@@ -122,8 +121,8 @@
             >{@html getField('journal-author', 'Lua Tyler — citoyenne — U.N.I.S.C.A.')}</p>
         </header>
 
-        <!-- Format toolbar (appears on text focus in editor mode) -->
-        <FormatToolbar bind:activeEditor />
+        <!-- Format toolbar — reads from activeEditor store directly -->
+        <FormatToolbar />
 
         <!-- Book viewer -->
         <div class="book-viewer" id="book-viewer">
@@ -144,7 +143,6 @@
                             {spread}
                             isCurrent={idx === $currentSpreadIdx}
                             direction={directionMap[idx] ?? null}
-                            setActive={(ed) => (activeEditor = ed)}
                             onUpdate={(s) => onSpreadUpdate(idx, s)}
                         />
                     {/each}

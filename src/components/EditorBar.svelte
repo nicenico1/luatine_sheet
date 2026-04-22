@@ -4,10 +4,17 @@
     let { onExport = () => {}, onImport = () => {}, modal = null } = $props();
 
     async function handleLock() {
-        const ok = await modal?.({
-            message: 'Passer en lecture seule ? Les visiteurs ne pourront plus modifier la page.',
-        });
-        if (ok) lockEditor();
+        // Try to show a confirmation modal if available
+        // If modal is not wired or returns null/undefined, still lock
+        let confirmed = true;
+        if (modal) {
+            const result = await modal({
+                message: 'Passer en lecture seule ?',
+            });
+            // result is true (OK clicked) or false (Cancel) — never undefined when modal is set
+            confirmed = result === true;
+        }
+        if (confirmed) lockEditor();
     }
 
     let importInput = $state(null);

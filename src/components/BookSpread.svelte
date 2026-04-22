@@ -5,7 +5,6 @@
         spread    = { left: { pageNum: '', elements: [] }, right: { pageNum: '', elements: [] } },
         isCurrent = false,
         direction = null,
-        setActive = () => {},
         onUpdate  = () => {},
     } = $props();
 
@@ -27,7 +26,6 @@
         elements={spread.left.elements}
         pageNum={spread.left.pageNum}
         hasBlot={true}
-        {setActive}
         onUpdate={(els, pn) => handleUpdate('left', els, pn)}
     />
     <div class="book-gutter" aria-hidden="true"></div>
@@ -36,7 +34,6 @@
         elements={spread.right.elements}
         pageNum={spread.right.pageNum}
         hasBlot={false}
-        {setActive}
         onUpdate={(els, pn) => handleUpdate('right', els, pn)}
     />
 </section>
