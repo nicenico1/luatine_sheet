@@ -1168,25 +1168,6 @@ body.is-editor .btn-validate {
     border-radius: 2px;
 }
 
-.book-id-col--photo {
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-}
-
-.book-id-photo {
-    display: block;
-    width: 100%;
-    max-width: 140px;
-    height: auto;
-    border: 1px solid rgba(139, 115, 85, 0.3);
-    border-radius: 2px;
-    object-fit: cover;
-    min-height: 80px;
-    background: rgba(0,0,0,0.06);
-    cursor: pointer;
-    filter: sepia(0.2) contrast(1.05);
-}
 
 .book-label {
     font-family: 'IM Fell English SC', serif;

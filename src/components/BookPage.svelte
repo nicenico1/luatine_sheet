@@ -36,11 +36,14 @@
     }
 
     function onEditorBlur() {
-        // Delay so toolbar clicks don't lose the editor reference
         setTimeout(() => {
+            // Don't clear if focus moved to the format toolbar or a select inside it
+            const focused = document.activeElement;
+            if (focused?.closest('#format-toolbar')) return;
+            // Don't clear if another Tiptap editor on this page is focused
             const anyFocused = Object.values(editors).some((ed) => ed?.isFocused);
             if (!anyFocused) activeEditor.set(null);
-        }, 150);
+        }, 200);
     }
 
     function mountPageNumEditor() {
@@ -70,23 +73,26 @@
         });
     }
 
-    // id-card has two separate editable columns (colA = text, photo on right)
+    // id-card has two separate editable text columns (colA left, colB right)
     function mountIdCardEditor(idx) {
-        const key = `idcard-${idx}`;
-        const el  = elemRefs[key];
-        if (!el) return;
-        editors[key]?.destroy();
-        editors[key] = createEditor({
-            element:  el,
-            content:  elements[idx]?.colA || '',
-            editable: $isEditor,
-            onUpdate(html) {
-                elements[idx] = { ...elements[idx], colA: html };
-                emit();
-            },
-            onFocus() { onEditorFocus(key); },
-            onBlur()  { onEditorBlur(); },
-        });
+        for (const col of ['A', 'B']) {
+            const key  = `idcard${col}-${idx}`;
+            const el   = elemRefs[key];
+            const prop = col === 'A' ? 'colA' : 'colB';
+            if (!el) continue;
+            editors[key]?.destroy();
+            editors[key] = createEditor({
+                element:  el,
+                content:  elements[idx]?.[prop] || '',
+                editable: $isEditor,
+                onUpdate(html) {
+                    elements[idx] = { ...elements[idx], [prop]: html };
+                    emit();
+                },
+                onFocus() { onEditorFocus(key); },
+                onBlur()  { onEditorBlur(); },
+            });
+        }
     }
 
     function emit() { onUpdate(elements); }
@@ -160,12 +166,6 @@
         fileInput.value = '';
     }
 
-    function promptIdCardPhoto(idx) {
-        if (!$isEditor) return;
-        pendingIdx      = idx;
-        fileInput.value = '';
-        fileInput.click();
-    }
 
     // ── add element menu ──────────────────────────────────────────────────────
 
@@ -183,9 +183,8 @@
             case 'photo-clip':     return { type: 'photo', src: '', variant: 'clip',     rotate: 0, w: 220, h: 150, alt: '', caption: '' };
             case 'id-card':        return {
                 type: 'id-card',
-                colA: 'Nom: …<br>Taille: …<br>Poids: …<br>Yeux: …<br>Age: …<br>Née à: …<br>CID: …<br>Status: …',
-                colB: '',   // photo slot
-                src:  '',
+                colA: 'Nom: …<br>Taille: …<br>Poids: …<br>Yeux: …<br>Age: …',
+                colB: 'Née à: …<br>CID: …<br>Status: …',
             };
             default:               return null;
         }
@@ -309,20 +308,8 @@
 
                 {:else if elem.type === 'id-card'}
                     <div class="book-id-grid">
-                        <!-- Left column: editable text fields -->
-                        <div class="book-id-col" use:setElemRef={`idcard-${idx}`}></div>
-                        <!-- Right column: photo -->
-                        <div class="book-id-col book-id-col--photo">
-                            <!-- svelte-ignore a11y_click_events_have_key_events -->
-                            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-                            <img
-                                src={elem.src || placeholderImg(160, 200)}
-                                alt=""
-                                class="editable-image book-id-photo"
-                                class:cursor-pointer={$isEditor}
-                                onclick={() => promptIdCardPhoto(idx)}
-                            />
-                        </div>
+                        <div class="book-id-col" use:setElemRef={`idcardA-${idx}`}></div>
+                        <div class="book-id-col" use:setElemRef={`idcardB-${idx}`}></div>
                     </div>
                 {/if}
 
