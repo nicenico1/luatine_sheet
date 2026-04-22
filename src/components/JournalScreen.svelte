@@ -5,7 +5,7 @@
     import { isEditor }        from '../stores/editor.js';
     import { currentSpreadIdx, totalSpreads } from '../stores/journal.js';
     import { defaultSpread }   from '../lib/spreadParser.js';
-    import { trStore }         from '../lib/i18n.js';
+    import { trStore, lang }   from '../lib/i18n.js';
 
     let {
         spreads  = $bindable([]),
@@ -16,6 +16,44 @@
         footer,
     } = $props();
 
+    /** @param {unknown} v */
+    function normalizeFieldValue(v) {
+        if (v && typeof v === 'object' && ('fr' in v || 'en' in v)) {
+            return {
+                fr: typeof v.fr === 'string' ? v.fr : '',
+                en: typeof v.en === 'string' ? v.en : '',
+            };
+        }
+        const s = typeof v === 'string' ? v : '';
+        return { fr: s, en: '' };
+    }
+
+    function getField(id, fallback = '') {
+        const raw = fields[id];
+        const L = $lang;
+        if (raw && typeof raw === 'object' && ('fr' in raw || 'en' in raw)) {
+            const b = /** @type {{ fr?: string; en?: string }} */ (raw);
+            if (L === 'en') {
+                if (b.en && String(b.en).trim()) return b.en;
+                return '';
+            }
+            return b.fr || '';
+        }
+        if (typeof raw === 'string') return raw;
+        return fallback;
+    }
+
+    function updateField(id, value) {
+        const L = $lang;
+        const prev = normalizeFieldValue(fields[id]);
+        if (L === 'en') {
+            fields = { ...fields, [id]: { ...prev, en: value } };
+        } else {
+            fields = { ...fields, [id]: { ...prev, fr: value } };
+        }
+        onSave();
+    }
+
     let isFlipping   = $state(false);
     let directionMap = $state({});
 
@@ -23,15 +61,6 @@
 
     let canPrev = $derived($currentSpreadIdx > 0);
     let canNext = $derived($currentSpreadIdx < spreads.length - 1);
-
-    function getField(id, fallback = '') {
-        return fields[id] ?? fallback;
-    }
-
-    function updateField(id, value) {
-        fields = { ...fields, [id]: value };
-        onSave();
-    }
 
     function goTo(idx) {
         if (isFlipping || idx === $currentSpreadIdx) return;

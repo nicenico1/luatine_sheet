@@ -5,7 +5,7 @@
      */
     import { isEditor } from '../stores/editor.js';
     import { resolveImageSrc } from '../lib/images.js';
-    import { trStore } from '../lib/i18n.js';
+    import { trStore, lang } from '../lib/i18n.js';
 
     let { fields = $bindable({}), images = $bindable([]), onSave = () => {}, actions } = $props();
 
@@ -13,13 +13,52 @@
 
     function setTab(id) { activeTab = id; }
 
-    function updateField(id, value) {
-        fields = { ...fields, [id]: value };
-        onSave();
+    /** @param {string} id */
+    function isImageFieldId(id) {
+        return id === 'model-img' || id.endsWith('-img');
     }
 
+    /** @param {unknown} v */
+    function normalizeFieldValue(v) {
+        if (v && typeof v === 'object' && ('fr' in v || 'en' in v)) {
+            return {
+                fr: typeof v.fr === 'string' ? v.fr : '',
+                en: typeof v.en === 'string' ? v.en : '',
+            };
+        }
+        const s = typeof v === 'string' ? v : '';
+        return { fr: s, en: '' };
+    }
+
+    /** @param {string} id */
     function getField(id, fallback = '') {
-        return fields[id] ?? fallback;
+        const raw = fields[id];
+        const L = $lang;
+        if (raw && typeof raw === 'object' && ('fr' in raw || 'en' in raw)) {
+            const b = /** @type {{ fr?: string; en?: string }} */ (raw);
+            if (L === 'en') {
+                if (b.en && String(b.en).trim()) return b.en;
+                if (isImageFieldId(id)) return b.fr || '';
+                return '';
+            }
+            return b.fr || '';
+        }
+        if (typeof raw === 'string') return raw;
+        return fallback;
+    }
+
+    /** @param {string} id */
+    function updateField(id, value) {
+        const L = $lang;
+        const prev = normalizeFieldValue(fields[id]);
+        if (isImageFieldId(id)) {
+            fields = { ...fields, [id]: { fr: value, en: value } };
+        } else if (L === 'en') {
+            fields = { ...fields, [id]: { ...prev, en: value } };
+        } else {
+            fields = { ...fields, [id]: { ...prev, fr: value } };
+        }
+        onSave();
     }
 
     let fileInput = $state(null);
