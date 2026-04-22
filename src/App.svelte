@@ -336,7 +336,7 @@
 {#if $currentScreen === 'char-select'}
 <input type="file" accept="image/*" bind:this={cardFileInput} style="display:none" onchange={onCardImageSelected} />
 <div id="char-select-screen" class="screen active">
-    <LangSwitcher />
+    <LangSwitcher switcherId="lang-switcher" />
     <h1 class="page-title">{$trStore('chars_title')}</h1>
     <div class="char-cards-container">
         <!-- svelte-ignore a11y_click_events_have_key_events -->

@@ -1,13 +1,16 @@
 <script>
     import { lang, setLang, trStore } from '../lib/i18n.js';
 
+    /** @type {{ switcherId?: string }} */
+    let { switcherId = 'lang-switcher' } = $props();
+
     function pick(next) {
         setLang(next);
     }
 </script>
 
 <div
-    id="lang-switcher"
+    id={switcherId}
     class="lang-switcher"
     role="group"
     aria-label={$trStore('lang_switcher_aria')}

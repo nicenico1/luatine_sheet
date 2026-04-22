@@ -1,6 +1,7 @@
 <script>
     import { isEditor, lockEditor } from '../stores/editor.js';
     import { trStore } from '../lib/i18n.js';
+    import LangSwitcher from './LangSwitcher.svelte';
 
     let { onExport = () => {}, onImport = () => {}, modal = null } = $props();
 
@@ -34,6 +35,9 @@
 {#if $isEditor}
 <div id="editor-bar" class="editor-bar" role="status">
     <span class="editor-bar-title"><i class="fas fa-pen"></i> {$trStore('editor_title')}</span>
+    <div class="editor-bar-lang">
+        <LangSwitcher switcherId="lang-switcher-editor" />
+    </div>
     <div class="editor-bar-actions">
         <button type="button" class="btn-text btn-editor-action" onclick={onExport}>
             {$trStore('editor_export')}

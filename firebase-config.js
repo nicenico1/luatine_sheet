@@ -25,6 +25,12 @@
  *         match /pages/{pageId} {
  *           allow read, write: if true;
  *         }
+ *         match /pages_fr/{pageId} {
+ *           allow read, write: if true;
+ *         }
+ *         match /pages_en/{pageId} {
+ *           allow read, write: if true;
+ *         }
  *       }
  *     }
  *   }

@@ -66,6 +66,54 @@ export function isFirebaseReady() {
 
 // ─── helpers ───────────────────────────────────────────────────────────────
 
+const PAGE_COL_ACTIVE = 'pages';
+const PAGE_COL_FR = 'pages_fr';
+const PAGE_COL_EN = 'pages_en';
+
+/**
+ * Read ordered { order, html }[] from a pages subcollection.
+ * @param {import('firebase/firestore').CollectionReference} colRef
+ */
+async function readPagesCollection(colRef) {
+    const snap = await getDocs(colRef);
+    if (snap.empty) return [];
+    return snap.docs
+        .slice()
+        .sort((a, b) => (a.data().order ?? 0) - (b.data().order ?? 0))
+        .map((d) => ({ order: d.data().order, html: d.data().html ?? '' }));
+}
+
+/**
+ * Replace a journal subcollection with the given pages (batch delete + write).
+ * @param {import('firebase/firestore').DocumentReference} sheetRef
+ * @param {string} colId
+ * @param {{ order?: number; html?: string }[]} pages
+ */
+async function syncJournalSubcollection(sheetRef, colId, pages) {
+    const col = collection(sheetRef, colId);
+    const existingSnap = await getDocs(col);
+    const toDelete = existingSnap.docs;
+    for (let i = 0; i < toDelete.length; i += 400) {
+        const batch = writeBatch(db);
+        toDelete.slice(i, i + 400).forEach((d) => batch.delete(d.ref));
+        await batch.commit();
+    }
+    if (!Array.isArray(pages) || pages.length === 0) return;
+    for (let j = 0; j < pages.length; j += 400) {
+        const batch = writeBatch(db);
+        pages.slice(j, j + 400).forEach((p, k) => {
+            const idx = j + k;
+            const pageRef = doc(col, `p${String(idx).padStart(4, '0')}`);
+            batch.set(pageRef, {
+                order: typeof p.order === 'number' ? p.order : idx,
+                html:  p.html ?? '',
+                updatedAt: serverTimestamp(),
+            });
+        });
+        await batch.commit();
+    }
+}
+
 function splitJournalHTMLIntoPages(html) {
     if (!html || typeof html !== 'string') return [];
     try {
@@ -107,30 +155,20 @@ export async function saveToFirebase(snapshot) {
         await setDoc(sheetRef, parent, { merge: true });
 
         if (!skipPages) {
-            const pagesCol     = collection(sheetRef, 'pages');
-            const existingSnap = await getDocs(pagesCol);
-
-            // Delete old pages in batches of 400
-            const toDelete = existingSnap.docs;
-            for (let i = 0; i < toDelete.length; i += 400) {
-                const batch = writeBatch(db);
-                toDelete.slice(i, i + 400).forEach((d) => batch.delete(d.ref));
-                await batch.commit();
+            // Active UI language (compat / readers expecting `pages`)
+            await syncJournalSubcollection(sheetRef, PAGE_COL_ACTIVE, pages);
+            // Bilingual copies — always persist both when journal is non-empty
+            const fr = Array.isArray(snapshot.journalPagesFR) ? snapshot.journalPagesFR : [];
+            const en = Array.isArray(snapshot.journalPagesEN) ? snapshot.journalPagesEN : [];
+            if (fr.length > 0) {
+                await syncJournalSubcollection(sheetRef, PAGE_COL_FR, fr);
+            } else {
+                await syncJournalSubcollection(sheetRef, PAGE_COL_FR, []);
             }
-
-            // Write new pages in batches of 400
-            for (let j = 0; j < pages.length; j += 400) {
-                const batch = writeBatch(db);
-                pages.slice(j, j + 400).forEach((p, k) => {
-                    const idx = j + k;
-                    const pageRef = doc(pagesCol, `p${String(idx).padStart(4, '0')}`);
-                    batch.set(pageRef, {
-                        order:     typeof p.order === 'number' ? p.order : idx,
-                        html:      p.html ?? '',
-                        updatedAt: serverTimestamp(),
-                    });
-                });
-                await batch.commit();
+            if (en.length > 0) {
+                await syncJournalSubcollection(sheetRef, PAGE_COL_EN, en);
+            } else {
+                await syncJournalSubcollection(sheetRef, PAGE_COL_EN, []);
             }
         }
 
@@ -157,7 +195,7 @@ export async function loadFromFirebase() {
         const data = { ...snap.data() };
         delete data.updatedAt;
 
-        const pagesSnap = await getDocs(collection(sheetRef, 'pages'));
+        const pagesSnap = await getDocs(collection(sheetRef, PAGE_COL_ACTIVE));
         if (!pagesSnap.empty) {
             data.journalPages = pagesSnap.docs
                 .slice()
@@ -168,6 +206,20 @@ export async function loadFromFirebase() {
         } else {
             data.journalPages = [];
         }
+
+        const frPages = await readPagesCollection(collection(sheetRef, PAGE_COL_FR));
+        const enPages = await readPagesCollection(collection(sheetRef, PAGE_COL_EN));
+        if (frPages.length > 0) {
+            data.journalPagesFR = frPages;
+        }
+        if (enPages.length > 0) {
+            data.journalPagesEN = enPages;
+        }
+        // Legacy cloud: only `pages` existed — treat as FR source when no pages_fr
+        if (frPages.length === 0 && data.journalPages?.length > 0 && !data.journalPagesFR) {
+            data.journalPagesFR = data.journalPages;
+        }
+
         if (data.journalHTML) delete data.journalHTML;
         data.version = 4;
         return data;

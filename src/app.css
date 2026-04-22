@@ -148,6 +148,20 @@ body.is-editor .char-card-image img {
     min-width: 140px;
 }
 
+.editor-bar-lang {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+}
+
+.editor-bar-lang .lang-switcher {
+    position: static;
+    top: auto;
+    right: auto;
+    z-index: 1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
 .editor-bar-actions {
     display: flex;
     flex-wrap: wrap;
