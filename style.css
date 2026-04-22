@@ -1608,23 +1608,46 @@ body.is-editor .bio-content {
     max-height: calc(100vh - 178px);
 }
 
-/* En mode éditeur, la barre fixe en bas (editor-bar ~60px + padding)
-   + les contrôles éditeur supplémentaires mangent la hauteur disponible.
-   On raccourcit le livre pour garder pager / toolbar / footer visibles
-   au-dessus de la barre. */
-body.is-editor .journal-wrap--book {
-    min-height: 0;
-    height: 100%;
-    padding-top: 12px;
-    padding-bottom: 4px;
+/* Même cadrage livre qu’en lecture : la barre d’édition ne doit pas
+   rétrécir les pages (sinon retours à la ligne et débordements ne
+   correspondent plus au résultat après verrouillage). Le journal peut
+   défiler si la fenêtre est trop courte. */
+body.is-editor #journal-screen {
+    overflow-x: hidden;
+    overflow-y: auto;
 }
+
+body.is-editor .journal-wrap--book {
+    min-height: 100vh;
+    height: auto;
+}
+
 body.is-editor .journal-book {
-    height: calc(100vh - 300px);
+    height: calc(100vh - 240px);
     min-height: 260px;
     width: 100%;
 }
+
 body.is-editor .book-stage {
-    max-width: calc((100vh - 300px) * 1.5 + 48px);
+    max-width: calc((100vh - 240px) * 1.5 + 48px);
+}
+
+@media (max-width: 900px) {
+    body.is-editor .journal-book {
+        width: 100%;
+        aspect-ratio: auto;
+        height: auto;
+        min-height: 640px;
+    }
+}
+
+@media (max-width: 600px) {
+    body.is-editor .journal-book {
+        width: 100%;
+        aspect-ratio: auto;
+        height: calc(100vh - 140px);
+        min-height: 640px;
+    }
 }
 
 /* ───────────────────────────────────────────────────────────────
@@ -1778,14 +1801,16 @@ body.is-editor .book-stage {
     transition: box-shadow 0.2s;
 }
 
+/* Même padding bas qu’en lecture pour que la zone de texte soit identique ;
+   le bouton « + » est remonté pour rester au-dessus du bas de page. */
 body.is-editor .book-page-inner {
-    padding-bottom: 70px;
+    padding-bottom: 48px;
 }
 
 .page-add-btn {
     position: absolute;
     left: 50%;
-    bottom: 36px;
+    bottom: 52px;
     transform: translateX(-50%);
     width: 36px;
     height: 36px;
@@ -2522,14 +2547,14 @@ body.aem-open {
         font-size: 11px;
     }
     body.is-editor .journal-footer { padding: 4px 0; }
-    body.is-editor .book-stage { padding: 8px 14px; }
+    body.is-editor .book-stage { padding: 10px 14px; }
     body.is-editor .journal-book {
-        height: calc(100vh - 220px);
-        min-height: 240px;
+        height: calc(100vh - 160px);
+        min-height: 220px;
         width: 100%;
     }
     body.is-editor .book-stage {
-        max-width: calc((100vh - 220px) * 1.5 + 48px);
+        max-width: calc((100vh - 160px) * 1.5 + 48px);
     }
 }
 
