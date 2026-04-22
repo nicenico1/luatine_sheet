@@ -987,7 +987,7 @@ body.is-editor .btn-validate {
     position: relative;
     min-width: 0;
     width: 100%;
-    max-width: calc((100vh - 240px) * 1.5 + 48px);
+    max-width: calc((100svh - 240px) * 1.5 + 48px);
     margin: 0 auto;
     transform-style: preserve-3d;
 
@@ -1006,13 +1006,15 @@ body.is-editor .btn-validate {
 }
 
 /* Livre au format royal / paperback (~3:2 spread ouvert).
-   Hauteur explicite pilotée par le viewport, largeur 100% du stage
-   qui lui-même est plafonné pour garder un look livre. */
+   Hauteur pilotée par le viewport. Pages scrollent en interne si
+   le contenu dépasse — jamais de texte coupé. */
 .journal-book {
     position: relative;
     display: block;
-    height: calc(100vh - 240px);
-    min-height: 260px;
+    /* Use svh (small viewport height) so the book fits even when the
+       browser shows its address bar / toolbars. Falls back to vh. */
+    height: calc(100svh - 240px);
+    min-height: 400px;
     width: 100%;
     transform-style: preserve-3d;
     min-width: 0;
@@ -1101,7 +1103,9 @@ body.is-editor .btn-validate {
     z-index: 1;
     flex: 1 1 auto;
     min-height: 0;
-    overflow-y: hidden;
+    /* Allow vertical scrolling so long pages never silently clip text.
+       The scrollbar is styled to match the paper texture. */
+    overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin;
     scrollbar-color: rgba(139, 115, 85, 0.4) transparent;
@@ -1625,13 +1629,13 @@ body.is-editor .journal-wrap--book {
 }
 
 body.is-editor .journal-book {
-    height: calc(100vh - 240px);
+    height: calc(100svh - 240px);
     min-height: 260px;
     width: 100%;
 }
 
 body.is-editor .book-stage {
-    max-width: calc((100vh - 240px) * 1.5 + 48px);
+    max-width: calc((100svh - 240px) * 1.5 + 48px);
 }
 
 @media (max-width: 900px) {
@@ -2517,12 +2521,12 @@ body.aem-open {
         padding: 6px 0;
     }
     .journal-book {
-        height: calc(100vh - 160px);
+        height: calc(100svh - 160px);
         min-height: 220px;
         width: 100%;
     }
     .book-stage {
-        max-width: calc((100vh - 160px) * 1.5 + 48px);
+        max-width: calc((100svh - 160px) * 1.5 + 48px);
         padding: 10px 14px;
     }
     .journal-header--book { margin-bottom: 6px; }
@@ -2556,12 +2560,12 @@ body.aem-open {
     body.is-editor .journal-footer { padding: 4px 0; }
     body.is-editor .book-stage { padding: 10px 14px; }
     body.is-editor .journal-book {
-        height: calc(100vh - 160px);
+        height: calc(100svh - 160px);
         min-height: 220px;
         width: 100%;
     }
     body.is-editor .book-stage {
-        max-width: calc((100vh - 160px) * 1.5 + 48px);
+        max-width: calc((100svh - 160px) * 1.5 + 48px);
     }
 }
 
