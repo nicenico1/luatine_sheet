@@ -2616,18 +2616,15 @@ body[data-content-lang="fr"].is-editor [data-field-id]::after {
     content: 'FR';
 }
 
-/* Champ non traduit en mode EN : contour pointillé jaune + placeholder */
+/* Champ non traduit en mode EN : contour pointillé jaune (texte FR affiché comme point de départ) */
 body[data-content-lang="en"].is-editor [data-field-id][data-untranslated] {
-    outline: 2px dashed rgba(255, 200, 40, 0.55);
+    outline: 2px dashed rgba(255, 200, 40, 0.6);
     border-radius: 3px;
+    opacity: 0.75;
 }
-body[data-content-lang="en"] [data-field-id][data-untranslated]:empty::before,
-body[data-content-lang="en"] [data-field-id][data-untranslated]:not(:focus):not([contenteditable="true"])::before {
-    content: '— not translated yet —';
-    color: rgba(255, 200, 40, 0.45);
-    font-style: italic;
-    font-size: .85em;
-    pointer-events: none;
+body[data-content-lang="en"].is-editor [data-field-id][data-untranslated]:focus {
+    outline: 2px solid rgba(255, 200, 40, 0.9);
+    opacity: 1;
 }
 
 /* Bandeau discret dans l'editor-bar indiquant la langue de contenu active */

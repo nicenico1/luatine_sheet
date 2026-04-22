@@ -153,9 +153,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const id = el.getAttribute('data-field-id');
             const cached = _bilingualCache.fields[id];
             if (!cached) return;
-            const content = (lang === 'en' ? cached.en : cached.fr) || '';
+            // Si EN vide : pré-remplir avec FR comme point de départ (le contour jaune indique "à traduire")
+            const enIsEmpty = lang === 'en' && !cached.en;
+            const content = lang === 'en' ? (cached.en || cached.fr || '') : (cached.fr || '');
             el.innerHTML = sanitizeHTML(content);
-            if (lang === 'en' && !cached.en) {
+            if (enIsEmpty) {
                 el.setAttribute('data-untranslated', '1');
             } else {
                 el.removeAttribute('data-untranslated');
