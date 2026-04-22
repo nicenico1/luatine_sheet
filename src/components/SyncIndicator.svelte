@@ -9,7 +9,8 @@
         unconfigured: { icon: '💾', text: 'Local only', cls: 'sync--local'  },
     };
 
-    let state = $derived(STATES[$syncStatus] ?? STATES.idle);
+    // FIX: use $syncStatus (store auto-subscription) not $derived
+    $: state = STATES[$syncStatus] ?? STATES.idle;
 </script>
 
 <div class="sync-indicator {state.cls}">

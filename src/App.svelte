@@ -23,6 +23,17 @@
     let stepperVals = $state([]);
     let spreads     = $state(defaultSpreads());
 
+    // FIX: mirror isEditor onto document.body so all body.is-editor CSS works
+    $effect(() => {
+        if ($isEditor) {
+            document.body.classList.add('is-editor');
+            document.body.classList.remove('is-read-only');
+        } else {
+            document.body.classList.remove('is-editor');
+            document.body.classList.add('is-read-only');
+        }
+    });
+
     // ── persistence ────────────────────────────────────────────────────────
 
     function collectSnapshot() {
@@ -40,16 +51,32 @@
     const saveDebounced = debounce(() => persistSnapshot(collectSnapshot()), 600);
     function onDataChanged() { saveDebounced(); }
 
+    // FIX: handle v3 journalHTML blob by splitting into spreads
+    function splitJournalHTML(html) {
+        if (!html || typeof html !== 'string') return [];
+        const doc  = new DOMParser().parseFromString(`<div>${html}</div>`, 'text/html');
+        const root = doc.querySelector('div');
+        return Array.from(root?.querySelectorAll('.book-spread') ?? []).map((s) =>
+            parseSpreadHTML(s.outerHTML)
+        );
+    }
+
     function applySnapshot(data) {
         if (!data) return;
         if (data.fields)      fields      = data.fields;
         if (data.images)      images      = data.images;
         if (data.stepperVals) stepperVals = data.stepperVals;
+
         if (Array.isArray(data.journalPages) && data.journalPages.length > 0) {
+            // v4 format — array of { order, html } objects
             spreads = data.journalPages
                 .slice()
                 .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
                 .map((p) => parseSpreadHTML(p.html ?? ''));
+        } else if (typeof data.journalHTML === 'string' && data.journalHTML.trim()) {
+            // v3 format — one big HTML blob
+            const parsed = splitJournalHTML(data.journalHTML);
+            if (parsed.length > 0) spreads = parsed;
         }
     }
 
@@ -197,7 +224,7 @@
 </JournalScreen>
 {/if}
 
-<!-- Lock FAB -->
+<!-- Lock FAB (shown only in read-only mode) -->
 {#if !$isEditor}
 <button
     type="button"

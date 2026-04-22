@@ -1841,7 +1841,11 @@ body.is-editor .page-add-btn.is-open {
 }
 
 .add-element-menu {
-    position: fixed;
+    /* Absolute so it floats above the page content without shifting layout */
+    position: absolute;
+    bottom: calc(100% + 6px); /* appears above the + button */
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 30000;
     min-width: 200px;
     background: #1a1c24;
@@ -1855,8 +1859,9 @@ body.is-editor .page-add-btn.is-open {
     animation: aemFadeIn 0.15s ease;
 }
 
-.add-element-menu.hidden {
-    display: none;
+/* The + button itself is the positioning anchor */
+.page-add-btn {
+    position: relative;
 }
 
 @keyframes aemFadeIn {

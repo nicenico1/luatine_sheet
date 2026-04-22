@@ -83,7 +83,7 @@ const SHARED_EXTENSIONS = [
  * @param {boolean}     editable - Whether editing is enabled
  * @param {Function}    onUpdate - Called with updated HTML whenever content changes
  */
-export function createEditor({ element, content = '', editable = false, onUpdate }) {
+export function createEditor({ element, content = '', editable = false, onUpdate, onFocus, onBlur }) {
     return new Editor({
         element,
         extensions: SHARED_EXTENSIONS,
@@ -99,6 +99,8 @@ export function createEditor({ element, content = '', editable = false, onUpdate
         onUpdate({ editor }) {
             if (onUpdate) onUpdate(editor.getHTML());
         },
+        onFocus() { if (onFocus) onFocus(); },
+        onBlur()  { if (onBlur)  onBlur();  },
     });
 }
 

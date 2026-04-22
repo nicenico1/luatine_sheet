@@ -24,6 +24,15 @@
     let canPrev = $derived($currentSpreadIdx > 0);
     let canNext = $derived($currentSpreadIdx < spreads.length - 1);
 
+    function getField(id, fallback = '') {
+        return fields[id] ?? fallback;
+    }
+
+    function updateField(id, value) {
+        fields = { ...fields, [id]: value };
+        onSave();
+    }
+
     function goTo(idx) {
         if (isFlipping || idx === $currentSpreadIdx) return;
         if (idx < 0 || idx >= spreads.length)       return;
@@ -91,14 +100,32 @@
     <div class="journal-wrap journal-wrap--book">
         <div class="journal-stamp">CONFIDENTIEL</div>
 
+        <!-- FIX: header fields are now editable and wired to fields store -->
         <header class="journal-header journal-header--book">
-            <p class="journal-doc-id">DOCUMENT — NIVEAU D / USAGE RP</p>
-            <h1 class="journal-title">JOURNAL INTIME</h1>
-            <p class="journal-author">Lua Tyler — citoyenne — U.N.I.S.C.A.</p>
+            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+            <p
+                class="journal-doc-id"
+                contenteditable={$isEditor ? 'true' : 'false'}
+                onblur={(e) => updateField('journal-doc', e.target.innerHTML)}
+            >{@html getField('journal-doc', 'DOCUMENT — NIVEAU D / USAGE RP')}</p>
+            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+            <h1
+                class="journal-title"
+                contenteditable={$isEditor ? 'true' : 'false'}
+                onblur={(e) => updateField('journal-title', e.target.innerHTML)}
+            >{@html getField('journal-title', 'JOURNAL INTIME')}</h1>
+            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+            <p
+                class="journal-author"
+                contenteditable={$isEditor ? 'true' : 'false'}
+                onblur={(e) => updateField('journal-author', e.target.innerHTML)}
+            >{@html getField('journal-author', 'Lua Tyler — citoyenne — U.N.I.S.C.A.')}</p>
         </header>
 
+        <!-- Format toolbar (appears on text focus in editor mode) -->
         <FormatToolbar bind:activeEditor />
 
+        <!-- Book viewer -->
         <div class="book-viewer" id="book-viewer">
             <button
                 type="button"
@@ -135,12 +162,14 @@
             </button>
         </div>
 
+        <!-- Pager -->
         <div class="book-pager">
             <span class="book-pager-current">{$currentSpreadIdx + 1}</span>
             <span class="book-pager-sep">/</span>
             <span class="book-pager-total">{spreads.length}</span>
         </div>
 
+        <!-- Add/remove spread buttons (editor only) -->
         {#if $isEditor}
         <div class="journal-toolbar">
             <button type="button" class="btn-journal-add editor-only"

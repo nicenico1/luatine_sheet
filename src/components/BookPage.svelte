@@ -1,7 +1,13 @@
 <script>
     /**
-     * A single book page (left or right) with Tiptap-powered text elements.
+     * A single book page with Tiptap-powered text elements.
      * Svelte 5 runes.
+     *
+     * Fixes vs. initial version:
+     *  - Tiptap onFocus/onBlur used instead of DOM focusin/focusout
+     *    so the format toolbar reliably appears/disappears.
+     *  - page-add-btn and add-element menu added (was missing entirely).
+     *  - element-tools now correctly shown on hover via CSS body.is-editor.
      */
     import { onMount, onDestroy } from 'svelte';
     import { createEditor }       from '../lib/tiptap.js';
@@ -18,9 +24,9 @@
     } = $props();
 
     // ── DOM refs ──────────────────────────────────────────────────────────────
-    let pageNumEl = $state(null);
-    let elemRefs  = {};   // idx → DOM element
-    let editors   = {};   // idx → Tiptap Editor
+    let pageNumEl     = $state(null);
+    let elemRefs      = {};
+    let editors       = {};
 
     // ── page number editor ────────────────────────────────────────────────────
 
@@ -32,6 +38,14 @@
             content:  pageNum || '—',
             editable: $isEditor,
             onUpdate(html) { pageNum = html; emit(); },
+            // FIX: use Tiptap onFocus / onBlur for toolbar wiring
+            onFocus() { setActive(editors['pagenum']); },
+            onBlur()  {
+                setTimeout(() => {
+                    const anyFocused = Object.values(editors).some((ed) => ed?.isFocused);
+                    if (!anyFocused) setActive(null);
+                }, 80);
+            },
         });
     }
 
@@ -53,13 +67,14 @@
                 elements[idx] = { ...elements[idx], content: html };
                 emit();
             },
-        });
-        el.addEventListener('focusin',  () => setActive(editors[idx]));
-        el.addEventListener('focusout', () => {
-            setTimeout(() => {
-                const anyFocused = Object.values(editors).some((ed) => ed?.view?.hasFocus?.());
-                if (!anyFocused) setActive(null);
-            }, 60);
+            // FIX: Tiptap onFocus/onBlur — reliable vs. DOM focusin
+            onFocus() { setActive(editors[idx]); },
+            onBlur()  {
+                setTimeout(() => {
+                    const anyFocused = Object.values(editors).some((ed) => ed?.isFocused);
+                    if (!anyFocused) setActive(null);
+                }, 80);
+            },
         });
     }
 
@@ -83,6 +98,8 @@
         if (idx <= 0) return;
         [elements[idx - 1], elements[idx]] = [elements[idx], elements[idx - 1]];
         elements = [...elements];
+        // rebuild editors in new order
+        setTimeout(() => { destroyAll(); elements.forEach((_, i) => mountEditor(i)); mountPageNumEditor(); }, 0);
         emit();
     }
 
@@ -90,6 +107,7 @@
         if (idx >= elements.length - 1) return;
         [elements[idx], elements[idx + 1]] = [elements[idx + 1], elements[idx]];
         elements = [...elements];
+        setTimeout(() => { destroyAll(); elements.forEach((_, i) => mountEditor(i)); mountPageNumEditor(); }, 0);
         emit();
     }
 
@@ -127,8 +145,62 @@
         elements[pendingIdx] = { ...elements[pendingIdx], src };
         elements = [...elements];
         emit();
-        pendingIdx        = null;
-        fileInput.value   = '';
+        pendingIdx      = null;
+        fileInput.value = '';
+    }
+
+    // ── add element menu ──────────────────────────────────────────────────────
+
+    let showAddMenu = $state(false);
+
+    const ADD_ITEMS = [
+        { kind: 'paragraph',     icon: 'fa-paragraph',  label: 'Paragraphe'       },
+        { kind: 'heading',       icon: 'fa-heading',    label: 'Titre'             },
+        { kind: 'caption',       icon: 'fa-quote-right',label: 'Légende'           },
+        { kind: 'divider',       icon: 'fa-grip-lines', label: 'Séparateur'        },
+        { kind: 'photo',         icon: 'fa-image',      label: 'Photo (scotch)'    },
+        { kind: 'photo-portrait',icon: 'fa-portrait',   label: 'Photo portrait'    },
+        { kind: 'photo-clip',    icon: 'fa-thumbtack',  label: 'Photo (trombone)'  },
+        { kind: 'id-card',       icon: 'fa-id-card',    label: 'Bloc identité'     },
+    ];
+
+    function buildNewElement(kind) {
+        switch (kind) {
+            case 'paragraph':      return { type: 'paragraph', content: 'Écrire ici…' };
+            case 'heading':        return { type: 'heading',   content: 'Titre…' };
+            case 'caption':        return { type: 'caption',   content: 'Légende — lieu — date.' };
+            case 'divider':        return { type: 'divider' };
+            case 'photo':          return { type: 'photo', src: '', variant: 'normal',   rotate: Math.floor(Math.random()*7)-3, w: 420, h: 280, alt: '', caption: '' };
+            case 'photo-portrait': return { type: 'photo', src: '', variant: 'portrait', rotate: Math.floor(Math.random()*7)-3, w: 280, h: 380, alt: '', caption: '' };
+            case 'photo-clip':     return { type: 'photo', src: '', variant: 'clip',     rotate: 0, w: 220, h: 150, alt: '', caption: '' };
+            case 'id-card':        return { type: 'id-card', content: 'Name: …<br>Height: …<br>Weight: …<br>Eyes: …<br>Age: …' };
+            default:               return null;
+        }
+    }
+
+    function addElement(kind) {
+        const el = buildNewElement(kind);
+        if (!el) return;
+        elements = [...elements, el];
+        showAddMenu = false;
+        // mount editor for new text element after DOM updates
+        setTimeout(() => {
+            const idx = elements.length - 1;
+            mountEditor(idx);
+        }, 50);
+        emit();
+    }
+
+    function toggleAddMenu() {
+        showAddMenu = !showAddMenu;
+    }
+
+    // Close menu on outside click
+    function onDocClick(e) {
+        if (!showAddMenu) return;
+        if (!e.target.closest('.page-add-btn') && !e.target.closest('.add-element-menu')) {
+            showAddMenu = false;
+        }
     }
 
     // ── lifecycle ─────────────────────────────────────────────────────────────
@@ -136,11 +208,15 @@
     onMount(() => {
         mountPageNumEditor();
         elements.forEach((_, i) => mountEditor(i));
+        document.addEventListener('click', onDocClick, true);
     });
 
-    onDestroy(destroyAll);
+    onDestroy(() => {
+        destroyAll();
+        document.removeEventListener('click', onDocClick, true);
+    });
 
-    // Callback ref helper for Svelte 5 (bind:this doesn't work in {#each} cleanly)
+    // Svelte 5 action to capture element refs inside {#each}
     function setElemRef(el, idx) {
         if (!el) return;
         elemRefs[idx] = el;
@@ -184,7 +260,6 @@
                             src={elem.src || placeholderImg(elem.w ?? 420, elem.h ?? 280)}
                             alt={elem.alt ?? ''}
                             class="editable-image journal-photo book-photo"
-                            class:cursor-pointer={$isEditor}
                             onclick={() => promptImage(idx)}
                         />
                     </figure>
@@ -193,18 +268,48 @@
                     <div class="book-id-grid" use:setElemRef={idx}></div>
                 {/if}
 
+                <!-- Element tools: move / rotate / delete -->
                 {#if $isEditor}
                     <div class="element-tools editor-only">
-                        <button type="button" class="et-up"   title="Monter"   onclick={() => moveUp(idx)}><i class="fas fa-arrow-up"></i></button>
+                        <button type="button" class="et-up"   title="Monter"    onclick={() => moveUp(idx)}>  <i class="fas fa-arrow-up"></i></button>
                         <button type="button" class="et-down" title="Descendre" onclick={() => moveDown(idx)}><i class="fas fa-arrow-down"></i></button>
                         {#if elem.type === 'photo'}
                         <button type="button" class="et-rotate" title="Tourner" onclick={() => rotateEl(idx)}><i class="fas fa-rotate-right"></i></button>
                         {/if}
-                        <button type="button" class="et-del" title="Supprimer" onclick={() => removeEl(idx)}><i class="fas fa-times"></i></button>
+                        <button type="button" class="et-del" title="Supprimer"  onclick={() => removeEl(idx)}><i class="fas fa-times"></i></button>
                     </div>
                 {/if}
             </div>
         {/each}
+
+        <!-- FIX: Add element button (was never ported from script.js) -->
+        {#if $isEditor}
+            <button
+                type="button"
+                class="page-add-btn editor-only"
+                class:is-open={showAddMenu}
+                title="Ajouter un élément"
+                aria-label="Ajouter un élément"
+                onclick={toggleAddMenu}
+            >
+                <i class="fas fa-plus"></i>
+            </button>
+
+            {#if showAddMenu}
+                <div class="add-element-menu" role="menu">
+                    {#each ADD_ITEMS as item}
+                        <button
+                            type="button"
+                            class="aem-item"
+                            role="menuitem"
+                            onclick={() => addElement(item.kind)}
+                        >
+                            <i class="fas {item.icon}"></i> {item.label}
+                        </button>
+                    {/each}
+                </div>
+            {/if}
+        {/if}
 
     </div>
 
