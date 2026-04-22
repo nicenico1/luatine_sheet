@@ -2588,3 +2588,61 @@ body.aem-open {
     }
 }
 
+/* ─── Indicateurs bilingues ─── */
+
+/* Badge langue active dans l'éditeur (coin bas-droit de chaque champ) */
+.is-editor [data-field-id] {
+    position: relative;
+}
+.is-editor [data-field-id]::after {
+    content: attr(data-content-lang, 'fr');
+    position: absolute;
+    bottom: 2px;
+    right: 4px;
+    font-size: 9px;
+    font-family: monospace;
+    font-weight: 700;
+    letter-spacing: .05em;
+    color: rgba(255,255,255,.25);
+    pointer-events: none;
+    user-select: none;
+    line-height: 1;
+}
+body[data-content-lang="en"].is-editor [data-field-id]::after {
+    content: 'EN';
+    color: rgba(100,180,255,.35);
+}
+body[data-content-lang="fr"].is-editor [data-field-id]::after {
+    content: 'FR';
+}
+
+/* Champ non traduit en mode EN : contour pointillé jaune + placeholder */
+body[data-content-lang="en"].is-editor [data-field-id][data-untranslated] {
+    outline: 2px dashed rgba(255, 200, 40, 0.55);
+    border-radius: 3px;
+}
+body[data-content-lang="en"] [data-field-id][data-untranslated]:empty::before,
+body[data-content-lang="en"] [data-field-id][data-untranslated]:not(:focus):not([contenteditable="true"])::before {
+    content: '— not translated yet —';
+    color: rgba(255, 200, 40, 0.45);
+    font-style: italic;
+    font-size: .85em;
+    pointer-events: none;
+}
+
+/* Bandeau discret dans l'editor-bar indiquant la langue de contenu active */
+.editor-bar::before {
+    content: 'CONTENT: FR';
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    color: rgba(255,255,255,.3);
+    margin-right: 12px;
+    align-self: center;
+}
+body[data-content-lang="en"] .editor-bar::before {
+    content: 'CONTENT: EN';
+    color: rgba(100, 180, 255, .6);
+}
+

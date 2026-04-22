@@ -125,6 +125,58 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.applyLanguage(window.getLang());
     }
 
+    // Cache bilingue : { fields: { [id]: { fr, en } }, journalPagesFR, journalPagesEN }
+    let _bilingualCache = { fields: {}, journalPagesFR: [], journalPagesEN: [] };
+
+    /** Sauvegarde le DOM actuel dans le cache bilingue pour la langue courante. */
+    function flushDOMtoBilingualCache() {
+        const lang = window.getLang ? window.getLang() : 'fr';
+        document.querySelectorAll('[data-field-id]').forEach((el) => {
+            const id = el.getAttribute('data-field-id');
+            if (!_bilingualCache.fields[id]) _bilingualCache.fields[id] = { fr: '', en: '' };
+            _bilingualCache.fields[id][lang] = el.innerHTML;
+        });
+        if (journalEntriesEl) {
+            const pages = [];
+            journalEntriesEl.querySelectorAll(':scope > .book-spread').forEach((spread, i) => {
+                pages.push({ order: i, html: sanitizeSpreadHTMLForSave(spread) });
+            });
+            if (lang === 'en') _bilingualCache.journalPagesEN = pages;
+            else _bilingualCache.journalPagesFR = pages;
+        }
+    }
+
+    /** Applique le contenu bilingue de la langue donnée dans le DOM. */
+    function applyBilingualContent(lang) {
+        document.body.setAttribute('data-content-lang', lang);
+        document.querySelectorAll('[data-field-id]').forEach((el) => {
+            const id = el.getAttribute('data-field-id');
+            const cached = _bilingualCache.fields[id];
+            if (!cached) return;
+            const content = (lang === 'en' ? cached.en : cached.fr) || '';
+            el.innerHTML = sanitizeHTML(content);
+            if (lang === 'en' && !cached.en) {
+                el.setAttribute('data-untranslated', '1');
+            } else {
+                el.removeAttribute('data-untranslated');
+            }
+        });
+        if (journalEntriesEl) {
+            const pages = lang === 'en'
+                ? (_bilingualCache.journalPagesEN.length ? _bilingualCache.journalPagesEN : _bilingualCache.journalPagesFR)
+                : _bilingualCache.journalPagesFR;
+            if (pages && pages.length > 0) {
+                const sorted = [...pages].sort((a, b) => (a.order || 0) - (b.order || 0));
+                journalEntriesEl.innerHTML = sorted.map((p) => sanitizeHTML(p.html || '')).join('');
+                migrateBookPageNums();
+                migrateBrokenEditableParagraphs();
+                refreshBook();
+                syncFicheEditableRegistry();
+                if (isEditorMode) editableNodes.forEach((n) => n.setAttribute('contenteditable', 'true'));
+            }
+        }
+    }
+
     /** Langue : changement sans rechargement de page. */
     function wireLangSwitcher() {
         const root = document.getElementById('lang-switcher');
@@ -134,8 +186,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!t) return;
             const lang = t.getAttribute('data-lang');
             if (!lang || (typeof window.getLang === 'function' && lang === window.getLang())) return;
+            flushDOMtoBilingualCache();
             if (typeof window.setLang === 'function') window.setLang(lang);
             if (typeof window.applyLanguage === 'function') window.applyLanguage(lang);
+            applyBilingualContent(lang);
             try {
                 persistToLocalStorage();
             } catch (_) { /* ignore */ }
@@ -193,10 +247,38 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function collectSaveSnapshot() {
         syncFicheEditableRegistry();
+        const currentLang = window.getLang ? window.getLang() : 'fr';
 
-        const fields = {};
+        // Mettre à jour le cache avec le contenu DOM actuel
         document.querySelectorAll('[data-field-id]').forEach((el) => {
-            fields[el.getAttribute('data-field-id')] = el.innerHTML;
+            const id = el.getAttribute('data-field-id');
+            if (!_bilingualCache.fields[id]) _bilingualCache.fields[id] = { fr: '', en: '' };
+            _bilingualCache.fields[id][currentLang] = el.innerHTML;
+        });
+        if (journalEntriesEl) {
+            const pages = [];
+            journalEntriesEl.querySelectorAll(':scope > .book-spread').forEach((spread, i) => {
+                pages.push({ order: i, html: sanitizeSpreadHTMLForSave(spread) });
+            });
+            if (currentLang === 'en') _bilingualCache.journalPagesEN = pages;
+            else _bilingualCache.journalPagesFR = pages;
+        }
+
+        // Copie propre du cache pour la sauvegarde
+        const fields = {};
+        Object.entries(_bilingualCache.fields).forEach(([id, val]) => {
+            fields[id] = { fr: val.fr || '', en: val.en || '' };
+        });
+
+        // Sanitize les champs trop lourds
+        Object.keys(fields).forEach((k) => {
+            ['fr', 'en'].forEach((l) => {
+                const v = fields[k][l];
+                if (v && (v.includes('data:image') || v.length > 100000)) {
+                    fields[k][l] = v.replace(/data:image[^"'\s)>]+/gi, '');
+                    fields[k][l] = fields[k][l].replace(/src\s*=\s*"[^"]{10000,}"/gi, 'src=""');
+                }
+            });
         });
 
         const images = Array.from(document.querySelectorAll('.editable-image')).map(
@@ -206,24 +288,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             el.textContent.trim()
         );
 
-        const journalPages = [];
-        if (journalEntriesEl) {
-            journalEntriesEl.querySelectorAll(':scope > .book-spread').forEach((spread, i) => {
-                journalPages.push({ order: i, html: sanitizeSpreadHTMLForSave(spread) });
-            });
-        }
-
-        Object.keys(fields).forEach((k) => {
-            if (fields[k] && (fields[k].includes('data:image') || fields[k].length > 100000)) {
-                fields[k] = fields[k].replace(/data:image[^"'\s)>]+/gi, '');
-                fields[k] = fields[k].replace(/src\s*=\s*"[^"]{10000,}"/gi, 'src=""');
-            }
-        });
+        // journalPages = pages langue courante (compat Firebase legacy)
+        const journalPages = currentLang === 'en'
+            ? (_bilingualCache.journalPagesEN.length ? _bilingualCache.journalPagesEN : _bilingualCache.journalPagesFR)
+            : _bilingualCache.journalPagesFR;
 
         const snap = {
             version: 4,
             fields,
             journalPages,
+            journalPagesFR: _bilingualCache.journalPagesFR,
+            journalPagesEN: _bilingualCache.journalPagesEN,
             images,
             stepperVals,
             attrPoints: document.getElementById('attr-points-num')?.textContent?.trim() ?? '8',
@@ -337,49 +412,80 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function applySaveSnapshot(data) {
         if (!data) return;
+        const currentLang = window.getLang ? window.getLang() : 'fr';
 
         if (data.version === 4) {
             if (data.fields) {
-                Object.entries(data.fields).forEach(([id, html]) => {
+                Object.entries(data.fields).forEach(([id, val]) => {
+                    const bilingual = (val && typeof val === 'object' && ('fr' in val || 'en' in val))
+                        ? { fr: val.fr || '', en: val.en || '' }
+                        : { fr: typeof val === 'string' ? val : '', en: '' };
+                    _bilingualCache.fields[id] = bilingual;
                     const el = document.querySelector(`[data-field-id="${CSS.escape(id)}"]`);
-                    if (el) el.innerHTML = sanitizeHTML(html);
+                    if (el) {
+                        const content = (currentLang === 'en' ? bilingual.en : bilingual.fr) || bilingual.fr || '';
+                        el.innerHTML = sanitizeHTML(content);
+                        if (currentLang === 'en' && !bilingual.en) {
+                            el.setAttribute('data-untranslated', '1');
+                        }
+                    }
                 });
             }
-            if (journalEntriesEl && Array.isArray(data.journalPages) && data.journalPages.length > 0) {
-                const sorted = [...data.journalPages].sort(
-                    (a, b) => (a.order || 0) - (b.order || 0)
-                );
+            // Charger le cache bilingue pour le journal
+            _bilingualCache.journalPagesFR = Array.isArray(data.journalPagesFR) ? data.journalPagesFR
+                : (Array.isArray(data.journalPages) ? data.journalPages : []);
+            _bilingualCache.journalPagesEN = Array.isArray(data.journalPagesEN) ? data.journalPagesEN : [];
+            const pages = currentLang === 'en'
+                ? (_bilingualCache.journalPagesEN.length ? _bilingualCache.journalPagesEN : _bilingualCache.journalPagesFR)
+                : _bilingualCache.journalPagesFR;
+            if (journalEntriesEl && Array.isArray(pages) && pages.length > 0) {
+                const sorted = [...pages].sort((a, b) => (a.order || 0) - (b.order || 0));
                 journalEntriesEl.innerHTML = sorted.map((p) => sanitizeHTML(p.html || '')).join('');
                 migrateBookPageNums();
                 migrateBrokenEditableParagraphs();
             }
         } else if (data.version === 3) {
+            // Migration v3 → cache bilingue (tout en FR)
             if (data.fields) {
                 Object.entries(data.fields).forEach(([id, html]) => {
+                    const fr = typeof html === 'string' ? html : '';
+                    _bilingualCache.fields[id] = { fr, en: '' };
                     const el = document.querySelector(`[data-field-id="${CSS.escape(id)}"]`);
-                    if (el) el.innerHTML = sanitizeHTML(html);
+                    if (el) el.innerHTML = sanitizeHTML(fr);
                 });
             }
-            if (journalEntriesEl && typeof data.journalHTML === 'string' && data.journalHTML.trim().length > 0) {
-                journalEntriesEl.innerHTML = sanitizeHTML(data.journalHTML);
+            const jHtml = typeof data.journalHTML === 'string' ? data.journalHTML : '';
+            _bilingualCache.journalPagesFR = jHtml ? [{ order: 0, html: jHtml }] : [];
+            _bilingualCache.journalPagesEN = [];
+            if (journalEntriesEl && jHtml) {
+                journalEntriesEl.innerHTML = sanitizeHTML(jHtml);
                 migrateBookPageNums();
                 migrateBrokenEditableParagraphs();
             }
         } else if (data.version === 2) {
             // Legacy v2 : rétro-compatibilité par index
-            if (journalEntriesEl && typeof data.journalHTML === 'string' && data.journalHTML.trim().length > 0) {
-                journalEntriesEl.innerHTML = sanitizeHTML(data.journalHTML);
+            const jHtml = typeof data.journalHTML === 'string' ? data.journalHTML : '';
+            _bilingualCache.journalPagesFR = jHtml ? [{ order: 0, html: jHtml }] : [];
+            _bilingualCache.journalPagesEN = [];
+            if (journalEntriesEl && jHtml) {
+                journalEntriesEl.innerHTML = sanitizeHTML(jHtml);
                 migrateBookPageNums();
                 migrateBrokenEditableParagraphs();
             }
             syncFicheEditableRegistry();
             const outside = editableNodes.filter((el) => !journalEntriesEl?.contains(el));
             data.textsOutside?.forEach((html, i) => {
-                if (outside[i]) outside[i].innerHTML = sanitizeHTML(html);
+                if (outside[i]) {
+                    outside[i].innerHTML = sanitizeHTML(html);
+                    const id = outside[i].getAttribute('data-field-id');
+                    if (id) _bilingualCache.fields[id] = { fr: html, en: '' };
+                }
             });
         } else {
             return;
         }
+
+        document.body.setAttribute('data-content-lang', currentLang);
 
         const imgs = Array.from(document.querySelectorAll('.editable-image'));
         data.images?.forEach((src, i) => {
@@ -423,6 +529,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 try {
                     var lite = Object.assign({}, snapshot);
                     delete lite.journalPages;
+                    delete lite.journalPagesFR;
+                    delete lite.journalPagesEN;
                     delete lite.journalHTML;
                     localStorage.setItem(STORAGE_SAVE_V3, JSON.stringify(lite));
                     console.warn('Sauvegarde locale allégée (pages omises, trop volumineuses pour localStorage)');
