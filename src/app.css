@@ -1455,7 +1455,7 @@ body.is-editor .journal-photo:hover {
     }
 }
 
-/* Sélecteur de langue (FR / EN) — au-dessus de tous les écrans (splash, etc.) */
+/* Sélecteur de langue (drapeaux SVG) — uniquement écran sélection personnage */
 .lang-switcher {
     position: fixed;
     top: 12px;
@@ -1490,6 +1490,27 @@ body.is-editor .journal-photo:hover {
 .lang-btn--active {
     background: var(--input-bg);
     box-shadow: inset 0 0 0 1px var(--border-color);
+}
+
+.lang-btn--flag {
+    padding: 10px 14px;
+    min-width: 52px;
+}
+
+.lang-flag {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+}
+
+.lang-flag-svg {
+    width: 30px;
+    height: auto;
+    max-height: 20px;
+    display: block;
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
 }
 
 /* ─── Modal custom (remplace window.prompt / alert / confirm) ─── */
