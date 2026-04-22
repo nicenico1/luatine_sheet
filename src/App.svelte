@@ -100,7 +100,14 @@
 
     function collectSnapshot() {
         const L = get(lang);
-        const frPages = journalPagesFR.length ? journalPagesFR : defaultSpreads();
+        // When UI is FR, `spreads` is the live French journal — always prefer it over
+        // `journalPagesFR` so we never persist a stale/empty FR after edits.
+        const frPages =
+            L === 'fr' && spreads.length
+                ? deepCloneSpreads(spreads)
+                : journalPagesFR.length
+                  ? deepCloneSpreads(journalPagesFR)
+                  : defaultSpreads();
         const enPages = journalPagesEN.length
             ? mergeJournalSpreadsEnFromFr(journalPagesEN, frPages)
             : [];
@@ -172,29 +179,43 @@
         if (data.stepperVals) stepperVals = data.stepperVals;
         if (data.lang === 'en' || data.lang === 'fr') setLang(data.lang);
 
-        const pagesFrom = (arr) =>
-            (Array.isArray(arr) && arr.length > 0
-                ? arr
-                : Array.isArray(data.journalPages) && data.journalPages.length > 0
-                  ? data.journalPages
-                  : null);
-
-        const frArr = pagesFrom(data.journalPagesFR);
-        if (frArr) {
-            journalPagesFR = frArr
+        /**
+         * French journal source order:
+         * 1) journalPagesFR (explicit FR copy)
+         * 2) legacy journalHTML blob
+         * 3) journalPages only when saved lang is FR (legacy single-language saves)
+         *
+         * Never use `journalPages` as FR when lang is EN: that array is often the
+         * active-language snapshot and may be empty English drafts — it wiped FR in localStorage.
+         */
+        const sortPages = (arr) =>
+            arr
                 .slice()
                 .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
                 .map((p) => parseSpreadHTML(p.html ?? ''));
+
+        if (Array.isArray(data.journalPagesFR) && data.journalPagesFR.length > 0) {
+            journalPagesFR = sortPages(data.journalPagesFR);
         } else if (typeof data.journalHTML === 'string' && data.journalHTML.trim()) {
             const parsed = splitJournalHTML(data.journalHTML);
             if (parsed.length > 0) journalPagesFR = parsed;
+        } else if (
+            (data.lang === 'fr' || data.lang === undefined || data.lang === null) &&
+            Array.isArray(data.journalPages) &&
+            data.journalPages.length > 0
+        ) {
+            journalPagesFR = sortPages(data.journalPages);
         }
 
         if (Array.isArray(data.journalPagesEN) && data.journalPagesEN.length > 0) {
-            journalPagesEN = data.journalPagesEN
-                .slice()
-                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-                .map((p) => parseSpreadHTML(p.html ?? ''));
+            journalPagesEN = sortPages(data.journalPagesEN);
+        } else if (
+            data.lang === 'en' &&
+            Array.isArray(data.journalPages) &&
+            data.journalPages.length > 0 &&
+            (!Array.isArray(data.journalPagesFR) || data.journalPagesFR.length === 0)
+        ) {
+            journalPagesEN = sortPages(data.journalPages);
         } else {
             journalPagesEN = [];
         }
