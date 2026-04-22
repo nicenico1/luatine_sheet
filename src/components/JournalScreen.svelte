@@ -3,6 +3,7 @@
     import BookSpread          from './BookSpread.svelte';
     import FormatToolbar       from './FormatToolbar.svelte';
     import { isEditor }        from '../stores/editor.js';
+    import { activeEditor }   from '../stores/toolbar.js';
     import { currentSpreadIdx, totalSpreads } from '../stores/journal.js';
     import { defaultSpread }   from '../lib/spreadParser.js';
     import { trStore, lang }   from '../lib/i18n.js';
@@ -34,6 +35,18 @@
 
     let isFlipping   = $state(false);
     let directionMap = $state({});
+
+    /** Bumps when UI language changes so BookSpread/BookPage remount and Tiptap reloads content. */
+    let journalRemountKey = $state(0);
+    let prevJournalLang = $state(/** @type {'fr'|'en'|null} */ (null));
+    $effect(() => {
+        const L = $lang;
+        if (prevJournalLang !== null && prevJournalLang !== L) {
+            journalRemountKey += 1;
+            activeEditor.set(null);
+        }
+        prevJournalLang = L;
+    });
 
     $effect(() => { $totalSpreads = spreads.length || 1; });
 
@@ -145,6 +158,7 @@
             </button>
 
             <div class="book-stage" id="book-stage">
+                {#key journalRemountKey}
                 <div class="journal-book" id="journal-entries">
                     {#each spreads as spread, idx (idx)}
                         <BookSpread
@@ -155,6 +169,7 @@
                         />
                     {/each}
                 </div>
+                {/key}
             </div>
 
             <button
