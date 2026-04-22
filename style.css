@@ -1449,7 +1449,7 @@ body.is-editor .journal-photo:hover {
     }
 }
 
-/* Sélecteur de langue (drapeaux) — splash uniquement dans l’app Svelte */
+/* Sélecteur de langue (drapeaux SVG) — sélection personnage uniquement */
 .lang-switcher {
     position: fixed;
     top: 12px;
@@ -1492,9 +1492,19 @@ body.is-editor .journal-photo:hover {
 }
 
 .lang-flag {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+}
+
+.lang-flag-svg {
+    width: 30px;
+    height: auto;
+    max-height: 20px;
     display: block;
-    font-size: 1.65rem;
-    line-height: 1;
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
 }
 
 /* ─── Modal custom (remplace window.prompt / alert / confirm) ─── */
