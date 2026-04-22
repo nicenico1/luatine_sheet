@@ -28,7 +28,11 @@
     role="toolbar"
     aria-label="Mise en forme"
     tabindex="-1"
-    onmousedown={(e) => e.preventDefault()}
+    onmousedown={(e) => {
+        // Allow mousedown on select elements so native dropdowns open
+        if (e.target.closest('select')) return;
+        e.preventDefault();
+    }}
 >
     <div class="ft-group">
         <select class="ft-select" title="Police" onchange={setFont}>

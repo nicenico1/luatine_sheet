@@ -64,7 +64,13 @@ function parseElements(pageInner) {
         }
 
         if (cls.includes('book-id-grid')) {
-            elements.push({ type: 'id-card', content: child.innerHTML });
+            const cols = child.querySelectorAll('.book-id-col');
+            const img  = child.querySelector('img.book-id-photo, img.editable-image');
+            elements.push({
+                type: 'id-card',
+                colA: cols[0]?.innerHTML ?? child.innerHTML,
+                src:  img?.getAttribute('src') ?? '',
+            });
             continue;
         }
 
@@ -150,8 +156,13 @@ function serializeElement(el) {
             return `<p class="book-caption">${el.content ?? ''}</p>`;
         case 'divider':
             return `<div class="book-divider" aria-hidden="true"></div>`;
-        case 'id-card':
-            return `<div class="book-id-grid">${el.content ?? ''}</div>`;
+        case 'id-card': {
+            const idSrc = (el.src || '').replace(/data:image[^"'\s)>]+/gi, '');
+            const photo = idSrc
+                ? `<img src="${idSrc}" alt="ID photo" class="editable-image book-id-photo"/>`
+                : `<img src="" alt="ID photo" class="editable-image book-id-photo"/>`;
+            return `<div class="book-id-grid"><div class="book-id-col">${el.colA ?? el.content ?? ''}</div><div class="book-id-col book-id-col--photo">${photo}</div></div>`;
+        }
         case 'photo': {
             const rot = el.rotate ?? 0;
             const variant = el.variant === 'portrait' ? ' photo-taped--portrait'

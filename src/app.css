@@ -1155,7 +1155,8 @@ body.is-editor .btn-validate {
 .book-id-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    gap: 16px;
+    align-items: start;
     margin-bottom: 16px;
     font-family: 'Special Elite', monospace;
     font-size: 14px;
@@ -1165,6 +1166,26 @@ body.is-editor .btn-validate {
     padding: 16px;
     border: 1px solid rgba(139, 115, 85, 0.2);
     border-radius: 2px;
+}
+
+.book-id-col--photo {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.book-id-photo {
+    display: block;
+    width: 100%;
+    max-width: 140px;
+    height: auto;
+    border: 1px solid rgba(139, 115, 85, 0.3);
+    border-radius: 2px;
+    object-fit: cover;
+    min-height: 80px;
+    background: rgba(0,0,0,0.06);
+    cursor: pointer;
+    filter: sepia(0.2) contrast(1.05);
 }
 
 .book-label {

@@ -8,8 +8,8 @@
         onUpdate  = () => {},
     } = $props();
 
-    function handleUpdate(side, elements, pageNum) {
-        onUpdate({ ...spread, [side]: { ...spread[side], elements, pageNum } });
+    function handleUpdate(side, elements) {
+        onUpdate({ ...spread, [side]: { ...spread[side], elements } });
     }
 </script>
 
@@ -24,16 +24,14 @@
     <BookPage
         side="left"
         elements={spread.left.elements}
-        pageNum={spread.left.pageNum}
         hasBlot={true}
-        onUpdate={(els, pn) => handleUpdate('left', els, pn)}
+        onUpdate={(els) => handleUpdate('left', els)}
     />
     <div class="book-gutter" aria-hidden="true"></div>
     <BookPage
         side="right"
         elements={spread.right.elements}
-        pageNum={spread.right.pageNum}
         hasBlot={false}
-        onUpdate={(els, pn) => handleUpdate('right', els, pn)}
+        onUpdate={(els) => handleUpdate('right', els)}
     />
 </section>

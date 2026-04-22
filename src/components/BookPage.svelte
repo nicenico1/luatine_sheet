@@ -19,7 +19,6 @@
     let {
         side      = 'left',
         elements  = $bindable([]),
-        pageNum   = $bindable(''),
         hasBlot   = false,
         onUpdate  = () => {},
     } = $props();
@@ -45,22 +44,13 @@
     }
 
     function mountPageNumEditor() {
-        if (!pageNumEl) return;
-        editors['pagenum']?.destroy();
-        editors['pagenum'] = createEditor({
-            element:  pageNumEl,
-            content:  pageNum || '—',
-            editable: $isEditor,
-            onUpdate(html) { pageNum = html; emit(); },
-            onFocus() { onEditorFocus('pagenum'); },
-            onBlur()  { onEditorBlur(); },
-        });
+        // Page number field intentionally disabled — was showing "—" clutter
     }
 
     // ── element editors ───────────────────────────────────────────────────────
 
     function needsEditor(type) {
-        return ['paragraph', 'heading', 'caption', 'id-card'].includes(type);
+        return ['paragraph', 'heading', 'caption'].includes(type);
     }
 
     function mountEditor(idx) {
@@ -80,7 +70,26 @@
         });
     }
 
-    function emit() { onUpdate(elements, pageNum); }
+    // id-card has two separate editable columns (colA = text, photo on right)
+    function mountIdCardEditor(idx) {
+        const key = `idcard-${idx}`;
+        const el  = elemRefs[key];
+        if (!el) return;
+        editors[key]?.destroy();
+        editors[key] = createEditor({
+            element:  el,
+            content:  elements[idx]?.colA || '',
+            editable: $isEditor,
+            onUpdate(html) {
+                elements[idx] = { ...elements[idx], colA: html };
+                emit();
+            },
+            onFocus() { onEditorFocus(key); },
+            onBlur()  { onEditorBlur(); },
+        });
+    }
+
+    function emit() { onUpdate(elements); }
 
     function destroyAll() {
         Object.values(editors).forEach((ed) => ed?.destroy());
@@ -151,6 +160,13 @@
         fileInput.value = '';
     }
 
+    function promptIdCardPhoto(idx) {
+        if (!$isEditor) return;
+        pendingIdx      = idx;
+        fileInput.value = '';
+        fileInput.click();
+    }
+
     // ── add element menu ──────────────────────────────────────────────────────
 
     // Menu DOM is rendered at App level via addMenu store (avoids overflow:hidden clipping)
@@ -165,7 +181,12 @@
             case 'photo':          return { type: 'photo', src: '', variant: 'normal',   rotate: Math.floor(Math.random()*7)-3, w: 420, h: 280, alt: '', caption: '' };
             case 'photo-portrait': return { type: 'photo', src: '', variant: 'portrait', rotate: Math.floor(Math.random()*7)-3, w: 280, h: 380, alt: '', caption: '' };
             case 'photo-clip':     return { type: 'photo', src: '', variant: 'clip',     rotate: 0, w: 220, h: 150, alt: '', caption: '' };
-            case 'id-card':        return { type: 'id-card', content: 'Name: …<br>Height: …<br>Weight: …<br>Eyes: …<br>Age: …' };
+            case 'id-card':        return {
+                type: 'id-card',
+                colA: 'Nom: …<br>Taille: …<br>Poids: …<br>Yeux: …<br>Age: …<br>Née à: …<br>CID: …<br>Status: …',
+                colB: '',   // photo slot
+                src:  '',
+            };
             default:               return null;
         }
     }
@@ -225,7 +246,10 @@
 
     onMount(() => {
         mountPageNumEditor();
-        elements.forEach((_, i) => mountEditor(i));
+        elements.forEach((_, i) => {
+            mountEditor(i);
+            if (elements[i]?.type === 'id-card') mountIdCardEditor(i);
+        });
         document.addEventListener('click', onDocClick, true);
     });
 
@@ -235,10 +259,10 @@
         document.removeEventListener('click', onDocClick, true);
     });
 
-    // Svelte 5 action to capture element refs inside {#each}
-    function setElemRef(el, idx) {
+    // Svelte 5 action — key can be a number (element idx) or string (e.g. 'idcard-0')
+    function setElemRef(el, key) {
         if (!el) return;
-        elemRefs[idx] = el;
+        elemRefs[key] = el;
     }
 </script>
 
@@ -284,7 +308,22 @@
                     </figure>
 
                 {:else if elem.type === 'id-card'}
-                    <div class="book-id-grid" use:setElemRef={idx}></div>
+                    <div class="book-id-grid">
+                        <!-- Left column: editable text fields -->
+                        <div class="book-id-col" use:setElemRef={`idcard-${idx}`}></div>
+                        <!-- Right column: photo -->
+                        <div class="book-id-col book-id-col--photo">
+                            <!-- svelte-ignore a11y_click_events_have_key_events -->
+                            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+                            <img
+                                src={elem.src || placeholderImg(160, 200)}
+                                alt=""
+                                class="editable-image book-id-photo"
+                                class:cursor-pointer={$isEditor}
+                                onclick={() => promptIdCardPhoto(idx)}
+                            />
+                        </div>
+                    </div>
                 {/if}
 
                 <!-- Element tools: move / rotate / delete -->
@@ -316,9 +355,6 @@
         {/if}
 
     </div>
-
-    <!-- Page number (Tiptap) -->
-    <div class="book-page-num" bind:this={pageNumEl}></div>
 
     {#if hasBlot}
         <div class="book-decoration book-decoration--blot" aria-hidden="true"></div>
