@@ -1,5 +1,6 @@
 <script>
     import { isEditor, lockEditor } from '../stores/editor.js';
+    import { trStore } from '../lib/i18n.js';
 
     let { onExport = () => {}, onImport = () => {}, modal = null } = $props();
 
@@ -9,7 +10,7 @@
         let confirmed = true;
         if (modal) {
             const result = await modal({
-                message: 'Passer en lecture seule ?',
+                message: $trStore('script_lock_confirm'),
             });
             // result is true (OK clicked) or false (Cancel) — never undefined when modal is set
             confirmed = result === true;
@@ -32,13 +33,13 @@
 
 {#if $isEditor}
 <div id="editor-bar" class="editor-bar" role="status">
-    <span class="editor-bar-title"><i class="fas fa-pen"></i> Mode éditeur</span>
+    <span class="editor-bar-title"><i class="fas fa-pen"></i> {$trStore('editor_title')}</span>
     <div class="editor-bar-actions">
         <button type="button" class="btn-text btn-editor-action" onclick={onExport}>
-            Exporter JSON
+            {$trStore('editor_export')}
         </button>
         <button type="button" class="btn-text btn-editor-action" onclick={triggerImport}>
-            Importer JSON
+            {$trStore('editor_import')}
         </button>
         <input
             type="file"
@@ -50,12 +51,10 @@
         />
     </div>
     <button type="button" class="btn-text btn-lock" onclick={handleLock}>
-        Verrouiller
+        {$trStore('editor_lock')}
     </button>
     <p class="editor-publish-hint">
-        <strong>Publication :</strong> la navigation privée et les autres lecteurs ne voient que ce qui est sur GitHub.
-        Après tes modifs, clique <strong>Exporter JSON</strong>, enregistre le fichier sous <code>data/fiche-export.json</code>,
-        puis <code>git add</code> / <code>commit</code> / <code>push</code>.
+        {@html $trStore('editor_hint')}
     </p>
 </div>
 {/if}

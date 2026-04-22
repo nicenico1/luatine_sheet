@@ -16,6 +16,7 @@
     import { openAddMenu, closeAddMenu, addMenu } from '../stores/addMenu.js';
     import { resolveImageSrc, placeholderImg } from '../lib/images.js';
     import { wrapForTiptap } from '../lib/spreadParser.js';
+    import { tr, trStore } from '../lib/i18n.js';
 
     let {
         side      = 'left',
@@ -175,17 +176,17 @@
 
     function buildNewElement(kind) {
         switch (kind) {
-            case 'paragraph':      return { type: 'paragraph', content: 'Écrire ici…' };
-            case 'heading':        return { type: 'heading',   content: 'Titre…' };
-            case 'caption':        return { type: 'caption',   content: 'Légende — lieu — date.' };
+            case 'paragraph':      return { type: 'paragraph', content: tr('book_write_here') };
+            case 'heading':        return { type: 'heading',   content: tr('book_heading_default') };
+            case 'caption':        return { type: 'caption',   content: tr('tpl_caption') };
             case 'divider':        return { type: 'divider' };
             case 'photo':          return { type: 'photo', src: '', variant: 'normal',   rotate: Math.floor(Math.random()*7)-3, w: 420, h: 280, alt: '', caption: '' };
             case 'photo-portrait': return { type: 'photo', src: '', variant: 'portrait', rotate: Math.floor(Math.random()*7)-3, w: 280, h: 380, alt: '', caption: '' };
             case 'photo-clip':     return { type: 'photo', src: '', variant: 'clip',     rotate: 0, w: 220, h: 150, alt: '', caption: '' };
             case 'id-card':        return {
                 type: 'id-card',
-                colA: 'Nom: …<br>Taille: …<br>Poids: …<br>Yeux: …<br>Age: …',
-                colB: 'Née à: …<br>CID: …<br>Status: …',
+                colA: tr('id_card_col_a'),
+                colB: tr('id_card_col_b'),
             };
             default:               return null;
         }
@@ -319,12 +320,12 @@
                 <!-- Element tools: move / rotate / delete -->
                 {#if $isEditor}
                     <div class="element-tools editor-only">
-                        <button type="button" class="et-up"   title="Monter"    onclick={() => moveUp(idx)}>  <i class="fas fa-arrow-up"></i></button>
-                        <button type="button" class="et-down" title="Descendre" onclick={() => moveDown(idx)}><i class="fas fa-arrow-down"></i></button>
+                        <button type="button" class="et-up"   title={$trStore('et_move_up')}    onclick={() => moveUp(idx)}>  <i class="fas fa-arrow-up"></i></button>
+                        <button type="button" class="et-down" title={$trStore('et_move_down')} onclick={() => moveDown(idx)}><i class="fas fa-arrow-down"></i></button>
                         {#if elem.type === 'photo'}
-                        <button type="button" class="et-rotate" title="Tourner" onclick={() => rotateEl(idx)}><i class="fas fa-rotate-right"></i></button>
+                        <button type="button" class="et-rotate" title={$trStore('et_rotate')} onclick={() => rotateEl(idx)}><i class="fas fa-rotate-right"></i></button>
                         {/if}
-                        <button type="button" class="et-del" title="Supprimer"  onclick={() => removeEl(idx)}><i class="fas fa-times"></i></button>
+                        <button type="button" class="et-del" title={$trStore('et_delete')}  onclick={() => removeEl(idx)}><i class="fas fa-times"></i></button>
                     </div>
                 {/if}
             </div>
@@ -336,8 +337,8 @@
                 type="button"
                 class="page-add-btn editor-only"
                 class:is-open={showAddMenu}
-                title="Ajouter un élément"
-                aria-label="Ajouter un élément"
+                title={$trStore('page_add_title')}
+                aria-label={$trStore('page_add_aria')}
                 onclick={toggleAddMenu}
             >
                 <i class="fas fa-plus"></i>

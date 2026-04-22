@@ -5,20 +5,23 @@
     import EditorBar            from './components/EditorBar.svelte';
     import BioScreen            from './components/BioScreen.svelte';
     import JournalScreen        from './components/JournalScreen.svelte';
+    import LangSwitcher         from './components/LangSwitcher.svelte';
 
     import { currentScreen }    from './stores/screen.js';
     import { isEditor, unlockEditor, EDITOR_PASSWORD } from './stores/editor.js';
     import { addMenu, closeAddMenu } from './stores/addMenu.js';
+    import { trStore, lang, setLang } from './lib/i18n.js';
+    import { get } from 'svelte/store';
 
-    const ADD_ITEMS = [
-        { kind: 'paragraph',     icon: 'fa-paragraph',   label: 'Paragraphe'      },
-        { kind: 'heading',       icon: 'fa-heading',     label: 'Titre'            },
-        { kind: 'caption',       icon: 'fa-quote-right', label: 'Légende'          },
-        { kind: 'divider',       icon: 'fa-grip-lines',  label: 'Séparateur'       },
-        { kind: 'photo',         icon: 'fa-image',       label: 'Photo (scotch)'   },
-        { kind: 'photo-portrait',icon: 'fa-portrait',    label: 'Photo portrait'   },
-        { kind: 'photo-clip',    icon: 'fa-thumbtack',   label: 'Photo (trombone)' },
-        { kind: 'id-card',       icon: 'fa-id-card',     label: 'Bloc identité'    },
+    const ADD_ITEM_KEYS = [
+        { kind: 'paragraph',      icon: 'fa-paragraph',    key: 'add_menu_paragraph' },
+        { kind: 'heading',        icon: 'fa-heading',      key: 'add_menu_heading' },
+        { kind: 'caption',        icon: 'fa-quote-right',  key: 'add_menu_caption' },
+        { kind: 'divider',        icon: 'fa-grip-lines',   key: 'add_menu_divider' },
+        { kind: 'photo',          icon: 'fa-image',        key: 'add_menu_photo' },
+        { kind: 'photo-portrait', icon: 'fa-portrait',     key: 'add_menu_photo_portrait' },
+        { kind: 'photo-clip',     icon: 'fa-thumbtack',    key: 'add_menu_photo_clip' },
+        { kind: 'id-card',        icon: 'fa-id-card',      key: 'add_menu_id_card' },
     ];
 
     import { initFirebase }     from './lib/firebase.js';
@@ -34,7 +37,11 @@
     let fields      = $state({});
     let images      = $state([]);
     let stepperVals = $state([]);
-    let spreads     = $state(defaultSpreads());
+    let spreads     = $state([]);
+
+    const addMenuItems = $derived(
+        ADD_ITEM_KEYS.map((row) => ({ ...row, label: $trStore(row.key) }))
+    );
 
     // FIX: mirror isEditor onto document.body so all body.is-editor CSS works
     $effect(() => {
@@ -58,6 +65,7 @@
             stepperVals,
             attrPoints:   '8',
             skillPoints:  '10',
+            lang:         get(lang),
         };
     }
 
@@ -79,6 +87,7 @@
         if (data.fields)      fields      = data.fields;
         if (data.images)      images      = data.images;
         if (data.stepperVals) stepperVals = data.stepperVals;
+        if (data.lang === 'en' || data.lang === 'fr') setLang(data.lang);
 
         if (Array.isArray(data.journalPages) && data.journalPages.length > 0) {
             // v4 format — array of { order, html } objects
@@ -93,15 +102,25 @@
         }
     }
 
+    $effect(() => {
+        if (spreads.length === 0) {
+            spreads = defaultSpreads();
+        }
+    });
+
+    $effect(() => {
+        document.title = $trStore('meta_title');
+    });
+
     // ── editor unlock ──────────────────────────────────────────────────────
 
     async function tryUnlock() {
-        const pwd = await modal({ message: 'Mot de passe — mode éditeur :', input: true });
+        const pwd = await modal({ message: $trStore('script_prompt_pwd'), input: true });
         if (pwd === null) return;
         if (pwd === EDITOR_PASSWORD) {
             unlockEditor();
         } else {
-            await modal({ message: 'Mot de passe incorrect.', confirmOnly: true });
+            await modal({ message: $trStore('script_wrong_pwd'), confirmOnly: true });
         }
     }
 
@@ -116,7 +135,7 @@
         a.click();
         URL.revokeObjectURL(a.href);
         modal({
-            message: 'Fichier téléchargé.\n\n1) Renomme-le : fiche-export.json\n2) Mets-le dans data/\n3) git add, commit, push',
+            message: $trStore('script_export_alert'),
             confirmOnly: true,
         });
     }
@@ -127,9 +146,9 @@
             applySnapshot(data);
             await tick();
             onDataChanged();
-            await modal({ message: 'Import terminé.', confirmOnly: true });
+            await modal({ message: $trStore('script_import_ok'), confirmOnly: true });
         } catch {
-            await modal({ message: 'Fichier JSON invalide.', confirmOnly: true });
+            await modal({ message: $trStore('script_import_bad'), confirmOnly: true });
         }
     }
 
@@ -173,11 +192,13 @@
 <div class="background-image"></div>
 <div class="background-overlay"></div>
 
+<LangSwitcher />
+
 <!-- SPLASH -->
 {#if $currentScreen === 'splash'}
 <div id="splash-screen" class="screen active">
     <div class="splash-content">
-        <p class="splash-text">"On n'oublie rien de rien, on s'habitue, c'est tout - Jacques Brel"</p>
+        <p class="splash-text">{@html $trStore('splash_text')}</p>
     </div>
 </div>
 {/if}
@@ -186,7 +207,7 @@
 {#if $currentScreen === 'char-select'}
 <input type="file" accept="image/*" bind:this={cardFileInput} style="display:none" onchange={onCardImageSelected} />
 <div id="char-select-screen" class="screen active">
-    <h1 class="page-title">PERSONNAGES</h1>
+    <h1 class="page-title">{$trStore('chars_title')}</h1>
     <div class="char-cards-container">
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -195,7 +216,7 @@
                 <!-- svelte-ignore a11y_click_events_have_key_events -->
                 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
                 <img
-                    src={fields['card-img'] || 'https://placehold.co/300x500/1a1c23/ffffff?text=Cliquez+pour+changer'}
+                    src={fields['card-img'] || `https://placehold.co/300x500/1a1c23/ffffff?text=${encodeURIComponent($trStore('img_placeholder_card'))}`}
                     alt="Lua Tyler"
                     class="editable-image"
                     class:cursor-pointer={$isEditor}
@@ -214,11 +235,11 @@
     </div>
     <div class="bottom-controls">
         <button type="button" class="btn-text" onclick={() => go('splash')}>
-            <i class="fas fa-arrow-left"></i> RETOUR
+            <i class="fas fa-arrow-left"></i> {$trStore('btn_back')}
         </button>
         {#if !$isEditor}
         <button type="button" class="btn-text" onclick={() => go('char-bio')}>
-            OUVRIR LE DOSSIER <i class="fas fa-arrow-right"></i>
+            {$trStore('char_open_file')} <i class="fas fa-arrow-right"></i>
         </button>
         {/if}
     </div>
@@ -234,10 +255,10 @@
 >
     {#snippet actions()}
         <button type="button" class="btn-text" onclick={() => go('char-select')}>
-            <i class="fas fa-arrow-left"></i> RETOUR
+            <i class="fas fa-arrow-left"></i> {$trStore('btn_back')}
         </button>
         <button type="button" class="btn-text" onclick={() => go('journal')}>
-            SUIVANT <i class="fas fa-arrow-right"></i>
+            {$trStore('btn_next')} <i class="fas fa-arrow-right"></i>
         </button>
     {/snippet}
 </BioScreen>
@@ -254,7 +275,7 @@
 >
     {#snippet footer()}
         <button type="button" class="btn-text" onclick={() => go('char-bio')}>
-            <i class="fas fa-arrow-left"></i> RETOUR AU DOSSIER
+            <i class="fas fa-arrow-left"></i> {$trStore('btn_back_dossier')}
         </button>
     {/snippet}
 </JournalScreen>
@@ -266,8 +287,8 @@
     type="button"
     id="btn-unlock-editor"
     class="editor-fab"
-    title="Mode éditeur"
-    aria-label="Mode éditeur"
+    title={$trStore('editor_fab')}
+    aria-label={$trStore('editor_fab')}
     onclick={tryUnlock}
 >
     <i class="fas fa-lock"></i>
@@ -293,7 +314,7 @@
     role="menu"
     style={$addMenu.style}
 >
-    {#each ADD_ITEMS as item}
+    {#each addMenuItems as item}
         <button
             type="button"
             class="aem-item"
