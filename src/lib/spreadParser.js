@@ -18,8 +18,57 @@
 
 import { sanitizeHTML } from './persist.js';
 
+/**
+ * Flatten Tiptap HTML for saving inside our own block elements.
+ *
+ * Tiptap wraps every paragraph in <p> tags. When we store content into
+ * our own <p class="book-text"> we cannot nest <p> inside <p> — that's
+ * invalid HTML and the browser parser splits it into phantom elements.
+ *
+ * This function:
+ * 1. Unwraps Tiptap <p> / <div> wrappers, extracting inner HTML
+ * 2. Joins multiple paragraphs with <br> to preserve line breaks
+ * 3. Returns plain inline HTML safe to embed in any block element
+ */
+function unwrapTiptapHTML(html) {
+    if (!html) return '';
+    const hasBlock = /<(p|div)[\s>]/i.test(html);
+    if (!hasBlock) return html;
+    try {
+        const doc  = new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html');
+        const body = doc.body;
+        const blocks = Array.from(body.children).filter((el) => {
+            const t = el.tagName;
+            return t === 'P' || t === 'DIV';
+        });
+        if (blocks.length === 0) return body.innerHTML;
+        return blocks
+            .map((b) => b.innerHTML)
+            .filter((s) => s.trim() && s.trim() !== '<br>')
+            .join('<br>');
+    } catch {
+        return html;
+    }
+}
+
+/**
+ * Wrap raw inline HTML in a <p> so Tiptap gets valid input.
+ * Split on <br> to create separate paragraphs.
+ */
+export function wrapForTiptap(html) {
+    if (!html) return '<p></p>';
+    // Already has block tags — pass through
+    if (/<(p|div|h[1-6])[\s>]/i.test(html)) return html;
+    // Split on <br> to create paragraphs
+    return html.split(/<br\s*\/?>/i)
+        .map((line) => `<p>${line.trim()}</p>`)
+        .filter((p) => p !== '<p></p>' || html.includes('<br'))
+        .join('') || '<p></p>';
+}
+
 const SKIP_CLASSES = [
     'book-page-num', 'book-decoration', 'element-tools', 'page-add-btn',
+    'tiptap-content', 'tiptap',
 ];
 
 function parseElements(pageInner) {
@@ -93,10 +142,13 @@ function parseElements(pageInner) {
             continue;
         }
 
-        // Default: treat as paragraph
-        const text = child.innerHTML ?? child.textContent ?? '';
-        if (text.trim()) {
-            elements.push({ type: 'paragraph', content: text });
+        // Only accept explicit book-text paragraphs — not Tiptap wrapper divs
+        // or other injected elements that would create phantom paragraphs on reload.
+        if (child.tagName === 'P' || cls.includes('book-text')) {
+            const text = child.innerHTML ?? '';
+            if (text.trim()) {
+                elements.push({ type: 'paragraph', content: text });
+            }
         }
     }
 
@@ -148,15 +200,15 @@ const serializeSpread2 = serializePage;
 function serializeElement(el) {
     switch (el.type) {
         case 'paragraph':
-            return `<p class="book-text book-text--body">${el.content ?? ''}</p>`;
+            return `<p class="book-text book-text--body">${unwrapTiptapHTML(el.content ?? '')}</p>`;
         case 'heading':
-            return `<h2 class="book-heading">${el.content ?? ''}</h2>`;
+            return `<h2 class="book-heading">${unwrapTiptapHTML(el.content ?? '')}</h2>`;
         case 'caption':
-            return `<p class="book-caption">${el.content ?? ''}</p>`;
+            return `<p class="book-caption">${unwrapTiptapHTML(el.content ?? '')}</p>`;
         case 'divider':
             return `<div class="book-divider" aria-hidden="true"></div>`;
         case 'id-card':
-            return `<div class="book-id-grid"><div class="book-id-col">${el.colA ?? el.content ?? ''}</div><div class="book-id-col">${el.colB ?? ''}</div></div>`;
+            return `<div class="book-id-grid"><div class="book-id-col">${unwrapTiptapHTML(el.colA ?? el.content ?? '')}</div><div class="book-id-col">${unwrapTiptapHTML(el.colB ?? '')}</div></div>`;
         case 'photo': {
             const rot = el.rotate ?? 0;
             const variant = el.variant === 'portrait' ? ' photo-taped--portrait'

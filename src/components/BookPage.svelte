@@ -9,12 +9,13 @@
      *  - page-add-btn and add-element menu added (was missing entirely).
      *  - element-tools now correctly shown on hover via CSS body.is-editor.
      */
-    import { onMount, onDestroy } from 'svelte';
+    import { onMount, onDestroy, tick } from 'svelte';
     import { createEditor }       from '../lib/tiptap.js';
     import { isEditor }           from '../stores/editor.js';
     import { activeEditor }       from '../stores/toolbar.js';
     import { openAddMenu, closeAddMenu, addMenu } from '../stores/addMenu.js';
     import { resolveImageSrc, placeholderImg } from '../lib/images.js';
+    import { wrapForTiptap } from '../lib/spreadParser.js';
 
     let {
         side      = 'left',
@@ -62,7 +63,7 @@
         editors[idx]?.destroy();
         editors[idx] = createEditor({
             element:  el,
-            content:  elements[idx]?.content || '',
+            content:  wrapForTiptap(elements[idx]?.content || ''),
             editable: $isEditor,
             onUpdate(html) {
                 elements[idx] = { ...elements[idx], content: html };
@@ -83,7 +84,7 @@
             editors[key]?.destroy();
             editors[key] = createEditor({
                 element:  el,
-                content:  elements[idx]?.[prop] || '',
+                content:  wrapForTiptap(elements[idx]?.[prop] || ''),
                 editable: $isEditor,
                 onUpdate(html) {
                     elements[idx] = { ...elements[idx], [prop]: html };
@@ -190,16 +191,16 @@
         }
     }
 
-    function addElement(kind) {
+    async function addElement(kind) {
         const el = buildNewElement(kind);
         if (!el) return;
         elements = [...elements, el];
         showAddMenu = false;
         closeAddMenu();
-        setTimeout(() => {
-            const idx = elements.length - 1;
-            mountEditor(idx);
-        }, 50);
+        await tick();
+        const idx = elements.length - 1;
+        mountEditor(idx);
+        if (el.type === 'id-card') mountIdCardEditor(idx);
         emit();
     }
 
@@ -243,8 +244,10 @@
 
     // ── lifecycle ─────────────────────────────────────────────────────────────
 
-    onMount(() => {
-        mountPageNumEditor();
+    onMount(async () => {
+        // tick() ensures Svelte has flushed all use:setElemRef actions
+        // before we try to mount Tiptap editors into those elements
+        await tick();
         elements.forEach((_, i) => {
             mountEditor(i);
             if (elements[i]?.type === 'id-card') mountIdCardEditor(i);
