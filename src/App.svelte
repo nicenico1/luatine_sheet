@@ -100,25 +100,32 @@
 
     function collectSnapshot() {
         const L = get(lang);
-        // When UI is FR, `spreads` is the live French journal — always prefer it over
-        // `journalPagesFR` so we never persist a stale/empty FR after edits.
-        const frPages =
-            L === 'fr' && spreads.length
-                ? deepCloneSpreads(spreads)
-                : journalPagesFR.length
-                  ? deepCloneSpreads(journalPagesFR)
-                  : defaultSpreads();
+        // Buffers can lag one debounce behind `spreads`. Always persist the on-screen
+        // journal for the active language from `spreads`, or English edits get overwritten
+        // by merge(journalPagesEN, fr) when journalPagesEN is still [].
+        const frFallback = journalPagesFR.length ? deepCloneSpreads(journalPagesFR) : defaultSpreads();
+
+        let frPages = frFallback;
+        if (L === 'fr' && spreads.length) {
+            frPages = deepCloneSpreads(spreads);
+        }
+
         const enPages = journalPagesEN.length
             ? mergeJournalSpreadsEnFromFr(journalPagesEN, frPages)
             : [];
-        const activePages =
-            L === 'en' && enPages.length ? enPages : frPages;
+
+        let enPagesOut = enPages;
+        if (L === 'en' && spreads.length) {
+            enPagesOut = deepCloneSpreads(spreads);
+        }
+
+        const activePages = L === 'en' && enPagesOut.length ? enPagesOut : frPages;
         return {
             version:        4,
             fields,
             journalPages:   activePages.map((s, i) => ({ order: i, html: serializeSpread(s) })),
             journalPagesFR: frPages.map((s, i) => ({ order: i, html: serializeSpread(s) })),
-            journalPagesEN: enPages.map((s, i) => ({ order: i, html: serializeSpread(s) })),
+            journalPagesEN: enPagesOut.map((s, i) => ({ order: i, html: serializeSpread(s) })),
             images,
             stepperVals,
             attrPoints:     '8',

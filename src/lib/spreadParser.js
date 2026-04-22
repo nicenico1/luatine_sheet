@@ -334,19 +334,13 @@ export function mergeJournalSpreadsEnFromFr(enSpreads, frSpreads) {
     const fr = Array.isArray(frSpreads) && frSpreads.length ? frSpreads : [defaultSpread()];
     const en = Array.isArray(enSpreads) ? enSpreads : [];
     const hadNoEn = en.length === 0;
-    const n = Math.max(fr.length, en.length);
-    const out = [];
-    for (let i = 0; i < n; i++) {
-        const frS = fr[i] ?? defaultSpread();
-        if (i >= fr.length) {
-            out.push(en[i] ? deepCloneSpread(en[i]) : defaultSpread());
-            continue;
-        }
+    // One EN spread per FR spread only — layout is defined by French; extra EN-only
+    // spreads from old bugs are dropped so FR/EN stay aligned and saves stay stable.
+    return fr.map((frS, i) => {
         const merged = {
             left:  mergePageForEnSync(en[i]?.left, frS.left),
             right: mergePageForEnSync(en[i]?.right, frS.right),
         };
-        out.push(hadNoEn ? clearJournalTranslatableText(merged) : merged);
-    }
-    return out;
+        return hadNoEn ? clearJournalTranslatableText(merged) : merged;
+    });
 }
