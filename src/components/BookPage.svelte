@@ -13,6 +13,7 @@
     import { createEditor }       from '../lib/tiptap.js';
     import { isEditor }           from '../stores/editor.js';
     import { activeEditor }       from '../stores/toolbar.js';
+    import { openAddMenu, closeAddMenu, addMenu } from '../stores/addMenu.js';
     import { resolveImageSrc, placeholderImg } from '../lib/images.js';
 
     let {
@@ -152,18 +153,8 @@
 
     // ── add element menu ──────────────────────────────────────────────────────
 
+    // Menu DOM is rendered at App level via addMenu store (avoids overflow:hidden clipping)
     let showAddMenu = $state(false);
-
-    const ADD_ITEMS = [
-        { kind: 'paragraph',     icon: 'fa-paragraph',  label: 'Paragraphe'       },
-        { kind: 'heading',       icon: 'fa-heading',    label: 'Titre'             },
-        { kind: 'caption',       icon: 'fa-quote-right',label: 'Légende'           },
-        { kind: 'divider',       icon: 'fa-grip-lines', label: 'Séparateur'        },
-        { kind: 'photo',         icon: 'fa-image',      label: 'Photo (scotch)'    },
-        { kind: 'photo-portrait',icon: 'fa-portrait',   label: 'Photo portrait'    },
-        { kind: 'photo-clip',    icon: 'fa-thumbtack',  label: 'Photo (trombone)'  },
-        { kind: 'id-card',       icon: 'fa-id-card',    label: 'Bloc identité'     },
-    ];
 
     function buildNewElement(kind) {
         switch (kind) {
@@ -184,7 +175,7 @@
         if (!el) return;
         elements = [...elements, el];
         showAddMenu = false;
-        // mount editor for new text element after DOM updates
+        closeAddMenu();
         setTimeout(() => {
             const idx = elements.length - 1;
             mountEditor(idx);
@@ -192,15 +183,41 @@
         emit();
     }
 
-    function toggleAddMenu() {
-        showAddMenu = !showAddMenu;
+    function toggleAddMenu(e) {
+        // If THIS page's menu is open, close it
+        if (showAddMenu) {
+            showAddMenu = false;
+            closeAddMenu();
+            return;
+        }
+        // Close any other page's menu first
+        closeAddMenu();
+
+        // Calculate fixed position from the button's viewport rect
+        const btn  = e.currentTarget;
+        const rect = btn.getBoundingClientRect();
+        const menuW = 218;
+        let left = rect.left + rect.width / 2 - menuW / 2;
+        left = Math.max(8, Math.min(left, window.innerWidth - menuW - 8));
+        const estimatedMenuH = 8 * 44;
+        let top = rect.top - estimatedMenuH - 6;
+        if (top < 8) top = rect.bottom + 6;
+
+        showAddMenu = true;
+        openAddMenu(`left:${left}px; top:${top}px; width:${menuW}px`, addElement);
     }
+
+    // Track when the global menu closes externally (another + button opened it)
+    const unsubMenu = addMenu.subscribe((m) => {
+        if (!m.open || m.onAdd !== addElement) showAddMenu = false;
+    });
 
     // Close menu on outside click
     function onDocClick(e) {
         if (!showAddMenu) return;
         if (!e.target.closest('.page-add-btn') && !e.target.closest('.add-element-menu')) {
             showAddMenu = false;
+            closeAddMenu();
         }
     }
 
@@ -214,6 +231,7 @@
 
     onDestroy(() => {
         destroyAll();
+        unsubMenu();
         document.removeEventListener('click', onDocClick, true);
     });
 
@@ -295,21 +313,6 @@
             >
                 <i class="fas fa-plus"></i>
             </button>
-
-            {#if showAddMenu}
-                <div class="add-element-menu" role="menu">
-                    {#each ADD_ITEMS as item}
-                        <button
-                            type="button"
-                            class="aem-item"
-                            role="menuitem"
-                            onclick={() => addElement(item.kind)}
-                        >
-                            <i class="fas {item.icon}"></i> {item.label}
-                        </button>
-                    {/each}
-                </div>
-            {/if}
         {/if}
 
     </div>

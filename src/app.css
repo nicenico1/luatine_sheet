@@ -1808,9 +1808,14 @@ body.is-editor .book-page-inner {
 }
 
 .page-add-btn {
-    position: absolute;
+    /* Sits at the bottom-center of .book-page-inner.
+       position:absolute requires .book-page to be the containing block — 
+       but .book-page-inner has overflow:hidden which clips absolute children.
+       We use position:sticky so it stays visible at the bottom of the scroll
+       area without being clipped. */
+    position: sticky;
+    bottom: 8px;
     left: 50%;
-    bottom: 52px;
     transform: translateX(-50%);
     width: 36px;
     height: 36px;
@@ -1827,6 +1832,8 @@ body.is-editor .book-page-inner {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
     opacity: 0.35;
     transition: opacity 0.2s, transform 0.2s, background 0.2s;
+    margin: 4px auto 0;
+    flex-shrink: 0;
 }
 
 body.is-editor .book-page-inner:hover > .page-add-btn,
@@ -1840,12 +1847,9 @@ body.is-editor .page-add-btn.is-open {
     transform: translateX(-50%) scale(1.08);
 }
 
+/* Menu uses fixed positioning so it's never clipped by overflow:hidden pages */
 .add-element-menu {
-    /* Absolute so it floats above the page content without shifting layout */
-    position: absolute;
-    bottom: calc(100% + 6px); /* appears above the + button */
-    left: 50%;
-    transform: translateX(-50%);
+    position: fixed;
     z-index: 30000;
     min-width: 200px;
     background: #1a1c24;
@@ -1857,11 +1861,7 @@ body.is-editor .page-add-btn.is-open {
     flex-direction: column;
     gap: 2px;
     animation: aemFadeIn 0.15s ease;
-}
-
-/* The + button itself is the positioning anchor */
-.page-add-btn {
-    position: relative;
+    /* Position set dynamically via JS style attribute */
 }
 
 @keyframes aemFadeIn {

@@ -8,9 +8,22 @@
 
     import { currentScreen }    from './stores/screen.js';
     import { isEditor, unlockEditor, EDITOR_PASSWORD } from './stores/editor.js';
+    import { addMenu, closeAddMenu } from './stores/addMenu.js';
+
+    const ADD_ITEMS = [
+        { kind: 'paragraph',     icon: 'fa-paragraph',   label: 'Paragraphe'      },
+        { kind: 'heading',       icon: 'fa-heading',     label: 'Titre'            },
+        { kind: 'caption',       icon: 'fa-quote-right', label: 'Légende'          },
+        { kind: 'divider',       icon: 'fa-grip-lines',  label: 'Séparateur'       },
+        { kind: 'photo',         icon: 'fa-image',       label: 'Photo (scotch)'   },
+        { kind: 'photo-portrait',icon: 'fa-portrait',    label: 'Photo portrait'   },
+        { kind: 'photo-clip',    icon: 'fa-thumbtack',   label: 'Photo (trombone)' },
+        { kind: 'id-card',       icon: 'fa-id-card',     label: 'Bloc identité'    },
+    ];
 
     import { initFirebase }     from './lib/firebase.js';
     import { loadSnapshot, persistSnapshot, debounce } from './lib/persist.js';
+    import { resolveImageSrc }  from './lib/images.js';
     import { parseSpreadHTML, serializeSpread, defaultSpreads } from './lib/spreadParser.js';
 
     // ── modal ──────────────────────────────────────────────────────────────
@@ -124,6 +137,19 @@
 
     function go(screen) { $currentScreen = screen; }
 
+    // ── card image picker (char-select screen) ─────────────────────────────
+
+    let cardFileInput = $state(null);
+
+    async function onCardImageSelected() {
+        const file = cardFileInput.files?.[0];
+        if (!file) return;
+        const src = await resolveImageSrc(file);
+        fields = { ...fields, 'card-img': src };
+        onDataChanged();
+        cardFileInput.value = '';
+    }
+
     // ── bootstrap ──────────────────────────────────────────────────────────
 
     onMount(async () => {
@@ -158,17 +184,22 @@
 
 <!-- CHAR SELECT -->
 {#if $currentScreen === 'char-select'}
+<input type="file" accept="image/*" bind:this={cardFileInput} style="display:none" onchange={onCardImageSelected} />
 <div id="char-select-screen" class="screen active">
     <h1 class="page-title">PERSONNAGES</h1>
     <div class="char-cards-container">
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div class="char-card" onclick={() => go('char-bio')}>
+        <div class="char-card" onclick={() => { if (!$isEditor) go('char-bio'); }}>
             <div class="char-card-image">
+                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
                 <img
                     src={fields['card-img'] || 'https://placehold.co/300x500/1a1c23/ffffff?text=Cliquez+pour+changer'}
                     alt="Lua Tyler"
                     class="editable-image"
+                    class:cursor-pointer={$isEditor}
+                    onclick={(e) => { if ($isEditor) { e.stopPropagation(); cardFileInput.value=''; cardFileInput.click(); } }}
                 />
             </div>
             <div class="char-card-info">
@@ -185,6 +216,11 @@
         <button type="button" class="btn-text" onclick={() => go('splash')}>
             <i class="fas fa-arrow-left"></i> RETOUR
         </button>
+        {#if !$isEditor}
+        <button type="button" class="btn-text" onclick={() => go('char-bio')}>
+            OUVRIR LE DOSSIER <i class="fas fa-arrow-right"></i>
+        </button>
+        {/if}
     </div>
 </div>
 {/if}
@@ -247,6 +283,28 @@
 
 <!-- Sync indicator -->
 <SyncIndicator />
+
+<!-- Global add-element menu — rendered here so it's never clipped by book overflow -->
+{#if $addMenu.open}
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div
+    class="add-element-menu"
+    role="menu"
+    style={$addMenu.style}
+>
+    {#each ADD_ITEMS as item}
+        <button
+            type="button"
+            class="aem-item"
+            role="menuitem"
+            onclick={() => { $addMenu.onAdd?.(item.kind); closeAddMenu(); }}
+        >
+            <i class="fas {item.icon}"></i> {item.label}
+        </button>
+    {/each}
+</div>
+{/if}
 
 <!-- Modal -->
 <Modal bind:this={modalComp} />
