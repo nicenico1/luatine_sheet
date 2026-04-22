@@ -1,0 +1,2668 @@
+:root {
+    --bg-dark: #0f1015;
+    --panel-bg: rgba(20, 22, 28, 0.85);
+    --text-main: #ffffff;
+    --text-muted: #a0a5b5;
+    --accent-red: #e53935;
+    --accent-green: #4caf50;
+    --accent-yellow: #ffca28;
+    --border-color: #2a2d3a;
+    --input-bg: rgba(30, 33, 43, 0.7);
+    --hover-bg: rgba(255, 255, 255, 0.1);
+    --scrollbar-track: rgba(10, 11, 16, 0.92);
+    --scrollbar-thumb: #3a3f52;
+    --scrollbar-thumb-hover: #4e556d;
+}
+
+/* Barres de défilement — thème sombre (Firefox + WebKit) */
+html {
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    scrollbar-width: thin;
+    overflow-x: hidden;
+}
+
+.bio-content,
+#journal-screen,
+.editor-bar {
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    scrollbar-width: thin;
+}
+
+html::-webkit-scrollbar,
+.bio-content::-webkit-scrollbar,
+#journal-screen::-webkit-scrollbar,
+.editor-bar::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+html::-webkit-scrollbar-track,
+.bio-content::-webkit-scrollbar-track,
+#journal-screen::-webkit-scrollbar-track,
+.editor-bar::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: 10px;
+}
+
+html::-webkit-scrollbar-thumb,
+.bio-content::-webkit-scrollbar-thumb,
+#journal-screen::-webkit-scrollbar-thumb,
+.editor-bar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--scrollbar-thumb) 0%, #2f3444 100%);
+    border-radius: 10px;
+    border: 2px solid var(--scrollbar-track);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+html::-webkit-scrollbar-thumb:hover,
+.bio-content::-webkit-scrollbar-thumb:hover,
+#journal-screen::-webkit-scrollbar-thumb:hover,
+.editor-bar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--scrollbar-thumb-hover) 0%, var(--scrollbar-thumb) 100%);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    height: 100vh;
+    overflow: hidden;
+    user-select: none; /* Empêche la sélection de texte accidentelle sauf sur les zones éditables */
+}
+
+/* Lecture seule : lecture confortable */
+body.is-read-only {
+    user-select: text;
+}
+
+body.is-read-only .model-image,
+body.is-read-only .char-card-image img {
+    cursor: default;
+}
+
+body.is-editor .model-image,
+body.is-editor .char-card-image img {
+    cursor: pointer;
+}
+
+.is-read-only .editor-only {
+    display: none;
+}
+
+/* Bouton cadenas — mode éditeur */
+.editor-fab {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    z-index: 200;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: var(--panel-bg);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    opacity: 0; /* Entièrement caché par défaut */
+    transition: opacity 0.3s ease, color 0.2s, background 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.editor-fab:hover,
+.editor-fab:focus-visible {
+    opacity: 1; /* Apparaît au survol de la souris ou au clavier */
+    color: var(--text-main);
+    background: var(--input-bg);
+}
+
+.editor-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 199;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px 20px;
+    padding: 10px 16px;
+    background: rgba(20, 22, 28, 0.95);
+    border-top: 1px solid var(--border-color);
+    font-size: 13px;
+    color: var(--accent-green);
+}
+
+.editor-bar-title {
+    flex: 1 1 auto;
+    text-align: center;
+    min-width: 140px;
+}
+
+.editor-bar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+}
+
+.btn-editor-action {
+    opacity: 1;
+    font-size: 11px;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 2px;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.editor-bar.hidden {
+    display: none;
+}
+
+.editor-bar .btn-lock {
+    opacity: 1;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+body.is-editor {
+    padding-bottom: 60px;
+}
+
+.editor-publish-hint {
+    flex-basis: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 10px 14px;
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--text-muted);
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+}
+
+.editor-publish-hint code {
+    font-size: 10px;
+    color: var(--accent-yellow);
+}
+
+/* Rendre les zones éditables sélectionnables */
+[contenteditable="true"] {
+    user-select: text;
+    outline: none;
+    transition: background-color 0.2s;
+    border-radius: 2px;
+}
+
+[contenteditable="true"]:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    cursor: text;
+}
+
+[contenteditable="true"]:focus {
+    background-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 1px var(--text-muted);
+}
+
+/* Backgrounds */
+.background-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/assets/bg-main.png');
+    background-size: cover;
+    background-position: center;
+    filter: blur(3px);
+    transform: scale(1.05); /* Évite les bords blancs avec le blur */
+    z-index: -2;
+}
+
+.background-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(15,16,21,0.7) 0%, rgba(15,16,21,0.95) 100%);
+    z-index: -1;
+}
+
+/* Screens Management */
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1s ease-in-out;
+}
+
+.screen.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.screen.hidden {
+    display: none;
+}
+
+/* --- Écran 1 : Splash Screen --- */
+#splash-screen {
+    justify-content: center;
+    align-items: center;
+    background-color: #000;
+    z-index: 100;
+}
+
+#splash-screen.initial-splash {
+    opacity: 1 !important;
+    animation: none !important;
+}
+
+.splash-text {
+    font-size: 24px;
+    font-style: italic;
+    color: #fff;
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(255,255,255,0.5);
+    animation: splashTextReveal 3s ease-out forwards;
+}
+
+@keyframes splashTextReveal {
+    0% { opacity: 0; filter: blur(8px); transform: scale(0.95); }
+    50% { opacity: 1; filter: blur(0); transform: scale(1); }
+    100% { opacity: 0.8; filter: blur(0); transform: scale(1); }
+}
+
+/* On ne fait pulser qu'après le Splash (au cas où il y revient plus tard) */
+#splash-screen:not(.initial-splash) .splash-text {
+    animation: pulse 3s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
+
+/* --- Écran 2 : Sélection de Personnage --- */
+.page-title {
+    text-align: center;
+    font-size: 48px;
+    font-weight: 900;
+    margin-top: 10vh;
+    letter-spacing: 2px;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.8);
+}
+
+.char-cards-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+}
+
+.char-card {
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.3s, filter 0.3s;
+}
+
+.char-card:hover {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 15px rgba(255,255,255,0.2));
+}
+
+.char-card-image {
+    width: 100%;
+    height: 400px;
+    background-color: #000;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    position: relative;
+}
+
+.char-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.8;
+    transition: opacity 0.3s;
+}
+
+.char-card:hover .char-card-image img {
+    opacity: 1;
+}
+
+.char-card-info {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.char-card-info h2 {
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+.char-card-info p {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+
+.char-status {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    font-size: 16px;
+}
+
+.text-green { color: var(--accent-green); }
+.text-red { color: var(--accent-red); }
+
+.bottom-controls {
+    text-align: center;
+    padding-bottom: 5vh;
+}
+
+.btn-text {
+    background: none;
+    border: none;
+    color: var(--text-main);
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-text:hover {
+    opacity: 1;
+}
+
+.btn-text.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* --- Écran 3 : Biographie --- */
+.bio-container {
+    display: flex;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: 40px 10%;
+    gap: 30px;
+}
+
+/* Gauche : Modèle */
+.bio-left {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.model-image {
+    max-height: 85vh;
+    object-fit: contain;
+    filter: drop-shadow(0 0 20px rgba(0,0,0,0.8));
+    cursor: pointer;
+    transition: filter 0.2s;
+}
+.model-image:hover {
+    filter: drop-shadow(0 0 25px rgba(255,255,255,0.3));
+}
+
+/* Centre : Menu */
+.bio-menu {
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+    padding-top: 20px;
+}
+
+.menu-title {
+    font-size: 24px;
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 30px;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.vertical-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 15px;
+    color: var(--text-main);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    background-color: var(--input-bg);
+    border-radius: 2px;
+    transition: all 0.2s;
+    border-left: 4px solid transparent;
+}
+
+.nav-btn i {
+    width: 20px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.nav-btn:hover {
+    background-color: var(--hover-bg);
+}
+
+.nav-btn.active {
+    background-color: var(--accent-red);
+    border-left-color: #ff8a80;
+}
+
+.nav-btn.active i {
+    color: white;
+}
+
+/* Droite : Contenu Formulaire */
+.bio-content {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    padding-top: 20px;
+    max-width: 720px;
+    min-width: 0;
+    overflow-y: auto;
+    max-height: calc(100vh - 48px);
+    padding-right: 8px;
+    padding-bottom: 80px;
+}
+
+.tab-content {
+    display: none;
+    flex-direction: column;
+    gap: 25px;
+    flex: 1;
+}
+
+.tab-content.active {
+    display: flex;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: 1px;
+}
+
+.input-box, .dropdown-mock, .textarea-mock {
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    padding: 12px 15px;
+    font-size: 14px;
+    color: var(--text-main);
+    border-radius: 2px;
+}
+
+.flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.gender-icons {
+    color: var(--accent-yellow);
+    font-weight: bold;
+    letter-spacing: 5px;
+}
+
+.warning-text {
+    font-size: 11px;
+    color: var(--accent-yellow);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.dropdown-mock {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.dropdown-mock i {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.w-50 {
+    width: 50%;
+}
+
+.progress-bar-container {
+    height: 30px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+}
+
+.progress-bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background-color: var(--accent-green);
+    z-index: 1;
+}
+
+.progress-text {
+    position: relative;
+    z-index: 2;
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.textarea-mock {
+    min-height: 120px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+.form-actions {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    padding: 16px 0 24px;
+    background: linear-gradient(0deg, var(--bg-dark) 60%, transparent 100%);
+    z-index: 10;
+    flex-shrink: 0;
+}
+
+.section-heading {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.block-warning {
+    line-height: 1.45;
+    margin-bottom: 12px;
+}
+
+.member-block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.member-block:last-of-type {
+    border-bottom: none;
+}
+
+.tab-head-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.points-remaining {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+#attr-points-num,
+#skill-points-num {
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.counter-line {
+    font-size: 12px;
+    color: var(--accent-yellow);
+    margin-bottom: 12px;
+}
+
+.trait-picker {
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.trait-picker-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 12px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.trait-nav {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.trait-nav:hover {
+    background: var(--hover-bg);
+}
+
+.trait-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #4fc3f7;
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+.trait-sub {
+    font-size: 12px;
+    color: #81d4fa;
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.trait-desc {
+    min-height: 72px;
+    margin-bottom: 12px;
+}
+
+.btn-validate {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    background: var(--accent-green);
+    color: #0d1f12;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.btn-validate:hover {
+    filter: brightness(1.08);
+}
+
+.traits-summary {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.traits-slots {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+}
+
+.trait-slot {
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    text-align: center;
+    font-size: 13px;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stepper-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.stepper-row {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    padding: 12px 14px;
+}
+
+.stepper-icon {
+    flex-shrink: 0;
+    width: 40px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 4px;
+    font-size: 22px;
+    color: var(--text-main);
+}
+
+.stepper-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stepper-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent-yellow);
+    text-transform: uppercase;
+}
+
+.skill-meta {
+    font-size: 11px;
+    color: var(--accent-green);
+}
+
+.stepper-desc {
+    font-size: 12px;
+    color: var(--text-main);
+    line-height: 1.4;
+}
+
+.stepper-controls {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-width: 36px;
+}
+
+.stepper-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    cursor: pointer;
+    padding: 2px 6px;
+    line-height: 1;
+    opacity: 0.85;
+}
+
+.stepper-btn:hover {
+    opacity: 1;
+}
+
+.stepper-value {
+    font-size: 14px;
+    font-weight: 700;
+    min-width: 20px;
+    text-align: center;
+}
+
+body.is-read-only .stepper-btn,
+body.is-read-only .trait-nav,
+body.is-read-only .btn-validate {
+    pointer-events: none;
+    opacity: 0.45;
+    cursor: default;
+}
+
+body.is-editor .stepper-btn,
+body.is-editor .trait-nav,
+body.is-editor .btn-validate {
+    pointer-events: auto;
+    opacity: 1;
+    cursor: pointer;
+}
+
+.parcours-box {
+    background: rgba(15, 16, 22, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.parcours-placeholder {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+/* --- Écran 4 : Journal — livre ouvert (scrapbook / monochrome + HUD site) --- */
+#journal-screen {
+    overflow: hidden;
+    z-index: 5;
+    background: radial-gradient(circle at 50% 50%, rgba(15, 12, 10, 0.6) 0%, rgba(5, 3, 2, 0.95) 100%);
+}
+
+#journal-screen.screen.active {
+    pointer-events: auto;
+}
+
+/* Ambiance sombre et texturée autour du livre */
+.journal-atmosphere {
+    display: none;
+}
+
+.journal-wrap--book {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 20px 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.journal-stamp {
+    position: absolute;
+    top: 20px;
+    right: 40px;
+    font-family: 'Special Elite', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+    color: rgba(160, 40, 40, 0.7);
+    border: 3px solid rgba(160, 40, 40, 0.6);
+    padding: 8px 14px;
+    transform: rotate(-12deg);
+    pointer-events: none;
+    z-index: 10;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.journal-header--book {
+    text-align: center;
+    margin-bottom: 24px;
+    padding-bottom: 0;
+    border-bottom: none;
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
+}
+
+.journal-doc-id {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+.journal-title {
+    font-family: 'IM Fell English', serif;
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: normal;
+    font-style: italic;
+    letter-spacing: 0.05em;
+    color: #d4c5b0;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.8);
+    margin-bottom: 8px;
+}
+
+.journal-author {
+    font-family: 'Caveat', cursive;
+    font-size: 22px;
+    color: rgba(212, 197, 176, 0.7);
+}
+
+/* Le conteneur du livre (La couverture) */
+.book-stage {
+    position: relative;
+    min-width: 0;
+    width: 100%;
+    max-width: calc((100vh - 240px) * 1.5 + 48px);
+    margin: 0 auto;
+    transform-style: preserve-3d;
+
+    /* Couverture en cuir usé */
+    background: #1a110a;
+    background-image:
+        radial-gradient(circle at center, rgba(255,255,255,0.03) 0%, transparent 70%),
+        linear-gradient(to right, #0a0603 0%, #1e140c 3%, #2a1b10 10%, #2a1b10 90%, #1e140c 97%, #0a0603 100%);
+    border-radius: 12px;
+    box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.05),
+        inset 0 0 30px rgba(0,0,0,0.9),
+        0 40px 80px rgba(0,0,0,0.8),
+        0 15px 25px rgba(0,0,0,0.6);
+    padding: 16px 24px; /* Débordement de la couverture */
+}
+
+/* Livre au format royal / paperback (~3:2 spread ouvert).
+   Hauteur explicite pilotée par le viewport, largeur 100% du stage
+   qui lui-même est plafonné pour garder un look livre. */
+.journal-book {
+    position: relative;
+    display: block;
+    height: calc(100vh - 240px);
+    min-height: 260px;
+    width: 100%;
+    transform-style: preserve-3d;
+    min-width: 0;
+}
+
+.book-spread {
+    display: grid;
+    grid-template-columns: 1fr 30px 1fr;
+    align-items: stretch;
+    gap: 0;
+    max-width: 100%;
+    height: 100%;
+}
+
+/* La reliure centrale (Gutter) */
+.book-gutter {
+    background: linear-gradient(
+        to right,
+        rgba(0, 0, 0, 0.5) 0%,
+        rgba(0, 0, 0, 0.85) 40%,
+        rgba(0, 0, 0, 0.95) 50%,
+        rgba(0, 0, 0, 0.85) 60%,
+        rgba(0, 0, 0, 0.5) 100%
+    );
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.9);
+    position: relative;
+    z-index: 5;
+    margin: 0 -2px; /* Superposition pour éviter les espaces */
+}
+
+/* Texture du papier ancien */
+.book-page {
+    position: relative;
+    --paper: #e4d5b7;
+    background-color: var(--paper);
+    color: #2c241b;
+    border: 1px solid rgba(139, 115, 85, 0.4);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.book-page::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+        radial-gradient(circle at 15% 85%, rgba(139, 115, 85, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 80% 20%, rgba(139, 115, 85, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+    z-index: 0;
+}
+
+/* Ombrages et épaisseur des pages (gauche) */
+.book-page--left {
+    border-radius: 6px 0 0 6px;
+    background-image: linear-gradient(to right, rgba(255,255,255,0.1) 0%, transparent 15%, transparent 85%, rgba(0,0,0,0.15) 100%);
+    box-shadow:
+        inset 5px 0 15px rgba(255, 255, 255, 0.4),
+        inset -15px 0 30px rgba(0, 0, 0, 0.15),
+        -2px 2px 0px #d0c2a3,
+        -3px 3px 0px #b8a682,
+        -4px 4px 0px #d0c2a3,
+        -6px 6px 15px rgba(0, 0, 0, 0.6);
+}
+
+/* Ombrages et épaisseur des pages (droite) */
+.book-page--right {
+    border-radius: 0 6px 6px 0;
+    background-image: linear-gradient(to left, rgba(255,255,255,0.1) 0%, transparent 15%, transparent 85%, rgba(0,0,0,0.15) 100%);
+    box-shadow:
+        inset -5px 0 15px rgba(255, 255, 255, 0.4),
+        inset 15px 0 30px rgba(0, 0, 0, 0.15),
+        2px 2px 0px #d0c2a3,
+        3px 3px 0px #b8a682,
+        4px 4px 0px #d0c2a3,
+        6px 6px 15px rgba(0, 0, 0, 0.6);
+}
+
+.book-page-inner {
+    padding: 36px 32px 48px;
+    position: relative;
+    z-index: 1;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(139, 115, 85, 0.4) transparent;
+}
+
+.book-page-inner::-webkit-scrollbar {
+    width: 6px;
+}
+
+.book-page-inner::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.book-page-inner::-webkit-scrollbar-thumb {
+    background-color: rgba(139, 115, 85, 0.35);
+    border-radius: 3px;
+}
+
+.book-page-inner--scrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+}
+
+/* Typographie manuscrite par défaut */
+.book-text {
+    font-family: 'Caveat', cursive;
+    font-size: 22px;
+    line-height: 1.5;
+    color: #2c241b;
+    margin: 0 0 16px;
+    text-shadow: 0.5px 0.5px 0px rgba(255,255,255,0.15);
+}
+
+.book-text--justify {
+    text-align: left; /* Justify rend mal avec les polices manuscrites */
+}
+
+.book-heading {
+    font-family: 'IM Fell English', serif;
+    font-size: 28px;
+    font-weight: normal;
+    font-style: italic;
+    margin: 0 0 20px;
+    color: #1a140f;
+    border-bottom: 1px solid rgba(139, 115, 85, 0.3);
+    padding-bottom: 8px;
+}
+
+.book-id-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 16px;
+    font-family: 'Special Elite', monospace;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #1a140f;
+    background: rgba(255,255,255,0.2);
+    padding: 16px;
+    border: 1px solid rgba(139, 115, 85, 0.2);
+    border-radius: 2px;
+}
+
+.book-label {
+    font-family: 'IM Fell English SC', serif;
+    font-size: 16px;
+    font-weight: bold;
+    margin: 16px 0 8px;
+    color: #1a140f;
+}
+
+.book-caption {
+    font-family: 'Kalam', cursive;
+    font-size: 16px;
+    line-height: 1.6;
+    text-align: center;
+    color: #2c241b;
+    margin: 12px 0 0;
+    width: 100%;
+}
+
+.book-caption--small {
+    font-size: 14px;
+    font-style: italic;
+    margin: 0 0 8px;
+    opacity: 0.8;
+}
+
+.book-page-num {
+    position: absolute;
+    bottom: 14px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: 'IM Fell English SC', serif;
+    font-size: 16px;
+    color: rgba(44, 36, 27, 0.6);
+    pointer-events: none;
+    z-index: 2;
+}
+
+body.is-editor .book-page-num {
+    pointer-events: auto;
+}
+
+.combine-emblem {
+    display: flex;
+    justify-content: center;
+    margin: 24px 0 32px;
+    color: #0d0d0d;
+}
+
+.combine-emblem-svg {
+    width: min(140px, 40vw);
+    height: auto;
+    opacity: 0.92;
+    filter: drop-shadow(0 2px 1px rgba(255, 255, 255, 0.4));
+}
+
+.book-decoration--blot {
+    position: absolute;
+    bottom: 48px;
+    left: 16px;
+    width: 48px;
+    height: 40px;
+    border-radius: 50% 45% 55% 50%;
+    background: radial-gradient(ellipse at 40% 40%, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.12) 70%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.65;
+}
+
+/* Photos noir & blanc + effet « scotch » */
+.photo-taped {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+    margin: 15px auto;
+    padding: 0; /* Plus de cadre blanc */
+    background: transparent;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25)); /* Ombre qui respecte la transparence des PNG */
+    transform: rotate(-2deg); /* Légère rotation */
+}
+
+.photo-taped:nth-child(even) {
+    transform: rotate(3deg);
+}
+
+.photo-taped:nth-child(3n) {
+    transform: rotate(-1deg);
+}
+
+.photo-taped .book-photo,
+.photo-taped .journal-photo {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    max-height: 65vh; /* Empêche l'image de dépasser la hauteur de la page */
+    object-fit: cover;
+    filter: sepia(0.3) contrast(1.1) brightness(0.95);
+    border-radius: 2px;
+    background-color: rgba(0, 0, 0, 0.1); /* Fallback si l'image ne charge pas */
+    min-height: 100px; /* S'assure qu'on voit quelque chose même si l'image est cassée */
+}
+
+/* Effet Scotch (Tape) */
+.photo-taped::before,
+.photo-taped::after {
+    content: '';
+    position: absolute;
+    z-index: 2;
+    width: 90px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.35);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    pointer-events: none;
+    backdrop-filter: blur(2px);
+    /* Texture du scotch */
+    background-image: 
+        linear-gradient(to right, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.1) 100%),
+        linear-gradient(to bottom, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);
+    border-left: 1px dashed rgba(255, 255, 255, 0.5);
+    border-right: 1px dashed rgba(255, 255, 255, 0.5);
+}
+
+.photo-taped::before {
+    top: -5px;
+    left: -15px;
+    transform: rotate(-45deg);
+}
+
+.photo-taped::after {
+    bottom: -5px;
+    right: -15px;
+    transform: rotate(-45deg);
+}
+
+.photo-taped--small .book-photo {
+    max-height: 160px;
+}
+
+.photo-taped--portrait .book-photo {
+    max-width: 280px;
+    margin: 0 auto;
+}
+
+.scrap-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+}
+
+.photo-taped--clip {
+    padding-top: 8px;
+}
+
+.paperclip {
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    margin-left: -14px;
+    width: 28px;
+    height: 12px;
+    border: 2px solid #888;
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+    z-index: 3;
+    pointer-events: none;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.paperclip--right {
+    left: auto;
+    right: 20%;
+    margin-left: 0;
+}
+
+.journal-toolbar {
+    margin: 8px 0 6px;
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.btn-journal-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-main);
+    background: rgba(35, 38, 48, 0.9);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.btn-journal-add:hover {
+    background: var(--hover-bg);
+}
+
+.journal-footer {
+    position: relative;
+    text-align: center;
+    padding: 12px 0 12px;
+    margin: 0 auto 0;
+    z-index: 10;
+    flex-shrink: 0;
+}
+
+@keyframes cinematicScreenFade {
+    0% { opacity: 0; transform: scale(1.015); }
+    100% { opacity: 1; transform: none; }
+}
+.screen.active {
+    animation: cinematicScreenFade 0.6s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+@keyframes cinematicTabFade {
+    0% { opacity: 0; transform: translateY(12px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+.tab-content[style*="display: flex"] {
+    animation: cinematicTabFade 0.45s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+body.is-read-only .book-photo,
+body.is-read-only .journal-photo {
+    cursor: default;
+}
+
+body.is-editor .book-photo,
+body.is-editor .journal-photo {
+    cursor: pointer;
+    outline: 1px dashed transparent;
+}
+
+body.is-editor .book-photo:hover,
+body.is-editor .journal-photo:hover {
+    outline-color: rgba(80, 80, 80, 0.5);
+}
+
+@media (max-width: 900px) {
+    .journal-book {
+        width: 100%;
+        aspect-ratio: auto;
+        height: auto;
+        min-height: 640px;
+    }
+
+    .book-spread {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+    }
+
+    .book-gutter {
+        display: none;
+    }
+
+    .book-page--left {
+        border-radius: 6px 6px 2px 2px;
+    }
+
+    .book-page--right {
+        border-radius: 2px 2px 6px 6px;
+    }
+}
+
+@media (max-width: 600px) {
+    .book-id-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .scrap-row {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+/* Sélecteur de langue (FR / EN) — au-dessus de tous les écrans (splash, etc.) */
+.lang-switcher {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 10000;
+    isolation: isolate;
+    pointer-events: auto;
+    display: flex;
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.lang-btn {
+    border: none;
+    background: transparent;
+    padding: 8px 12px;
+    font-size: 1.35rem;
+    line-height: 1;
+    cursor: pointer;
+    pointer-events: auto;
+    touch-action: manipulation;
+    transition: background 0.15s ease;
+}
+
+.lang-btn:hover {
+    background: var(--hover-bg);
+}
+
+.lang-btn--active {
+    background: var(--input-bg);
+    box-shadow: inset 0 0 0 1px var(--border-color);
+}
+
+/* ─── Modal custom (remplace window.prompt / alert / confirm) ─── */
+
+.fiche-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    animation: modalFadeIn 0.2s ease;
+}
+
+.fiche-modal-overlay.hidden {
+    display: none;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.fiche-modal {
+    background: #1a1c24;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 28px 32px 24px;
+    min-width: 340px;
+    max-width: 520px;
+    width: 90vw;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+    animation: modalSlideUp 0.25s ease;
+}
+
+@keyframes modalSlideUp {
+    from { transform: translateY(16px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.fiche-modal-message {
+    font-size: 14px;
+    color: var(--text-main);
+    line-height: 1.55;
+    margin-bottom: 18px;
+    white-space: pre-line;
+}
+
+.fiche-modal-input {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-main);
+    margin-bottom: 18px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.fiche-modal-input:focus {
+    border-color: var(--text-muted);
+}
+
+.fiche-modal-input.hidden {
+    display: none;
+}
+
+.fiche-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.fiche-modal-btn {
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.fiche-modal-cancel {
+    background: transparent;
+    color: var(--text-muted);
+}
+
+.fiche-modal-cancel:hover {
+    background: var(--hover-bg);
+    color: var(--text-main);
+}
+
+.fiche-modal-cancel.hidden {
+    display: none;
+}
+
+.fiche-modal-ok {
+    background: var(--accent-red);
+    color: #fff;
+    border-color: var(--accent-red);
+}
+
+.fiche-modal-ok:hover {
+    filter: brightness(1.15);
+}
+
+
+
+body.is-editor .screen {
+    height: calc(100% - 60px);
+}
+body.is-editor .bio-content {
+    max-height: calc(100vh - 178px);
+}
+
+/* Même cadrage livre qu’en lecture : la barre d’édition ne doit pas
+   rétrécir les pages (sinon retours à la ligne et débordements ne
+   correspondent plus au résultat après verrouillage). Le journal peut
+   défiler si la fenêtre est trop courte. */
+body.is-editor #journal-screen {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+body.is-editor .journal-wrap--book {
+    min-height: 100vh;
+    height: auto;
+}
+
+body.is-editor .journal-book {
+    height: calc(100vh - 240px);
+    min-height: 260px;
+    width: 100%;
+}
+
+body.is-editor .book-stage {
+    max-width: calc((100vh - 240px) * 1.5 + 48px);
+}
+
+@media (max-width: 900px) {
+    body.is-editor .journal-book {
+        width: 100%;
+        aspect-ratio: auto;
+        height: auto;
+        min-height: 640px;
+    }
+}
+
+@media (max-width: 600px) {
+    body.is-editor .journal-book {
+        width: 100%;
+        aspect-ratio: auto;
+        height: calc(100vh - 140px);
+        min-height: 640px;
+    }
+}
+
+/* ───────────────────────────────────────────────────────────────
+   LIVRE — Visionneuse double-page (one spread at a time, page-flip)
+   ─────────────────────────────────────────────────────────────── */
+
+.book-viewer {
+    position: relative;
+    /* Grid plutôt que flex : on fixe la largeur des colonnes (nav 64px /
+       stage 1fr / nav 64px) ce qui évite les problèmes d'intrinsic sizing
+       d'un flex item dont les enfants sont tous en position: absolute. */
+    display: grid;
+    grid-template-columns: 64px 1fr 64px;
+    align-items: stretch;
+    gap: 8px;
+    margin: 0 auto;
+    perspective: 2400px;
+    width: 100%;
+}
+
+.book-nav {
+    align-self: stretch;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 32px;
+    cursor: pointer;
+    transition: color 0.2s, transform 0.2s, text-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+}
+
+.book-nav:hover:not(:disabled) {
+    color: rgba(255, 255, 255, 0.8);
+    transform: scale(1.1);
+    text-shadow: 0 0 12px rgba(255,255,255,0.4);
+}
+
+.book-nav:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+}
+
+/* Le conteneur des spreads passe en mode "stack" : tous superposés à taille fixe,
+   un seul visible. Le livre garde une taille constante quelle que soit la page
+   affichée — les contenus plus longs scrollent à l'intérieur de la page. */
+.journal-book .book-spread {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    transform-origin: center center;
+    transition:
+        opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+}
+
+/* Pendant une transition de page, on hint le compositeur.
+   La classe est posée/retirée par JS pour éviter d'augmenter en permanence
+   l'empreinte mémoire. */
+.journal-book.is-flipping .book-spread.is-current,
+.journal-book.is-flipping .book-spread.is-leaving-forward,
+.journal-book.is-flipping .book-spread.is-entering-forward,
+.journal-book.is-flipping .book-spread.is-leaving-backward,
+.journal-book.is-flipping .book-spread.is-entering-backward {
+    will-change: transform, opacity;
+}
+
+.journal-book .book-spread.is-current {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate3d(0, 0, 0);
+    z-index: 2;
+}
+
+/* Animation : page qui se tourne vers la droite (passage à la suivante).
+   On évite filter/blur (trop coûteux) ; uniquement transform + opacity,
+   composable GPU-only. */
+.journal-book .book-spread.is-leaving-forward {
+    opacity: 0;
+    visibility: visible;
+    transform: translate3d(-6%, 0, 0);
+    z-index: 1;
+}
+
+.journal-book .book-spread.is-entering-forward {
+    opacity: 0;
+    visibility: visible;
+    transform: translate3d(6%, 0, 0);
+    z-index: 3;
+}
+
+/* Animation : page qui se tourne vers la gauche (passage à la précédente) */
+.journal-book .book-spread.is-leaving-backward {
+    opacity: 0;
+    visibility: visible;
+    transform: translate3d(6%, 0, 0);
+    z-index: 1;
+}
+
+.journal-book .book-spread.is-entering-backward {
+    opacity: 0;
+    visibility: visible;
+    transform: translate3d(-6%, 0, 0);
+    z-index: 3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .journal-book .book-spread {
+        transition: opacity 160ms ease;
+        transform: none !important;
+    }
+}
+
+.book-pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 12px auto 4px;
+    font-family: 'IM Fell English SC', serif;
+    font-size: 14px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.1em;
+    user-select: none;
+    text-align: center;
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.book-pager-current {
+    color: rgba(255,255,255,0.8);
+    font-weight: bold;
+    font-size: 18px;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   Bouton "+" sur chaque page (mode éditeur) + menu d'ajout
+   ─────────────────────────────────────────────────────────────── */
+
+.book-page {
+    transition: box-shadow 0.2s;
+}
+
+/* Même padding bas qu’en lecture pour que la zone de texte soit identique ;
+   le bouton « + » est remonté pour rester au-dessus du bas de page. */
+body.is-editor .book-page-inner {
+    padding-bottom: 48px;
+}
+
+.page-add-btn {
+    position: absolute;
+    left: 50%;
+    bottom: 52px;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(40, 44, 56, 0.92);
+    color: #e8e4dc;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    cursor: pointer;
+    font-size: 16px;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    opacity: 0.35;
+    transition: opacity 0.2s, transform 0.2s, background 0.2s;
+}
+
+body.is-editor .book-page-inner:hover > .page-add-btn,
+body.is-editor .page-add-btn:focus,
+body.is-editor .page-add-btn.is-open {
+    opacity: 1;
+}
+
+.page-add-btn:hover {
+    background: var(--accent-red);
+    transform: translateX(-50%) scale(1.08);
+}
+
+.add-element-menu {
+    position: fixed;
+    z-index: 30000;
+    min-width: 200px;
+    background: #1a1c24;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 6px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    animation: aemFadeIn 0.15s ease;
+}
+
+.add-element-menu.hidden {
+    display: none;
+}
+
+@keyframes aemFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.aem-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 4px;
+    text-align: left;
+    transition: background 0.15s, color 0.15s;
+}
+
+.aem-item i {
+    width: 16px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.aem-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.aem-item:hover i {
+    color: var(--accent-red);
+}
+
+/* ───────────────────────────────────────────────────────────────
+   Outils par élément (delete / move / rotate) en mode éditeur
+   ─────────────────────────────────────────────────────────────── */
+
+body.is-editor .book-page-inner [contenteditable="true"],
+body.is-editor .book-page-inner figure,
+body.is-editor .book-page-inner > [data-element] {
+    position: relative;
+}
+
+.element-tools {
+    position: absolute;
+    /* Positionnée à l'intérieur du coin haut-droit de l'élément pour ne
+       jamais être clippée par .book-page { overflow: hidden } lorsque
+       l'élément est tout en haut de la page. */
+    top: 4px;
+    right: 4px;
+    display: none;
+    gap: 2px;
+    background: rgba(20, 22, 28, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 4px;
+    padding: 2px;
+    z-index: 6;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+body.is-editor .book-page-inner > [data-element]:hover > .element-tools,
+body.is-editor .book-page-inner > [data-element]:focus-within > .element-tools {
+    display: inline-flex;
+}
+
+.element-tools button {
+    background: transparent;
+    border: none;
+    color: #e8e4dc;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    cursor: pointer;
+    font-size: 11px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+}
+
+.element-tools button:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.element-tools .et-del:hover {
+    background: var(--accent-red);
+    color: #fff;
+}
+
+/* Marquer les éléments éditables avec un léger contour pointillé en mode éditeur */
+body.is-editor .book-page-inner > [data-element] {
+    outline: 1px dashed transparent;
+    outline-offset: 4px;
+    border-radius: 2px;
+    transition: outline-color 0.2s;
+}
+
+body.is-editor .book-page-inner > [data-element]:hover {
+    outline-color: rgba(120, 90, 60, 0.45);
+}
+
+/* ───────────────────────────────────────────────────────────────
+   Barre de mise en forme flottante
+   ─────────────────────────────────────────────────────────────── */
+
+.format-toolbar {
+    /* Barre ancrée en haut de l'écran, toujours à la même place,
+       pour ne jamais cacher le texte en cours d'édition. */
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 25000;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 8px;
+    background: rgba(18, 20, 26, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #e8e4dc;
+    transition: opacity 0.15s ease;
+    transform-origin: center top;
+    max-width: calc(100vw - 16px);
+}
+
+.format-toolbar.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ft-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 0 4px;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ft-group:last-child {
+    border-right: none;
+}
+
+.ft-select {
+    background: rgba(35, 38, 48, 0.9);
+    color: #e8e4dc;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+    padding: 5px 6px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    outline: none;
+    max-width: 170px;
+}
+
+.ft-select.ft-size {
+    max-width: 70px;
+}
+
+.ft-select:focus {
+    border-color: var(--accent-red);
+}
+
+.ft-btn {
+    background: transparent;
+    color: #e8e4dc;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+}
+
+.ft-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.ft-btn.is-active {
+    background: rgba(229, 57, 53, 0.85);
+    color: #fff;
+}
+
+.ft-inks {
+    gap: 4px;
+}
+
+.ft-ink {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.ft-ink:hover {
+    transform: scale(1.18);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18);
+}
+
+/* ───────────────────────────────────────────────────────────────
+   Pages : drop-zone, ajustements pour mode éditeur
+   ─────────────────────────────────────────────────────────────── */
+
+.book-page.is-drop-target {
+    box-shadow: inset 0 0 0 3px var(--accent-red), 0 0 24px rgba(229, 57, 53, 0.45);
+}
+
+.book-page.is-drop-target::after {
+    content: 'Déposer pour ajouter une image';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.6);
+    color: #1a1a1a;
+    font-family: 'Special Elite', monospace;
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* Permettre aux figures d'être centrées et avoir un peu d'espace */
+.book-page-inner > figure.photo-taped {
+    display: block;
+    margin: 16px auto;
+}
+
+/* Petite icône de rotation : photo qui se penche un peu */
+.photo-taped[data-rotate="-3"] { transform: rotate(-3deg); }
+.photo-taped[data-rotate="-2"] { transform: rotate(-2deg); }
+.photo-taped[data-rotate="-1"] { transform: rotate(-1deg); }
+.photo-taped[data-rotate="0"] { transform: rotate(0deg); }
+.photo-taped[data-rotate="1"] { transform: rotate(1deg); }
+.photo-taped[data-rotate="2"] { transform: rotate(2deg); }
+.photo-taped[data-rotate="3"] { transform: rotate(3deg); }
+.photo-taped[data-rotate="4"] { transform: rotate(4deg); }
+.photo-taped[data-rotate="5"] { transform: rotate(5deg); }
+
+/* Divider décoratif manuscrit */
+.book-divider {
+    height: 24px;
+    margin: 16px auto;
+    width: 70%;
+    background-image:
+        linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.5) 20%, rgba(0,0,0,0.5) 80%, transparent 100%);
+    background-repeat: no-repeat;
+    background-size: 100% 1px;
+    background-position: center;
+    position: relative;
+}
+
+.book-divider::after {
+    content: '✦';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--paper, #d8d4cc);
+    padding: 0 10px;
+    color: rgba(0, 0, 0, 0.55);
+    font-size: 12px;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   Notice : cacher l'ancien layout vertical des spreads
+   ─────────────────────────────────────────────────────────────── */
+
+/* Quand on ouvre un menu d'ajout, l'écran derrière reste cliquable mais le menu est au-dessus */
+body.aem-open {
+    cursor: default;
+}
+
+/* Polices manuscrites — utilisables via execCommand fontName */
+.font-caveat        { font-family: 'Caveat', cursive; }
+.font-dancing       { font-family: 'Dancing Script', cursive; }
+.font-kalam         { font-family: 'Kalam', cursive; }
+.font-indie         { font-family: 'Indie Flower', cursive; }
+.font-shadows       { font-family: 'Shadows Into Light', cursive; }
+.font-patrick       { font-family: 'Patrick Hand', cursive; }
+.font-reenie        { font-family: 'Reenie Beanie', cursive; }
+.font-architects    { font-family: 'Architects Daughter', cursive; }
+.font-homemade      { font-family: 'Homemade Apple', cursive; }
+.font-gloria        { font-family: 'Gloria Hallelujah', cursive; }
+.font-cedarville    { font-family: 'Cedarville Cursive', cursive; }
+.font-belle         { font-family: 'La Belle Aurore', cursive; }
+.font-marck         { font-family: 'Marck Script', cursive; }
+.font-nothing       { font-family: 'Nothing You Could Do', cursive; }
+.font-rocksalt      { font-family: 'Rock Salt', cursive; }
+.font-permanent     { font-family: 'Permanent Marker', cursive; }
+.font-sacramento    { font-family: 'Sacramento', cursive; }
+.font-pinyon        { font-family: 'Pinyon Script', cursive; }
+.font-elite         { font-family: 'Special Elite', monospace; }
+.font-imfell        { font-family: 'IM Fell English', serif; }
+.font-imfellsc      { font-family: 'IM Fell English SC', serif; }
+.font-cormorant     { font-family: 'Cormorant Garamond', serif; }
+.font-lora          { font-family: 'Lora', serif; }
+.font-tech          { font-family: 'Share Tech Mono', monospace; }
+
+@media (max-width: 1100px) {
+    .book-viewer {
+        grid-template-columns: 40px 1fr 40px;
+    }
+    .book-nav {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 700px) {
+    .book-viewer {
+        grid-template-columns: 32px 1fr 32px;
+    }
+    .book-nav {
+        font-size: 16px;
+        min-height: 0;
+    }
+    .format-toolbar {
+        max-width: 96vw;
+        overflow-x: auto;
+    }
+}
+
+/* ─── Cloud Sync Indicator ─── */
+
+.sync-indicator {
+    position: fixed;
+    bottom: 14px;
+    left: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px 5px 10px;
+    border-radius: 20px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .04em;
+    z-index: 10000;
+    pointer-events: none;
+    user-select: none;
+    transition: opacity .4s ease;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,.06);
+}
+.sync-icon { font-size: 14px; line-height: 1; }
+
+.sync--idle         { background: rgba(20,20,25,.65); color: #8899aa; }
+.sync--syncing      { background: rgba(50,42,10,.8);  color: #ffd54f; }
+.sync--synced       { background: rgba(12,40,22,.8);  color: #81c784; }
+.sync--error        { background: rgba(55,12,12,.8);  color: #ef5350; }
+.sync--local        { background: rgba(20,20,25,.5);  color: #666;    }
+
+.sync--syncing .sync-icon {
+    display: inline-block;
+    animation: syncSpin .9s linear infinite;
+}
+@keyframes syncSpin { to { transform: rotate(360deg); } }
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE — mobile, tablet, desktop, widescreen, ultrawide
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Grands écrans : le livre et le dossier peuvent s'étirer plus large ─── */
+@media (min-width: 1600px) {
+    .journal-wrap--book {
+        max-width: 1400px;
+    }
+    .bio-container {
+        padding: 40px 8%;
+    }
+    .bio-content {
+        max-width: 860px;
+    }
+}
+
+@media (min-width: 2000px) {
+    .journal-wrap--book {
+        max-width: 1600px;
+    }
+    .bio-container {
+        padding: 40px 12%;
+    }
+}
+
+@media (min-width: 2600px) {
+    .journal-wrap--book {
+        max-width: 1800px;
+    }
+    .page-title {
+        font-size: 60px;
+    }
+}
+
+/* ─── Laptop standard : garder la disposition actuelle ─── */
+@media (max-width: 1200px) {
+    .bio-container {
+        padding: 32px 5%;
+    }
+    .journal-wrap--book {
+        padding: 32px 16px 50px;
+    }
+}
+
+/* ─── Tablette paysage / petit laptop : dossier plus compact ─── */
+@media (max-width: 1024px) {
+    .bio-container {
+        gap: 20px;
+        padding: 24px 4%;
+    }
+    .bio-menu {
+        width: 220px;
+    }
+    .nav-btn {
+        font-size: 13px;
+        padding: 10px 12px;
+        gap: 10px;
+    }
+}
+
+/* ─── Tablette portrait : le dossier passe en colonne ─── */
+@media (max-width: 900px) {
+    .bio-container {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 24px 4%;
+        gap: 16px;
+        overflow-y: auto;
+        height: auto;
+        min-height: 100%;
+    }
+    .bio-left {
+        flex: 0 0 auto;
+        max-height: 45vh;
+    }
+    .model-image {
+        max-height: 45vh;
+    }
+    .bio-menu {
+        width: 100%;
+        padding-top: 0;
+    }
+    .vertical-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .nav-btn {
+        flex: 1 1 auto;
+        min-width: 120px;
+        justify-content: center;
+    }
+    .bio-content {
+        max-width: 100%;
+        max-height: none;
+        padding-bottom: 32px;
+    }
+    .menu-title {
+        font-size: 20px;
+        margin-bottom: 16px;
+        text-align: center;
+    }
+
+    /* Splash / titres */
+    .page-title {
+        font-size: 36px;
+        margin-top: 6vh;
+    }
+
+    /* Sélection personnage */
+    .char-cards-container {
+        flex-direction: column;
+        gap: 24px;
+        padding: 12px 0 20px;
+        overflow-y: auto;
+    }
+    .char-card {
+        width: min(260px, 80vw);
+    }
+    .char-card-image {
+        height: 340px;
+    }
+
+    /* Journal : wrap plus compact */
+    .journal-wrap--book {
+        padding: 24px 12px 40px;
+    }
+    .journal-header--book {
+        margin-bottom: 24px;
+    }
+
+    /* La règle existante @media (max-width: 900px) empile déjà les pages
+       du livre (.book-spread grid-template-columns: 1fr), mais on doit
+       aussi laisser le journal scroller verticalement et pas tout le
+       contenu s'écraser. */
+    .journal-book {
+        /* Empilement mobile : on laisse un format plus haut pour lire confortablement. */
+        width: 100%;
+        aspect-ratio: auto;
+        height: auto;
+        min-height: 720px;
+    }
+}
+
+/* ─── Mobile ─── */
+@media (max-width: 600px) {
+    .page-title {
+        font-size: 28px;
+        letter-spacing: 1px;
+        margin-top: 4vh;
+    }
+    .bio-container {
+        padding: 16px 10px;
+    }
+    .nav-btn {
+        font-size: 12px;
+        padding: 8px 10px;
+        min-width: 100px;
+    }
+    .menu-title {
+        font-size: 18px;
+    }
+    .journal-wrap--book {
+        padding: 16px 8px 32px;
+    }
+    .journal-stamp {
+        top: 12px;
+        right: 12px;
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+    .journal-title {
+        font-size: clamp(22px, 7vw, 32px) !important;
+    }
+    .journal-author {
+        font-size: 16px;
+    }
+    .journal-book {
+        width: 100%;
+        aspect-ratio: auto;
+        height: calc(100vh - 140px);
+        min-height: 640px;
+    }
+
+    /* Livre : padding interne des pages plus réduit sur mobile */
+    .book-page-inner {
+        padding: 20px 16px 32px;
+    }
+    .book-text {
+        font-size: 18px;
+    }
+    .book-heading {
+        font-size: 22px;
+    }
+    .book-stage {
+        padding: 10px 14px;
+    }
+
+    /* Editor UI plus compact */
+    .editor-fab {
+        bottom: 12px;
+        right: 12px;
+        width: 42px;
+        height: 42px;
+        font-size: 16px;
+    }
+    .editor-bar {
+        padding: 8px 12px;
+        gap: 8px;
+    }
+    .lang-switcher {
+        top: 8px;
+        right: 8px;
+    }
+    .sync-indicator {
+        bottom: 8px;
+        left: 8px;
+        font-size: 10px;
+    }
+
+    /* Modale et toolbar */
+    .format-toolbar {
+        gap: 6px;
+        padding: 6px 8px;
+    }
+}
+
+/* ─── Très petit mobile (≤ 380px) ─── */
+@media (max-width: 380px) {
+    .char-card {
+        width: 92vw;
+    }
+    .char-card-image {
+        height: 300px;
+    }
+    .journal-title {
+        font-size: 22px !important;
+    }
+    .book-text {
+        font-size: 16px;
+    }
+    .book-page-inner {
+        padding: 14px 10px 24px;
+    }
+}
+
+/* ─── Écrans courts (hauteur < 700px) ─── */
+@media (max-height: 700px) {
+    .page-title {
+        margin-top: 3vh;
+        font-size: 32px;
+    }
+    .journal-wrap--book {
+        padding: 12px 20px 8px;
+    }
+    .journal-header--book {
+        margin-bottom: 10px;
+    }
+    .journal-doc-id {
+        margin-bottom: 4px;
+        font-size: 10px;
+    }
+    .journal-title {
+        font-size: 26px !important;
+        margin-bottom: 2px;
+    }
+    .journal-author {
+        font-size: 16px;
+    }
+    .book-pager {
+        margin: 4px auto 2px;
+        font-size: 12px;
+    }
+    .journal-footer {
+        padding: 6px 0;
+    }
+    .journal-book {
+        height: calc(100vh - 160px);
+        min-height: 220px;
+        width: 100%;
+    }
+    .book-stage {
+        max-width: calc((100vh - 160px) * 1.5 + 48px);
+        padding: 10px 14px;
+    }
+    .journal-header--book { margin-bottom: 6px; }
+    .journal-doc-id { margin-bottom: 2px; font-size: 10px; }
+    .journal-title { font-size: 24px !important; margin-bottom: 0; }
+    .journal-author { font-size: 14px; }
+    .book-pager { margin: 2px auto; font-size: 11px; }
+    .journal-footer { padding: 4px 0; }
+    .journal-wrap--book { padding: 8px 16px 4px; }
+    .char-card-image {
+        height: 320px;
+    }
+
+    /* En mode éditeur + écran court : on compacte encore plus et on
+       affiche la toolbar d'ajout de page sur la même ligne que le pager
+       pour laisser toute la place au livre. */
+    body.is-editor .journal-doc-id { display: none; }
+    body.is-editor .journal-author { display: none; }
+    body.is-editor .journal-title {
+        font-size: 22px !important;
+        margin-bottom: 0;
+    }
+    body.is-editor .journal-header--book { margin-bottom: 4px; }
+    body.is-editor .journal-toolbar {
+        margin: 2px 0;
+    }
+    body.is-editor .btn-journal-add {
+        padding: 4px 10px;
+        font-size: 11px;
+    }
+    body.is-editor .journal-footer { padding: 4px 0; }
+    body.is-editor .book-stage { padding: 10px 14px; }
+    body.is-editor .journal-book {
+        height: calc(100vh - 160px);
+        min-height: 220px;
+        width: 100%;
+    }
+    body.is-editor .book-stage {
+        max-width: calc((100vh - 160px) * 1.5 + 48px);
+    }
+}
+
+/* ─── Mode paysage sur mobile (téléphone tenu horizontalement) ─── */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
+    .bio-container {
+        flex-direction: row;
+        padding: 12px 3%;
+    }
+    .bio-left {
+        flex: 1;
+        max-height: none;
+    }
+    .model-image {
+        max-height: 85vh;
+    }
+    .bio-menu {
+        width: 180px;
+    }
+    .vertical-nav {
+        flex-direction: column;
+    }
+    .bio-content {
+        max-height: 100vh;
+    }
+    .journal-book {
+        width: 100%;
+        aspect-ratio: auto;
+        height: calc(100vh - 100px);
+        min-height: 380px;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TIPTAP — reset & integration
+   ═══════════════════════════════════════════════════════════════════ */
+
+/*
+ * Tiptap wraps content in a <div class="tiptap"> (or whatever the
+ * editorProps.attributes.class is set to). We strip the Tiptap default
+ * outline and let our own .book-text / .book-heading styles take over.
+ */
+.tiptap-content {
+    outline: none;
+    min-height: 1em;
+    width: 100%;
+}
+
+/* Remove Tiptap's default p margin so our .book-text margin is the only one */
+.tiptap-content p {
+    margin: 0;
+}
+
+/* Make the entire Tiptap wrapper match the surrounding book-text font */
+.book-text .tiptap-content,
+.book-heading .tiptap-content,
+.book-caption .tiptap-content,
+.book-id-grid .tiptap-content {
+    font: inherit;
+    color: inherit;
+    line-height: inherit;
+}
+
+/*
+ * .book-element is the wrapper Svelte renders around each page element.
+ * It replaces the old [data-element] selectors.
+ * We keep position:relative so .element-tools can be absolutely positioned.
+ */
+.book-element {
+    position: relative;
+}
+
+/* Dashed outline on hover in editor mode (matches old [data-element] rule) */
+body.is-editor .book-element {
+    outline: 1px dashed transparent;
+    outline-offset: 4px;
+    border-radius: 2px;
+    transition: outline-color 0.2s;
+}
+
+body.is-editor .book-element:hover {
+    outline-color: rgba(120, 90, 60, 0.45);
+}
+
+body.is-editor .book-element:hover > .element-tools,
+body.is-editor .book-element:focus-within > .element-tools {
+    display: inline-flex;
+}
+
+/* Body class toggling for editor/read-only */
+body.is-editor {
+    padding-bottom: 60px;
+}
+
+/* Tiptap focus ring inside book pages */
+body.is-editor .book-page-inner .tiptap-content:focus {
+    background-color: rgba(255, 255, 255, 0.07);
+    border-radius: 2px;
+}
+
+/* Remove default ProseMirror placeholder styling */
+.tiptap-content p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: rgba(44, 36, 27, 0.35);
+    pointer-events: none;
+    height: 0;
+}
+
+/* cursor-pointer utility used in Svelte templates */
+.cursor-pointer { cursor: pointer; }
