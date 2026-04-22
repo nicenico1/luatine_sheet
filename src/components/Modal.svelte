@@ -1,4 +1,6 @@
 <script>
+    import { trStore } from '../lib/i18n.js';
+
     let visible      = $state(false);
     let message      = $state('');
     let showInput    = $state(false);
@@ -74,7 +76,7 @@
         <div class="fiche-modal-actions">
             {#if !confirmOnly}
                 <button type="button" class="fiche-modal-btn fiche-modal-cancel" onclick={onCancel}>
-                    Annuler
+                    {$trStore('modal_cancel')}
                 </button>
             {/if}
             <button type="button" class="fiche-modal-btn fiche-modal-ok" onclick={onOk}>

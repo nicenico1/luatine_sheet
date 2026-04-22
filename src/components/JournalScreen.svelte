@@ -5,6 +5,7 @@
     import { isEditor }        from '../stores/editor.js';
     import { currentSpreadIdx, totalSpreads } from '../stores/journal.js';
     import { defaultSpread }   from '../lib/spreadParser.js';
+    import { trStore }         from '../lib/i18n.js';
 
     let {
         spreads  = $bindable([]),
@@ -75,10 +76,10 @@
     async function removeSpread() {
         if (!$isEditor) return;
         if (spreads.length <= 1) {
-            await modal?.({ message: 'Impossible : il doit rester au moins une double-page.', confirmOnly: true });
+            await modal?.({ message: $trStore('journal_remove_forbidden'), confirmOnly: true });
             return;
         }
-        const ok = await modal?.({ message: 'Supprimer définitivement la double-page actuelle ?' });
+        const ok = await modal?.({ message: $trStore('journal_remove_confirm') });
         if (!ok) return;
         spreads = spreads.filter((_, i) => i !== $currentSpreadIdx);
         $totalSpreads = spreads.length;
@@ -97,7 +98,7 @@
 
 <div id="journal-screen" class="screen active">
     <div class="journal-wrap journal-wrap--book">
-        <div class="journal-stamp">CONFIDENTIEL</div>
+        <div class="journal-stamp">{$trStore('journal_stamp')}</div>
 
         <!-- FIX: header fields are now editable and wired to fields store -->
         <header class="journal-header journal-header--book">
@@ -106,19 +107,19 @@
                 class="journal-doc-id"
                 contenteditable={$isEditor ? 'true' : 'false'}
                 onblur={(e) => updateField('journal-doc', e.target.innerHTML)}
-            >{@html getField('journal-doc', 'DOCUMENT — NIVEAU D / USAGE RP')}</p>
+            >{@html getField('journal-doc', $trStore('journal_doc'))}</p>
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
             <h1
                 class="journal-title"
                 contenteditable={$isEditor ? 'true' : 'false'}
                 onblur={(e) => updateField('journal-title', e.target.innerHTML)}
-            >{@html getField('journal-title', 'JOURNAL INTIME')}</h1>
+            >{@html getField('journal-title', $trStore('journal_title'))}</h1>
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
             <p
                 class="journal-author"
                 contenteditable={$isEditor ? 'true' : 'false'}
                 onblur={(e) => updateField('journal-author', e.target.innerHTML)}
-            >{@html getField('journal-author', 'Lua Tyler — citoyenne — U.N.I.S.C.A.')}</p>
+            >{@html getField('journal-author', $trStore('journal_author'))}</p>
         </header>
 
         <!-- Format toolbar — reads from activeEditor store directly -->
@@ -129,7 +130,7 @@
             <button
                 type="button"
                 class="book-nav book-nav--prev"
-                aria-label="Page précédente"
+                aria-label={$trStore('aria_prev')}
                 disabled={!canPrev}
                 onclick={prevSpread}
             >
@@ -152,7 +153,7 @@
             <button
                 type="button"
                 class="book-nav book-nav--next"
-                aria-label="Page suivante"
+                aria-label={$trStore('aria_next')}
                 disabled={!canNext}
                 onclick={nextSpread}
             >
@@ -171,12 +172,12 @@
         {#if $isEditor}
         <div class="journal-toolbar">
             <button type="button" class="btn-journal-add editor-only"
-                title="Ajouter une double-page" onclick={addSpread}>
-                <i class="fas fa-plus"></i> Ajouter une double-page
+                title={$trStore('journal_title_add_spread')} onclick={addSpread}>
+                <i class="fas fa-plus"></i> {$trStore('journal_btn_add_spread')}
             </button>
             <button type="button" class="btn-journal-add editor-only"
-                title="Supprimer la double-page actuelle" onclick={removeSpread}>
-                <i class="fas fa-trash"></i> Supprimer cette double-page
+                title={$trStore('journal_title_remove_spread')} onclick={removeSpread}>
+                <i class="fas fa-trash"></i> {$trStore('journal_btn_remove_spread')}
             </button>
         </div>
         {/if}

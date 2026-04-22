@@ -17,6 +17,7 @@
  */
 
 import { sanitizeHTML } from './persist.js';
+import { tr } from './i18n.js';
 
 /**
  * Flatten Tiptap HTML for saving inside our own block elements.
@@ -225,8 +226,22 @@ function serializeElement(el) {
 
 export function defaultSpread() {
     return {
-        left:  { pageNum: '—', elements: [{ type: 'paragraph', content: 'Écrire sur la page de gauche…' }] },
-        right: { pageNum: '—', elements: [{ type: 'photo', src: '', variant: 'normal', rotate: 0, w: 520, h: 340, alt: '', caption: 'Légende — lieu — date.' }] },
+        left:  { pageNum: '—', elements: [{ type: 'paragraph', content: tr('tpl_write_left') }] },
+        right: {
+            pageNum: '—',
+            elements: [
+                {
+                    type:    'photo',
+                    src:     '',
+                    variant: 'normal',
+                    rotate:  0,
+                    w:       520,
+                    h:       340,
+                    alt:     '',
+                    caption: tr('tpl_caption'),
+                },
+            ],
+        },
     };
 }
 

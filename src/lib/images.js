@@ -2,6 +2,7 @@
  * Image helpers: resize + upload to Firebase Storage or fall back to base64.
  */
 import { uploadImageToFirebase, isFirebaseReady } from './firebase.js';
+import { tr } from './i18n.js';
 
 const MAX_SIZE = 1200;
 
@@ -44,5 +45,6 @@ export async function resolveImageSrc(file) {
 }
 
 export function placeholderImg(w, h) {
-    return `https://placehold.co/${w}x${h}/d4d2cc/5a5a5a?text=Cliquer+pour+changer`;
+    const text = encodeURIComponent(tr('img_placeholder_generic'));
+    return `https://placehold.co/${w}x${h}/d4d2cc/5a5a5a?text=${text}`;
 }
