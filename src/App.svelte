@@ -308,11 +308,10 @@
 <div class="background-image"></div>
 <div class="background-overlay"></div>
 
-<LangSwitcher />
-
 <!-- SPLASH -->
 {#if $currentScreen === 'splash'}
 <div id="splash-screen" class="screen active">
+    <LangSwitcher />
     <div class="splash-content">
         <p class="splash-text">{@html $trStore('splash_text')}</p>
     </div>
