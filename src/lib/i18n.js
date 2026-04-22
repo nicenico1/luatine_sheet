@@ -7,12 +7,14 @@ import { MESSAGES, LANG_STORAGE_KEY } from './messages.js';
 /** @typedef {'fr' | 'en'} Lang */
 
 function readStoredLang() {
-    if (typeof localStorage === 'undefined') return 'fr';
+    if (typeof localStorage === 'undefined') return 'en';
     try {
         const v = localStorage.getItem(LANG_STORAGE_KEY);
-        return v === 'en' ? 'en' : 'fr';
+        if (v === 'fr') return 'fr';
+        if (v === 'en') return 'en';
+        return 'en';
     } catch {
-        return 'fr';
+        return 'en';
     }
 }
 

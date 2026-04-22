@@ -6,6 +6,7 @@
     import { isEditor } from '../stores/editor.js';
     import { resolveImageSrc } from '../lib/images.js';
     import { trStore, lang } from '../lib/i18n.js';
+    import { normalizeFieldValue, getBilingualHtml } from '../lib/bilingualFields.js';
 
     let { fields = $bindable({}), images = $bindable([]), onSave = () => {}, actions } = $props();
 
@@ -18,33 +19,9 @@
         return id === 'model-img' || id.endsWith('-img');
     }
 
-    /** @param {unknown} v */
-    function normalizeFieldValue(v) {
-        if (v && typeof v === 'object' && ('fr' in v || 'en' in v)) {
-            return {
-                fr: typeof v.fr === 'string' ? v.fr : '',
-                en: typeof v.en === 'string' ? v.en : '',
-            };
-        }
-        const s = typeof v === 'string' ? v : '';
-        return { fr: s, en: '' };
-    }
-
     /** @param {string} id */
     function getField(id, fallback = '') {
-        const raw = fields[id];
-        const L = $lang;
-        if (raw && typeof raw === 'object' && ('fr' in raw || 'en' in raw)) {
-            const b = /** @type {{ fr?: string; en?: string }} */ (raw);
-            if (L === 'en') {
-                if (b.en && String(b.en).trim()) return b.en;
-                if (isImageFieldId(id)) return b.fr || '';
-                return '';
-            }
-            return b.fr || '';
-        }
-        if (typeof raw === 'string') return raw;
-        return fallback;
+        return getBilingualHtml(fields[id], $lang, fallback, { imageField: isImageFieldId(id) });
     }
 
     /** @param {string} id */
@@ -58,6 +35,23 @@
         } else {
             fields = { ...fields, [id]: { ...prev, fr: value } };
         }
+        onSave();
+    }
+
+    function readGeneticBarPct() {
+        const o = normalizeFieldValue(fields['bio-genetic-pct']);
+        const n = parseInt(String(o.fr || o.en || '40'), 10);
+        if (!Number.isFinite(n)) return 40;
+        return Math.min(100, Math.max(0, n));
+    }
+
+    let geneticBarPct = $derived(readGeneticBarPct());
+
+    function setGeneticBarPctFromInput(text) {
+        const n = parseInt(String(text).replace(/\D/g, ''), 10);
+        const pct = Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : 40;
+        const s = String(pct);
+        fields = { ...fields, 'bio-genetic-pct': { fr: s, en: s } };
         onSave();
     }
 
@@ -167,7 +161,16 @@
                         >{@html getField('dd-yeux', $trStore('dd_yeux'))}</div>
                     </div>
                     <div class="progress-bar-container">
-                        <div class="progress-bar" style="width: 40%;"></div>
+                        <div class="progress-bar" style={`width: ${geneticBarPct}%;`}>
+                            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+                            <span
+                                class="progress-pct-end"
+                                contenteditable={$isEditor ? 'true' : 'false'}
+                                spellcheck="false"
+                                title={$isEditor ? $trStore('bio_genetic_pct_hint') : ''}
+                                onblur={(e) => { if ($isEditor) setGeneticBarPctFromInput(e.target.textContent ?? ''); }}
+                            >{geneticBarPct}%</span>
+                        </div>
                         <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
                         <span class="progress-text" contenteditable={$isEditor ? 'true' : 'false'}
                             onblur={(e) => updateField('bio-height', e.target.innerHTML)}

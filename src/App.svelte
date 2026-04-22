@@ -34,6 +34,7 @@
         deepCloneSpreads,
         mergeJournalSpreadsEnFromFr,
     } from './lib/spreadParser.js';
+    import { getBilingualHtml } from './lib/bilingualFields.js';
 
     // ── modal ──────────────────────────────────────────────────────────────
     let modalComp = $state(null);
@@ -51,22 +52,8 @@
         ADD_ITEM_KEYS.map((row) => ({ ...row, label: $trStore(row.key) }))
     );
 
-    /** @param {unknown} raw @param {'fr'|'en'} L */
-    function bilingualHtmlField(raw, L, fallback = '') {
-        if (raw && typeof raw === 'object' && ('fr' in raw || 'en' in raw)) {
-            const b = /** @type {{ fr?: string; en?: string }} */ (raw);
-            if (L === 'en') {
-                if (b.en && String(b.en).trim()) return b.en;
-                return '';
-            }
-            return b.fr || '';
-        }
-        if (typeof raw === 'string') return raw;
-        return fallback;
-    }
-
-    let charNameHtml = $derived(bilingualHtmlField(fields['char-name'], $lang, 'LUA TYLER'));
-    let charFactionHtml = $derived(bilingualHtmlField(fields['char-faction'], $lang, 'U.N.I.S.C.A.'));
+    let charNameHtml = $derived(getBilingualHtml(fields['char-name'], $lang, 'LUA TYLER'));
+    let charFactionHtml = $derived(getBilingualHtml(fields['char-faction'], $lang, 'U.N.I.S.C.A.'));
 
     let cardImgSrc = $derived.by(() => {
         const ph = `https://placehold.co/300x500/1a1c23/ffffff?text=${encodeURIComponent($trStore('img_placeholder_card'))}`;
