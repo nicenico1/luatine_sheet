@@ -127,6 +127,7 @@
             attrPoints:     '8',
             skillPoints:    '10',
             lang:           L,
+            savedAt:        Date.now(),
         };
     }
 

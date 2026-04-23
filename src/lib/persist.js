@@ -60,6 +60,8 @@ function getFirebaseSaveDebounced() {
 }
 
 export function persistSnapshot(snapshot) {
+    // Stamp the snapshot so loadSnapshot can compare freshness across sources.
+    snapshot.savedAt = Date.now();
     // Firebase first (async, won't block)
     try { getFirebaseSaveDebounced()(snapshot); } catch { /* ignore */ }
 
@@ -94,9 +96,8 @@ export async function loadSnapshot() {
         }
     } catch { /* file:// or not found */ }
 
-    // 2. Firebase (takes priority for fields/images/meta, but only replaces
-    //    journal pages when Firebase actually HAS pages — prevents an empty
-    //    Firebase cloud save from wiping the static fiche-export.json journal)
+    // 2. Firebase — best source when available; loaded data is held tentatively
+    //    so step 3 can still override it if localStorage is fresher.
     if (isFirebaseReady()) {
         try {
             const cloud = await loadFromFirebase();
@@ -107,10 +108,7 @@ export async function loadSnapshot() {
                     (typeof cloud.journalHTML === 'string' && cloud.journalHTML.trim().length > 0);
 
                 if (cloudHasJournal) {
-                    // Cloud has full data — use it exclusively
                     data = cloud;
-                    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch { /* ignore */ }
-                    return data;
                 } else {
                     // Cloud only has metadata (fields, images) — merge over static JSON
                     // but KEEP the static journal pages
@@ -128,12 +126,18 @@ export async function loadSnapshot() {
         }
     }
 
-    // 3. localStorage
+    // 3. localStorage — wins when it carries a newer savedAt timestamp than Firebase.
+    //    Firebase writes are debounced 2 s after the app's own 600 ms debounce, so
+    //    there is a ~2.6 s window where localStorage is ahead of Firebase.  If Firebase
+    //    save failed entirely, localStorage stays the most recent source indefinitely.
     try {
         const raw = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem('ficherp_save_v2');
         if (raw) {
             const local = JSON.parse(raw);
-            if (local?.version >= 2) data = local;
+            if (local?.version >= 2) {
+                const localNewer = (local.savedAt ?? 0) > (data?.savedAt ?? 0);
+                if (!data || localNewer) data = local;
+            }
         }
     } catch { /* ignore */ }
 
