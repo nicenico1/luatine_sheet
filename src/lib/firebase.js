@@ -157,18 +157,17 @@ export async function saveToFirebase(snapshot) {
         if (!skipPages) {
             // Active UI language (compat / readers expecting `pages`)
             await syncJournalSubcollection(sheetRef, PAGE_COL_ACTIVE, pages);
-            // Bilingual copies — always persist both when journal is non-empty
+            // Bilingual copies — only write a subcollection when we have content.
+            // Never call syncJournalSubcollection with [] when the buffer is empty:
+            // that would batch-delete Firestore data that failed to load (e.g. network
+            // error on startup left journalPagesEN = []), permanently wiping EN content.
             const fr = Array.isArray(snapshot.journalPagesFR) ? snapshot.journalPagesFR : [];
             const en = Array.isArray(snapshot.journalPagesEN) ? snapshot.journalPagesEN : [];
             if (fr.length > 0) {
                 await syncJournalSubcollection(sheetRef, PAGE_COL_FR, fr);
-            } else {
-                await syncJournalSubcollection(sheetRef, PAGE_COL_FR, []);
             }
             if (en.length > 0) {
                 await syncJournalSubcollection(sheetRef, PAGE_COL_EN, en);
-            } else {
-                await syncJournalSubcollection(sheetRef, PAGE_COL_EN, []);
             }
         }
 
