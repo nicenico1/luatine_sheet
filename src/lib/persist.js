@@ -71,6 +71,8 @@ export function persistSnapshot(snapshot) {
             try {
                 const lite = { ...snapshot };
                 delete lite.journalPages;
+                delete lite.journalPagesFR;
+                delete lite.journalPagesEN;
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(lite));
                 console.warn('[FicheRP] localStorage quota — pages omitted');
             } catch { /* ignore */ }
@@ -100,7 +102,8 @@ export async function loadSnapshot() {
             const cloud = await loadFromFirebase();
             if (cloud?.version >= 2) {
                 const cloudHasJournal =
-                    (Array.isArray(cloud.journalPages) && cloud.journalPages.length > 0) ||
+                    (Array.isArray(cloud.journalPagesFR) && cloud.journalPagesFR.length > 0) ||
+                    (Array.isArray(cloud.journalPages)   && cloud.journalPages.length   > 0) ||
                     (typeof cloud.journalHTML === 'string' && cloud.journalHTML.trim().length > 0);
 
                 if (cloudHasJournal) {

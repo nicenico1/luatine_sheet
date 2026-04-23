@@ -110,14 +110,10 @@
             frPages = deepCloneSpreads(spreads);
         }
 
-        const enPages = journalPagesEN.length
-            ? mergeJournalSpreadsEnFromFr(journalPagesEN, frPages)
-            : [];
-
-        let enPagesOut = enPages;
-        if (L === 'en' && spreads.length) {
-            enPagesOut = deepCloneSpreads(spreads);
-        }
+        // When EN is active, use spreads directly — skip the merge (FR is not being edited).
+        let enPagesOut = (L === 'en' && spreads.length)
+            ? deepCloneSpreads(spreads)
+            : (journalPagesEN.length ? mergeJournalSpreadsEnFromFr(journalPagesEN, frPages) : []);
 
         const activePages = L === 'en' && enPagesOut.length ? enPagesOut : frPages;
         return {
