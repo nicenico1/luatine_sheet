@@ -1,5 +1,5 @@
 <script>
-    import { onMount, tick }    from 'svelte';
+    import { onMount, onDestroy, tick } from 'svelte';
     import Modal                from './components/Modal.svelte';
     import SyncIndicator        from './components/SyncIndicator.svelte';
     import EditorBar            from './components/EditorBar.svelte';
@@ -344,10 +344,17 @@
 
     // ── bootstrap ──────────────────────────────────────────────────────────
 
+    // Flush any pending debounced save to localStorage before the page unloads.
+    // Without this, a refresh within the 600 ms debounce window loses the latest edit.
+    function flushSave() {
+        persistSnapshot(collectSnapshot());
+    }
+
     onMount(async () => {
         initFirebase();
         const data = await loadSnapshot();
         applySnapshot(data);
+        window.addEventListener('beforeunload', flushSave);
 
         const params = new URLSearchParams(window.location.search);
         if (params.get('edit') === '1' && !$isEditor) {
@@ -358,6 +365,10 @@
         }
 
         setTimeout(() => go('char-select'), 3500);
+    });
+
+    onDestroy(() => {
+        window.removeEventListener('beforeunload', flushSave);
     });
 </script>
 
