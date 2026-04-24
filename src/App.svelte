@@ -30,6 +30,7 @@
     import {
         parseSpreadHTML,
         serializeSpread,
+        defaultSpread,
         defaultSpreads,
         deepCloneSpreads,
         mergeJournalSpreadsEnFromFr,
@@ -132,21 +133,43 @@
     }
 
     const saveDebounced = debounce(() => persistSnapshot(collectSnapshot()), 600);
+
+    /**
+     * When editing in EN, mirror any structural changes (spread count, element
+     * additions/removals) back to FR so that mergeJournalSpreadsEnFromFr never
+     * silently drops EN content on reload.  FR text is preserved; only the
+     * structure is brought into sync with the EN view.
+     */
+    function syncFrPageFromEn(frPage, enPage) {
+        const enEls = enPage?.elements ?? [];
+        const frEls = frPage?.elements ?? [];
+        const elements = enEls.map((enEl, i) => {
+            const frEl = frEls[i];
+            if (frEl && frEl.type === enEl.type) return { ...frEl };
+            if (enEl.type === 'paragraph' || enEl.type === 'caption') return { ...enEl, content: '' };
+            if (enEl.type === 'id-card') return { ...enEl, colA: '', colB: '' };
+            return { ...enEl }; // heading, photo, divider — same in both languages
+        });
+        return { pageNum: frPage?.pageNum ?? enPage?.pageNum ?? '—', elements };
+    }
+
+    function syncFrStructureFromEn(frSpreads, enSpreads) {
+        return enSpreads.map((enS, i) => {
+            const frS = frSpreads[i] ?? defaultSpread();
+            return {
+                left:  syncFrPageFromEn(frS.left,  enS.left),
+                right: syncFrPageFromEn(frS.right, enS.right),
+            };
+        });
+    }
+
     function onDataChanged() {
         const L = get(lang);
         if (L === 'en') {
             journalPagesEN = deepCloneSpreads(spreads);
-            // FR is the layout master — keep its spread count in sync with EN.
-            // mergeJournalSpreadsEnFromFr iterates over FR, so any EN spread beyond
-            // FR's length is silently dropped on reload.
-            if (spreads.length > journalPagesFR.length) {
-                // Spread(s) added in EN — append matching default spreads to FR
-                const extra = Array.from({ length: spreads.length - journalPagesFR.length }, defaultSpread);
-                journalPagesFR = [...journalPagesFR, ...extra];
-            } else if (spreads.length < journalPagesFR.length) {
-                // Spread(s) removed in EN — trim FR to match
-                journalPagesFR = journalPagesFR.slice(0, spreads.length);
-            }
+            // Keep FR structure (spreads + elements) in sync with EN so the merge
+            // on reload never drops EN-only spreads or elements.
+            journalPagesFR = syncFrStructureFromEn(journalPagesFR, spreads);
         } else {
             journalPagesFR = deepCloneSpreads(spreads);
         }
