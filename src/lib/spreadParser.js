@@ -281,21 +281,8 @@ export function clearJournalTranslatableText(spread) {
 function mergeElementForEnSync(enEl, frEl) {
     if (!frEl) return enEl;
     if (!enEl) {
-        if (frEl.type === 'paragraph' || frEl.type === 'caption') {
-            return { ...frEl, content: '' };
-        }
-        if (frEl.type === 'heading') {
-            return { ...frEl };
-        }
-        if (frEl.type === 'id-card') {
-            return { ...frEl, colA: '', colB: '' };
-        }
-        if (frEl.type === 'photo') {
-            return { ...frEl };
-        }
-        if (frEl.type === 'divider') {
-            return { ...frEl };
-        }
+        // FR element has no EN counterpart yet — show FR content as the starting point.
+        // The user can type over it in EN mode to provide a translation.
         return { ...frEl };
     }
     if (frEl.type === 'photo' && enEl.type === 'photo') {
@@ -312,6 +299,14 @@ function mergeElementForEnSync(enEl, frEl) {
         };
     }
     if (frEl.type === enEl.type) {
+        // For text elements: show EN content when present, otherwise fall back to FR
+        // (same pattern as bio fields — EN starts showing FR until the user translates it).
+        if (enEl.type === 'paragraph' || enEl.type === 'caption') {
+            return { ...enEl, content: enEl.content || frEl.content };
+        }
+        if (enEl.type === 'id-card') {
+            return { ...enEl, colA: enEl.colA || frEl.colA, colB: enEl.colB || frEl.colB };
+        }
         return { ...enEl };
     }
     return { ...frEl };
