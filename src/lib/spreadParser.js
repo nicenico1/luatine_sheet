@@ -299,13 +299,16 @@ function mergeElementForEnSync(enEl, frEl) {
         return { ...frEl };
     }
     if (frEl.type === 'photo' && enEl.type === 'photo') {
+        // Photos are shared — FR and EN are kept in sync by syncFrStructureFromEn.
+        // Prefer FR values (already mirrored from EN) but fall back to EN for each
+        // property; use || not ?? so empty-string src is treated as absent.
         return {
             ...enEl,
-            src:     frEl.src ?? enEl.src,
-            variant: frEl.variant ?? enEl.variant,
-            rotate:  frEl.rotate ?? enEl.rotate,
-            w:       frEl.w ?? enEl.w,
-            h:       frEl.h ?? enEl.h,
+            src:     frEl.src     || enEl.src,
+            variant: frEl.variant || enEl.variant,
+            rotate:  frEl.rotate  ?? enEl.rotate,
+            w:       frEl.w       || enEl.w,
+            h:       frEl.h       || enEl.h,
         };
     }
     if (frEl.type === enEl.type) {

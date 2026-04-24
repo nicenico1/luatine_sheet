@@ -145,10 +145,18 @@
         const frEls = frPage?.elements ?? [];
         const elements = enEls.map((enEl, i) => {
             const frEl = frEls[i];
-            if (frEl && frEl.type === enEl.type) return { ...frEl };
+            if (frEl && frEl.type === enEl.type) {
+                // Photos are identical in both languages — always mirror EN → FR so
+                // that src / rotate / dimensions changed in EN are not lost on reload
+                // (mergeJournalSpreadsEnFromFr uses FR's photo metadata as the source).
+                if (enEl.type === 'photo') return { ...enEl };
+                // For text elements keep FR's own content (preserves FR translation).
+                return { ...frEl };
+            }
+            // New element added in EN that FR doesn't have yet — add a blank FR copy.
             if (enEl.type === 'paragraph' || enEl.type === 'caption') return { ...enEl, content: '' };
             if (enEl.type === 'id-card') return { ...enEl, colA: '', colB: '' };
-            return { ...enEl }; // heading, photo, divider — same in both languages
+            return { ...enEl }; // heading, divider, photo — same in both languages
         });
         return { pageNum: frPage?.pageNum ?? enPage?.pageNum ?? '—', elements };
     }
