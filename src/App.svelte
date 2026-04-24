@@ -134,8 +134,22 @@
     const saveDebounced = debounce(() => persistSnapshot(collectSnapshot()), 600);
     function onDataChanged() {
         const L = get(lang);
-        if (L === 'en') journalPagesEN = deepCloneSpreads(spreads);
-        else journalPagesFR = deepCloneSpreads(spreads);
+        if (L === 'en') {
+            journalPagesEN = deepCloneSpreads(spreads);
+            // FR is the layout master — keep its spread count in sync with EN.
+            // mergeJournalSpreadsEnFromFr iterates over FR, so any EN spread beyond
+            // FR's length is silently dropped on reload.
+            if (spreads.length > journalPagesFR.length) {
+                // Spread(s) added in EN — append matching default spreads to FR
+                const extra = Array.from({ length: spreads.length - journalPagesFR.length }, defaultSpread);
+                journalPagesFR = [...journalPagesFR, ...extra];
+            } else if (spreads.length < journalPagesFR.length) {
+                // Spread(s) removed in EN — trim FR to match
+                journalPagesFR = journalPagesFR.slice(0, spreads.length);
+            }
+        } else {
+            journalPagesFR = deepCloneSpreads(spreads);
+        }
         saveDebounced();
     }
 
