@@ -118,9 +118,7 @@ export async function loadSnapshot() {
     }
 
     // 3. localStorage — wins when it carries a newer savedAt timestamp than Firebase.
-    //    Firebase writes are debounced 2 s after the app's own 600 ms debounce, so
-    //    there is a ~2.6 s window where localStorage is ahead of Firebase.  If Firebase
-    //    save failed entirely, localStorage stays the most recent source indefinitely.
+    //    If Firebase save failed entirely, localStorage stays the most recent source.
     try {
         const raw = localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem('ficherp_save_v2');
         if (raw) {
