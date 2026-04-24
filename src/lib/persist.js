@@ -48,22 +48,13 @@ export function debounce(fn, ms) {
 
 // ─── save ───────────────────────────────────────────────────────────────────
 
-let _firebaseSaveDebounced = null;
-
-function getFirebaseSaveDebounced() {
-    if (!_firebaseSaveDebounced) {
-        _firebaseSaveDebounced = debounce((snap) => {
-            if (isFirebaseReady()) saveToFirebase(snap);
-        }, 2000);
-    }
-    return _firebaseSaveDebounced;
-}
-
 export function persistSnapshot(snapshot) {
     // Stamp the snapshot so loadSnapshot can compare freshness across sources.
     snapshot.savedAt = Date.now();
-    // Firebase first (async, won't block)
-    try { getFirebaseSaveDebounced()(snapshot); } catch { /* ignore */ }
+    // Firebase — fire immediately (the 600 ms app-level debounce already batches
+    // rapid edits; a separate Firebase debounce only adds dangerous lag that causes
+    // cross-browser data loss when another client loads before the write completes).
+    try { if (isFirebaseReady()) saveToFirebase(snapshot); } catch { /* ignore */ }
 
     // localStorage fallback
     try {
