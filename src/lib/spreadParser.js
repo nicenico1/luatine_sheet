@@ -198,7 +198,7 @@ export function serializeSpread(spread) {
 
 function serializePage(page, side) {
     const inner = (page.elements ?? []).map(serializeElement).join('');
-    const num   = page.pageNum ?? '—';
+    const num   = page.pageNum || '—';
     return `<div class="book-page book-page--${side}"><div class="book-page-inner">${inner}</div><div class="book-page-num">${num}</div>${side === 'left' ? '<div class="book-decoration book-decoration--blot" aria-hidden="true"></div>' : ''}</div>`;
 }
 

@@ -27,7 +27,7 @@
 >
     <BookPage
         side="left"
-        pageNum={spread.left.pageNum ?? '—'}
+        pageNum={spread.left.pageNum || '—'}
         elements={spread.left.elements}
         hasBlot={true}
         onPageNumCommit={(v) => handlePageNum('left', v)}
@@ -36,7 +36,7 @@
     <div class="book-gutter" aria-hidden="true"></div>
     <BookPage
         side="right"
-        pageNum={spread.right.pageNum ?? '—'}
+        pageNum={spread.right.pageNum || '—'}
         elements={spread.right.elements}
         hasBlot={false}
         onPageNumCommit={(v) => handlePageNum('right', v)}

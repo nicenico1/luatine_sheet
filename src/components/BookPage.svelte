@@ -56,7 +56,7 @@
     }
 
     $effect(() => {
-        const next = pageNum ?? '—';
+        const next = pageNum || '—';
         if (!pageNumEl || document.activeElement === pageNumEl) return;
         const cur = (pageNumEl.textContent ?? '').trim();
         if (cur !== next) pageNumEl.textContent = next;
