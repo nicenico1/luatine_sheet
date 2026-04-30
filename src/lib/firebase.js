@@ -148,12 +148,14 @@ export async function saveToFirebase(snapshot) {
             stepperVals: snapshot.stepperVals ?? [],
             attrPoints:  snapshot.attrPoints ?? '8',
             skillPoints: snapshot.skillPoints ?? '10',
-            updatedAt:   serverTimestamp(),
-            journalHTML: deleteField(),
+            updatedAt:        serverTimestamp(),
+            journalHTML:      deleteField(),
+            journalSummaryFR: Array.isArray(snapshot.journalSummaryFR) ? snapshot.journalSummaryFR : [],
+            journalSummaryEN: Array.isArray(snapshot.journalSummaryEN) ? snapshot.journalSummaryEN : [],
             // Store savedAt so loadSnapshot can compare freshness against localStorage.
             // Without this, cloud.savedAt is always undefined (→ 0) and localStorage
             // always wins the freshness check, permanently serving stale data in Chrome.
-            savedAt:     snapshot.savedAt ?? Date.now(),
+            savedAt:          snapshot.savedAt ?? Date.now(),
         };
         if (snapshot.lang) parent.lang = snapshot.lang;
         await setDoc(sheetRef, parent, { merge: true });

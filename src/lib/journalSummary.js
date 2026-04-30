@@ -56,12 +56,11 @@ export function coerceJournalSummaryEntries(raw) {
             if (row && typeof row === 'object') {
                 const o = row;
                 const title = typeof o.title === 'string' ? o.title : '';
-                const page = typeof o.page === 'string' ? o.page : '';
+                const page  = typeof o.page  === 'string' ? o.page  : '';
                 return { title, page };
             }
             return { title: '', page: '' };
-        })
-        .filter((e) => normalizePageLabel(e.title) || normalizePageLabel(e.page));
+        });
 }
 
 /** @param {unknown} html */
