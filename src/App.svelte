@@ -36,6 +36,10 @@
         mergeJournalSpreadsEnFromFr,
     } from './lib/spreadParser.js';
     import { getBilingualHtml } from './lib/bilingualFields.js';
+    import {
+        coerceJournalSummaryEntries,
+        migrateJournalSummaryFromFieldsHtml,
+    } from './lib/journalSummary.js';
 
     // ── modal ──────────────────────────────────────────────────────────────
     let modalComp = $state(null);
@@ -48,6 +52,9 @@
     let spreads          = $state([]);
     let journalPagesFR   = $state([]);
     let journalPagesEN   = $state([]);
+    let journalSummary   = $state([]);
+    let journalSummaryFR = $state([]);
+    let journalSummaryEN = $state([]);
 
     const addMenuItems = $derived(
         ADD_ITEM_KEYS.map((row) => ({ ...row, label: $trStore(row.key) }))
@@ -123,6 +130,8 @@
             journalPages:   activePages.map((s, i) => ({ order: i, html: serializeSpread(s) })),
             journalPagesFR: frPages.map((s, i) => ({ order: i, html: serializeSpread(s) })),
             journalPagesEN: enPagesOut.map((s, i) => ({ order: i, html: serializeSpread(s) })),
+            journalSummaryFR: L === 'fr' ? [...journalSummary] : [...journalSummaryFR],
+            journalSummaryEN: L === 'en' ? [...journalSummary] : [...journalSummaryEN],
             images,
             stepperVals,
             attrPoints:     '8',
@@ -175,11 +184,13 @@
         const L = get(lang);
         if (L === 'en') {
             journalPagesEN = deepCloneSpreads(spreads);
+            journalSummaryEN = [...journalSummary];
             // Keep FR structure (spreads + elements) in sync with EN so the merge
             // on reload never drops EN-only spreads or elements.
             journalPagesFR = syncFrStructureFromEn(journalPagesFR, spreads);
         } else {
             journalPagesFR = deepCloneSpreads(spreads);
+            journalSummaryFR = [...journalSummary];
         }
         saveDebounced();
     }
@@ -195,12 +206,19 @@
             return;
         }
         if (prevContentLang === L) return;
-        if (prevContentLang === 'en') journalPagesEN = deepCloneSpreads(spreads);
-        else journalPagesFR = deepCloneSpreads(spreads);
+        if (prevContentLang === 'en') {
+            journalPagesEN = deepCloneSpreads(spreads);
+            journalSummaryEN = [...journalSummary];
+        } else {
+            journalPagesFR = deepCloneSpreads(spreads);
+            journalSummaryFR = [...journalSummary];
+        }
         if (L === 'en') {
             spreads = mergeJournalSpreadsEnFromFr(journalPagesEN, journalPagesFR);
+            journalSummary = [...journalSummaryEN];
         } else {
             spreads = journalPagesFR.length ? deepCloneSpreads(journalPagesFR) : defaultSpreads();
+            journalSummary = [...journalSummaryFR];
         }
         prevContentLang = L;
     });
@@ -219,6 +237,9 @@
         if (!data) {
             journalPagesFR = defaultSpreads();
             journalPagesEN = [];
+            journalSummaryFR = [];
+            journalSummaryEN = [];
+            journalSummary = [];
             spreads = deepCloneSpreads(journalPagesFR);
             prevContentLang = get(lang);
             return;
@@ -272,12 +293,46 @@
         if (!journalPagesFR.length) {
             journalPagesFR = defaultSpreads();
         }
+
+        const legacyFlat = coerceJournalSummaryEntries(data.journalSummary);
+        let frSum = coerceJournalSummaryEntries(data.journalSummaryFR);
+        if (!frSum.length) frSum = [...legacyFlat];
+
+        let enSum = coerceJournalSummaryEntries(data.journalSummaryEN);
+        if (!Array.isArray(data.journalSummaryEN)) {
+            enSum = legacyFlat.length ? [...legacyFlat] : [...frSum];
+        }
+
+        if (!frSum.length && !enSum.length) {
+            frSum = migrateJournalSummaryFromFieldsHtml(
+                fields['journal-summary'] && typeof fields['journal-summary'] === 'object'
+                    ? /** @type {{ fr?: string }} */ (fields['journal-summary']).fr
+                    : ''
+            );
+            const migratedEn = migrateJournalSummaryFromFieldsHtml(
+                fields['journal-summary'] && typeof fields['journal-summary'] === 'object'
+                    ? /** @type {{ en?: string }} */ (fields['journal-summary']).en
+                    : ''
+            );
+            if (!Array.isArray(data.journalSummaryEN)) {
+                enSum = migratedEn.length ? migratedEn : [...frSum];
+            } else {
+                enSum = migratedEn;
+            }
+        }
+
+        journalSummaryFR = frSum;
+        journalSummaryEN = enSum;
+
         const L = data.lang === 'en' ? 'en' : 'fr';
         if (L === 'en') {
             spreads = mergeJournalSpreadsEnFromFr(journalPagesEN, journalPagesFR);
+            journalSummary = [...journalSummaryEN];
         } else {
             spreads = deepCloneSpreads(journalPagesFR);
+            journalSummary = [...journalSummaryFR];
         }
+
         prevContentLang = L;
     }
 
@@ -451,6 +506,7 @@
 {#if $currentScreen === 'journal'}
 <JournalScreen
     bind:spreads
+    bind:journalSummary
     bind:fields
     bind:images
     {modal}

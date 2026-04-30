@@ -11,6 +11,10 @@
     function handleUpdate(side, elements) {
         onUpdate({ ...spread, [side]: { ...spread[side], elements } });
     }
+
+    function handlePageNum(side, pageNum) {
+        onUpdate({ ...spread, [side]: { ...spread[side], pageNum } });
+    }
 </script>
 
 <section
@@ -23,15 +27,19 @@
 >
     <BookPage
         side="left"
+        pageNum={spread.left.pageNum ?? '—'}
         elements={spread.left.elements}
         hasBlot={true}
+        onPageNumCommit={(v) => handlePageNum('left', v)}
         onUpdate={(els) => handleUpdate('left', els)}
     />
     <div class="book-gutter" aria-hidden="true"></div>
     <BookPage
         side="right"
+        pageNum={spread.right.pageNum ?? '—'}
         elements={spread.right.elements}
         hasBlot={false}
+        onPageNumCommit={(v) => handlePageNum('right', v)}
         onUpdate={(els) => handleUpdate('right', els)}
     />
 </section>

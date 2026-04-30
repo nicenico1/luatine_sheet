@@ -156,6 +156,13 @@ function parseElements(pageInner) {
     return elements;
 }
 
+function parsePageInner(innerRoot) {
+    if (!innerRoot) return [];
+    const clone = /** @type {HTMLElement} */ (innerRoot.cloneNode(true));
+    clone.querySelectorAll('.book-page-num').forEach((n) => n.remove());
+    return parseElements(clone);
+}
+
 /**
  * Parse a raw .book-spread HTML string into a structured spread object.
  */
@@ -170,11 +177,11 @@ export function parseSpreadHTML(html) {
     return {
         left: {
             pageNum:  left?.querySelector('.book-page-num')?.textContent?.trim() ?? '',
-            elements: parseElements(left?.querySelector('.book-page-inner')),
+            elements: parsePageInner(left?.querySelector('.book-page-inner')),
         },
         right: {
             pageNum:  right?.querySelector('.book-page-num')?.textContent?.trim() ?? '',
-            elements: parseElements(right?.querySelector('.book-page-inner')),
+            elements: parsePageInner(right?.querySelector('.book-page-inner')),
         },
     };
 }
