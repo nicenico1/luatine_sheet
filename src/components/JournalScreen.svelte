@@ -37,6 +37,7 @@
 
     let isFlipping   = $state(false);
     let directionMap = $state({});
+    let summaryOpen  = $state(false);
 
     /** Bumps when UI language changes so BookSpread/BookPage remount and Tiptap reloads content. */
     let journalRemountKey = $state(0);
@@ -136,6 +137,7 @@
             await modal?.({ message: $trStore('journal_summary_not_found'), confirmOnly: true });
             return;
         }
+        summaryOpen = false;
         goTo(idx);
     }
 </script>
@@ -170,63 +172,6 @@
 
         <!-- Format toolbar — reads from activeEditor store directly -->
         <FormatToolbar />
-
-        {#if journalSummary.length > 0 || $isEditor}
-        <section class="journal-summary" aria-label={$trStore('journal_summary_heading')}>
-            <h2 class="journal-summary__title">{$trStore('journal_summary_heading')}</h2>
-            {#if $isEditor}
-            <p class="journal-summary__hint">{$trStore('journal_summary_hint')}</p>
-            {/if}
-            <ul class="journal-summary__list">
-                {#each journalSummary as row, i (i)}
-                    <li class="journal-summary__item">
-                        {#if $isEditor}
-                        <input
-                            class="journal-summary__input journal-summary__input--title"
-                            type="text"
-                            value={row.title}
-                            placeholder={$trStore('journal_summary_title_ph')}
-                            oninput={(e) => patchSummaryRow(i, { title: e.currentTarget.value })}
-                        />
-                        <input
-                            class="journal-summary__input journal-summary__input--page"
-                            type="text"
-                            inputmode="numeric"
-                            value={row.page}
-                            placeholder={$trStore('journal_summary_page_ph')}
-                            oninput={(e) => patchSummaryRow(i, { page: e.currentTarget.value })}
-                        />
-                        <button
-                            type="button"
-                            class="journal-summary__remove editor-only"
-                            title={$trStore('journal_summary_remove')}
-                            aria-label={$trStore('journal_summary_remove')}
-                            onclick={() => removeSummaryRow(i)}
-                        >
-                            <i class="fas fa-times"></i>
-                        </button>
-                        {:else}
-                        <button
-                            type="button"
-                            class="journal-summary__link"
-                            onclick={() => jumpToSummaryPage(row.page)}
-                        >
-                            <span class="journal-summary__link-title">{row.title || row.page}</span>
-                            {#if row.title && row.page}
-                            <span class="journal-summary__link-meta">({row.page})</span>
-                            {/if}
-                        </button>
-                        {/if}
-                    </li>
-                {/each}
-            </ul>
-            {#if $isEditor}
-            <button type="button" class="journal-summary__add btn-journal-add editor-only" onclick={addSummaryRow}>
-                <i class="fas fa-plus"></i> {$trStore('journal_summary_add')}
-            </button>
-            {/if}
-        </section>
-        {/if}
 
         <!-- Book viewer -->
         <div class="book-viewer" id="book-viewer">
@@ -291,4 +236,81 @@
             {@render footer?.()}
         </footer>
     </div>
+
+    <!-- ── Sliding summary drawer (fixed, left side) ── -->
+    {#if journalSummary.length > 0 || $isEditor}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+        class="summary-drawer"
+        class:is-open={summaryOpen}
+    >
+        <aside class="summary-panel" aria-label={$trStore('journal_summary_heading')}>
+            <div class="summary-panel__inner">
+                <h2 class="journal-summary__title">{$trStore('journal_summary_heading')}</h2>
+                {#if $isEditor}
+                <p class="journal-summary__hint">{$trStore('journal_summary_hint')}</p>
+                {/if}
+                <ul class="journal-summary__list">
+                    {#each journalSummary as row, i (i)}
+                        <li class="journal-summary__item">
+                            {#if $isEditor}
+                            <input
+                                class="journal-summary__input journal-summary__input--title"
+                                type="text"
+                                value={row.title}
+                                placeholder={$trStore('journal_summary_title_ph')}
+                                oninput={(e) => patchSummaryRow(i, { title: e.currentTarget.value })}
+                            />
+                            <input
+                                class="journal-summary__input journal-summary__input--page"
+                                type="text"
+                                inputmode="numeric"
+                                value={row.page}
+                                placeholder={$trStore('journal_summary_page_ph')}
+                                oninput={(e) => patchSummaryRow(i, { page: e.currentTarget.value })}
+                            />
+                            <button
+                                type="button"
+                                class="journal-summary__remove editor-only"
+                                title={$trStore('journal_summary_remove')}
+                                aria-label={$trStore('journal_summary_remove')}
+                                onclick={() => removeSummaryRow(i)}
+                            >
+                                <i class="fas fa-times"></i>
+                            </button>
+                            {:else}
+                            <button
+                                type="button"
+                                class="journal-summary__link"
+                                onclick={() => jumpToSummaryPage(row.page)}
+                            >
+                                <span class="journal-summary__link-title">{row.title || row.page}</span>
+                                {#if row.title && row.page}
+                                <span class="journal-summary__link-meta">({row.page})</span>
+                                {/if}
+                            </button>
+                            {/if}
+                        </li>
+                    {/each}
+                </ul>
+                {#if $isEditor}
+                <button type="button" class="journal-summary__add btn-journal-add editor-only" onclick={addSummaryRow}>
+                    <i class="fas fa-plus"></i> {$trStore('journal_summary_add')}
+                </button>
+                {/if}
+            </div>
+        </aside>
+
+        <button
+            type="button"
+            class="summary-tab"
+            aria-label={summaryOpen ? $trStore('journal_summary_close') : $trStore('journal_summary_heading')}
+            onclick={() => summaryOpen = !summaryOpen}
+        >
+            <i class="fas fa-book-open"></i>
+            <span class="summary-tab__label">{$trStore('journal_summary_heading')}</span>
+        </button>
+    </div>
+    {/if}
 </div>
