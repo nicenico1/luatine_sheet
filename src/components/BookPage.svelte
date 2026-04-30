@@ -20,9 +20,11 @@
 
     let {
         side      = 'left',
+        pageNum   = '—',
         elements  = $bindable([]),
         hasBlot   = false,
         onUpdate  = () => {},
+        onPageNumCommit = () => {},
     } = $props();
 
     // ── DOM refs ──────────────────────────────────────────────────────────────
@@ -48,9 +50,17 @@
         }, 200);
     }
 
-    function mountPageNumEditor() {
-        // Page number field intentionally disabled — was showing "—" clutter
+    function commitPageNumFromDom() {
+        const raw = pageNumEl?.textContent ?? '';
+        onPageNumCommit(raw.trim() || '—');
     }
+
+    $effect(() => {
+        const next = pageNum ?? '—';
+        if (!pageNumEl || document.activeElement === pageNumEl) return;
+        const cur = (pageNumEl.textContent ?? '').trim();
+        if (cur !== next) pageNumEl.textContent = next;
+    });
 
     // ── element editors ───────────────────────────────────────────────────────
 
@@ -118,7 +128,7 @@
         [elements[idx - 1], elements[idx]] = [elements[idx], elements[idx - 1]];
         elements = [...elements];
         // rebuild editors in new order
-        setTimeout(() => { destroyAll(); elements.forEach((_, i) => mountEditor(i)); mountPageNumEditor(); }, 0);
+        setTimeout(() => { destroyAll(); elements.forEach((_, i) => mountEditor(i)); }, 0);
         emit();
     }
 
@@ -126,7 +136,7 @@
         if (idx >= elements.length - 1) return;
         [elements[idx], elements[idx + 1]] = [elements[idx + 1], elements[idx]];
         elements = [...elements];
-        setTimeout(() => { destroyAll(); elements.forEach((_, i) => mountEditor(i)); mountPageNumEditor(); }, 0);
+        setTimeout(() => { destroyAll(); elements.forEach((_, i) => mountEditor(i)); }, 0);
         emit();
     }
 
@@ -346,6 +356,15 @@
         {/if}
 
     </div>
+
+    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+    <div
+        class="book-page-num"
+        bind:this={pageNumEl}
+        contenteditable={$isEditor ? 'true' : 'false'}
+        data-placeholder="—"
+        onblur={commitPageNumFromDom}
+    >{pageNum}</div>
 
     {#if hasBlot}
         <div class="book-decoration book-decoration--blot" aria-hidden="true"></div>
